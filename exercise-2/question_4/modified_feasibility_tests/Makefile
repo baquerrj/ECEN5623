@@ -1,27 +1,43 @@
-INCLUDE_DIRS =
-LIB_DIRS =
-CC=gcc
+# Question 4 Makefile
 
-CDEFS=
-CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
-LIBS=
+ifeq ($(ARCH), aarch64)
+CC := aarch64-linux-gnu-gcc
+else
+CC := gcc
+endif
 
-HFILES=
-CFILES= modified_feasibility_tests.c
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-SRCS= ${HFILES} ${CFILES}
-OBJS= ${CFILES:.c=.o}
+CFLAGS	:= -Wall -g
+BINDIR	:= ./bin
+OBJDIR 	:= ./obj
+PROG 	:= $(BINDIR)/$(current_dir)
 
-all:	modified_feasibility_tests
+HFILES	:= $(wildcard *.h)
+CFILES 	:= $(wildcard *.c)
+SRCS   	:= ${HFILES} ${CFILES}
+OBJFILES:= $(patsubst %.c, $(OBJDIR)/%.o, $(CFILES))
 
+.PHONY: all
+all: directories $(PROG)
+
+.PHONY: clean
 clean:
-	-rm -f *.o *.d
-	-rm -f modified_feasibility_tests
+	rm -rf $(BINDIR) $(OBJDIR) *.o *.d
 
-modified_feasibility_tests: modified_feasibility_tests.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o -lm
+.PHONY: directories
+directories: $(OBJDIR) $(BINDIR)
 
-depend:
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-.c.o:
-	$(CC) $(CFLAGS) -c $<
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(PROG): $(OBJFILES)
+	mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) $^ -o $@ -lm
