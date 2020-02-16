@@ -9,15 +9,19 @@ endif
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-CFLAGS	:= -Wall -g
+CFLAGS	:= -Wall -g -I./ -I./inc
 BINDIR	:= ./bin
 OBJDIR 	:= ./obj
+INCDIR	:= ./inc
+SRCDIR	:= ./src
+
 PROG 	:= $(BINDIR)/$(current_dir)
 
-HFILES	:= $(wildcard *.h)
-CFILES 	:= $(wildcard *.c)
+
+HFILES	:= $(wildcard $(INCDIR)/*.h)
+CFILES 	:= $(wildcard $(SRCDIR)/*.c)
 SRCS   	:= ${HFILES} ${CFILES}
-OBJFILES:= $(patsubst %.c, $(OBJDIR)/%.o, $(CFILES))
+OBJFILES:= $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(CFILES))
 
 .PHONY: all
 all: directories $(PROG)
@@ -35,9 +39,8 @@ $(OBJDIR):
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
-$(OBJDIR)/%.o: %.c | $(OBJDIR)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(PROG): $(OBJFILES)
-	mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) $^ -o $@ -lm
