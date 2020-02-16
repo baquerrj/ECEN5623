@@ -59,8 +59,6 @@ int main( void )
 
    printf( "******** Completion Test Feasibility Example\n" );
 
-   //printf( "Ex-0 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-   //        ( ( 1.0 / 2.0 ) + ( 1.0 / 10.0 ) + ( 2.0 / 15.0 ) ) );
    numServices = sizeof( ex0_period ) / sizeof( U32_T );
    print_set_information( 0, numServices, ex0_period, ex0_wcet, ex0_period );
    if ( completion_time_feasibility( numServices, ex0_period, ex0_wcet, ex0_period ) == TRUE )
@@ -72,9 +70,8 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 5.0 ) + ( 1.0 / 7.0 ) ) );
    numServices = sizeof( ex1_period ) / sizeof( U32_T );
+   print_set_information( 1, numServices, ex1_period, ex1_wcet, ex1_period );
    if ( completion_time_feasibility( numServices, ex1_period, ex1_wcet, ex1_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -84,9 +81,8 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-2 U=%4.2f (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 5.0 ) + ( 1.0 / 7.0 ) + ( 2.0 / 13.0 ) ) );
    numServices = sizeof( ex2_period ) / sizeof( U32_T );
+   print_set_information( 2, numServices, ex2_period, ex2_wcet, ex2_period );
    if ( completion_time_feasibility( numServices, ex2_period, ex2_wcet, ex2_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -96,9 +92,8 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-3 U=%4.2f (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-           ( ( 1.0 / 3.0 ) + ( 2.0 / 5.0 ) + ( 3.0 / 15.0 ) ) );
    numServices = sizeof( ex3_period ) / sizeof( U32_T );
+   print_set_information( 3, numServices, ex3_period, ex3_wcet, ex3_period );
    if ( completion_time_feasibility( numServices, ex3_period, ex3_wcet, ex3_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -107,9 +102,10 @@ int main( void )
    {
       printf( "INFEASIBLE\n" );
    }
-   printf( "Ex-4 U=%4.2f (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 4.0 ) + ( 4.0 / 16.0 ) ) );
+
    numServices = sizeof( ex4_period ) / sizeof( U32_T );
+   print_set_information( 4, numServices, ex4_period, ex4_wcet, ex4_period );
+
    if ( completion_time_feasibility( numServices, ex4_period, ex4_wcet, ex4_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -119,9 +115,55 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   numServices = sizeof( ex9_period ) / sizeof( U32_T );
+   numServices = sizeof( ex5_period ) / sizeof( U32_T );
+   print_set_information( 5, numServices, ex5_period, ex5_wcet, ex5_period );
+
+   if ( completion_time_feasibility( numServices, ex5_period, ex5_wcet, ex5_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex6_period ) / sizeof( U32_T );
    print_set_information( 6, numServices, ex6_period, ex6_wcet, ex6_deadline );
+
    if ( completion_time_feasibility( numServices, ex6_period, ex6_wcet, ex6_deadline ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex7_period ) / sizeof( U32_T );
+   print_set_information( 7, numServices, ex7_period, ex7_wcet, ex7_period );
+   if ( completion_time_feasibility( numServices, ex7_period, ex7_wcet, ex7_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex8_period ) / sizeof( U32_T );
+   print_set_information( 8, numServices, ex8_period, ex8_wcet, ex8_period );
+   if ( completion_time_feasibility( numServices, ex8_period, ex8_wcet, ex8_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex9_period ) / sizeof( U32_T );
+   print_set_information( 9, numServices, ex9_period, ex9_wcet, ex9_period );
+   if ( completion_time_feasibility( numServices, ex9_period, ex9_wcet, ex9_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
    }
@@ -133,9 +175,9 @@ int main( void )
    printf( "\n\n" );
    printf( "******** Scheduling Point Feasibility Example\n" );
 
-   printf( "Ex-0 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 10.0 ) + ( 2.0 / 15.0 ) ) );
    numServices = sizeof( ex0_period ) / sizeof( U32_T );
+   print_set_information( 0, numServices, ex0_period, ex0_wcet, ex0_period );
+
    if ( scheduling_point_feasibility( numServices, ex0_period, ex0_wcet, ex0_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -145,9 +187,9 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 5.0 ) + ( 1.0 / 7.0 ) ) );
    numServices = sizeof( ex1_period ) / sizeof( U32_T );
+   print_set_information( 1, numServices, ex1_period, ex1_wcet, ex1_period );
+
    if ( scheduling_point_feasibility( numServices, ex1_period, ex1_wcet, ex1_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -157,9 +199,9 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-2 U=%4.2f (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 5.0 ) + ( 1.0 / 7.0 ) + ( 2.0 / 13.0 ) ) );
    numServices = sizeof( ex2_period ) / sizeof( U32_T );
+   print_set_information( 2, numServices, ex2_period, ex2_wcet, ex2_period );
+
    if ( scheduling_point_feasibility( numServices, ex2_period, ex2_wcet, ex2_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -169,9 +211,9 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-3 U=%4.2f (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-           ( ( 1.0 / 3.0 ) + ( 2.0 / 5.0 ) + ( 3.0 / 15.0 ) ) );
    numServices = sizeof( ex3_period ) / sizeof( U32_T );
+   print_set_information( 3, numServices, ex3_period, ex3_wcet, ex3_period );
+
    if ( scheduling_point_feasibility( numServices, ex3_period, ex3_wcet, ex3_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
@@ -181,10 +223,304 @@ int main( void )
       printf( "INFEASIBLE\n" );
    }
 
-   printf( "Ex-4 U=%4.2f (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-           ( ( 1.0 / 2.0 ) + ( 1.0 / 4.0 ) + ( 4.0 / 16.0 ) ) );
    numServices = sizeof( ex4_period ) / sizeof( U32_T );
+   print_set_information( 4, numServices, ex4_period, ex4_wcet, ex4_period );
+
    if ( scheduling_point_feasibility( numServices, ex4_period, ex4_wcet, ex4_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+   numServices = sizeof( ex5_period ) / sizeof( U32_T );
+   print_set_information( 5, numServices, ex5_period, ex5_wcet, ex5_period );
+
+   if ( scheduling_point_feasibility( numServices, ex5_period, ex5_wcet, ex5_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex6_period ) / sizeof( U32_T );
+   print_set_information( 6, numServices, ex6_period, ex6_wcet, ex6_deadline );
+
+   if ( scheduling_point_feasibility( numServices, ex6_period, ex6_wcet, ex6_deadline ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex7_period ) / sizeof( U32_T );
+   print_set_information( 7, numServices, ex7_period, ex7_wcet, ex7_period );
+   if ( scheduling_point_feasibility( numServices, ex7_period, ex7_wcet, ex7_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex8_period ) / sizeof( U32_T );
+   print_set_information( 8, numServices, ex8_period, ex8_wcet, ex8_period );
+   if ( scheduling_point_feasibility( numServices, ex8_period, ex8_wcet, ex8_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex9_period ) / sizeof( U32_T );
+   print_set_information( 9, numServices, ex9_period, ex9_wcet, ex9_period );
+   if ( scheduling_point_feasibility( numServices, ex9_period, ex9_wcet, ex9_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   printf( "\n\n" );
+   printf( "******** EDF Scheduling Example\n" );
+
+   numServices = sizeof( ex0_period ) / sizeof( U32_T );
+   print_set_information( 0, numServices, ex0_period, ex0_wcet, ex0_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex0_period, ex0_wcet, ex0_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex1_period ) / sizeof( U32_T );
+   print_set_information( 1, numServices, ex1_period, ex1_wcet, ex1_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex1_period, ex1_wcet, ex1_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex2_period ) / sizeof( U32_T );
+   print_set_information( 2, numServices, ex2_period, ex2_wcet, ex2_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex2_period, ex2_wcet, ex2_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex3_period ) / sizeof( U32_T );
+   print_set_information( 3, numServices, ex3_period, ex3_wcet, ex3_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex3_period, ex3_wcet, ex3_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex4_period ) / sizeof( U32_T );
+   print_set_information( 4, numServices, ex4_period, ex4_wcet, ex4_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex4_period, ex4_wcet, ex4_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+   numServices = sizeof( ex5_period ) / sizeof( U32_T );
+   print_set_information( 5, numServices, ex5_period, ex5_wcet, ex5_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex5_period, ex5_wcet, ex5_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex6_period ) / sizeof( U32_T );
+   print_set_information( 6, numServices, ex6_period, ex6_wcet, ex6_period );
+
+   if ( earliest_deadline_first_scheduler( numServices, ex6_period, ex6_wcet, ex6_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex7_period ) / sizeof( U32_T );
+   print_set_information( 7, numServices, ex7_period, ex7_wcet, ex7_period );
+   if ( earliest_deadline_first_scheduler( numServices, ex7_period, ex7_wcet, ex7_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex8_period ) / sizeof( U32_T );
+   print_set_information( 8, numServices, ex8_period, ex8_wcet, ex8_period );
+   if ( earliest_deadline_first_scheduler( numServices, ex8_period, ex8_wcet, ex8_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex9_period ) / sizeof( U32_T );
+   print_set_information( 9, numServices, ex9_period, ex9_wcet, ex9_period );
+   if ( earliest_deadline_first_scheduler( numServices, ex9_period, ex9_wcet, ex9_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   printf( "\n\n" );
+   printf( "******** LLF Scheduling Example\n" );
+
+   numServices = sizeof( ex0_period ) / sizeof( U32_T );
+   print_set_information( 0, numServices, ex0_period, ex0_wcet, ex0_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex0_period, ex0_wcet, ex0_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex1_period ) / sizeof( U32_T );
+   print_set_information( 1, numServices, ex1_period, ex1_wcet, ex1_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex1_period, ex1_wcet, ex1_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex2_period ) / sizeof( U32_T );
+   print_set_information( 2, numServices, ex2_period, ex2_wcet, ex2_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex2_period, ex2_wcet, ex2_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex3_period ) / sizeof( U32_T );
+   print_set_information( 3, numServices, ex3_period, ex3_wcet, ex3_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex3_period, ex3_wcet, ex3_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex4_period ) / sizeof( U32_T );
+   print_set_information( 4, numServices, ex4_period, ex4_wcet, ex4_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex4_period, ex4_wcet, ex4_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+   numServices = sizeof( ex5_period ) / sizeof( U32_T );
+   print_set_information( 5, numServices, ex5_period, ex5_wcet, ex5_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex5_period, ex5_wcet, ex5_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex6_period ) / sizeof( U32_T );
+   print_set_information( 6, numServices, ex6_period, ex6_wcet, ex6_period );
+
+   if ( least_laxity_first_scheduler( numServices, ex6_period, ex6_wcet, ex6_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex7_period ) / sizeof( U32_T );
+   print_set_information( 7, numServices, ex7_period, ex7_wcet, ex7_period );
+   if ( least_laxity_first_scheduler( numServices, ex7_period, ex7_wcet, ex7_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex8_period ) / sizeof( U32_T );
+   print_set_information( 8, numServices, ex8_period, ex8_wcet, ex8_period );
+   if ( least_laxity_first_scheduler( numServices, ex8_period, ex8_wcet, ex8_period ) == TRUE )
+   {
+      printf( "FEASIBLE\n" );
+   }
+   else
+   {
+      printf( "INFEASIBLE\n" );
+   }
+
+   numServices = sizeof( ex9_period ) / sizeof( U32_T );
+   print_set_information( 9, numServices, ex9_period, ex9_wcet, ex9_period );
+   if ( least_laxity_first_scheduler( numServices, ex9_period, ex9_wcet, ex9_period ) == TRUE )
    {
       printf( "FEASIBLE\n" );
    }
