@@ -193,10 +193,9 @@ static int getIndexOfMin( U32_T array[], U32_T n )
 int earliest_deadline_first_scheduler( U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[] )
 {
    U32_T lcm = getLcmOfPeriods( numServices, period );
+   U32_T min;
    U32_T i;
-   U32_T j;
    U32_T k;
-
    U32_T remainingComputationTime[ numServices ];
    U32_T timeUntilDeadline[ numServices ];
 
@@ -206,16 +205,17 @@ int earliest_deadline_first_scheduler( U32_T numServices, U32_T period[], U32_T 
       timeUntilDeadline[ i ]        = deadline[ i ];
    }
 
-   j = getIndexOfMin( timeUntilDeadline, numServices );
-   for ( k = 1; k < lcm; ++k )
+   for ( k = 1; k <= lcm; k++ )
    {
-      if ( remainingComputationTime[ j ] > 0 )
+      min = getIndexOfMin( timeUntilDeadline, numServices );
+
+      if ( remainingComputationTime[ min ] > 0 )
       {
-         remainingComputationTime[ j ]--;
+         remainingComputationTime[ min ]--;
       }
+
       for ( i = 0; i < numServices; i++ )
       {
-         //printf("\nservice %d,DEAD_TM=%d,comp_rem=%d\n",i,timeUntilDeadline[i],comp_rem[i]);
          if ( remainingComputationTime[ i ] == 0 )
          {
             timeUntilDeadline[ i ] = lcm;
@@ -236,13 +236,61 @@ int earliest_deadline_first_scheduler( U32_T numServices, U32_T period[], U32_T 
             remainingComputationTime[ i ] = wcet[ i ];
          }
       }
-      j = getIndexOfMin( timeUntilDeadline, numServices );
    }
-
    return TRUE;
 }
 
 int least_laxity_first_scheduler( U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[] )
 {
+   U32_T lcm = getLcmOfPeriods( numServices, period );
+   U32_T min;
+   U32_T i;
+   U32_T k;
+   U32_T remainingComputationTime[ numServices ];
+   U32_T timeUntilDeadline[ numServices ];
+   U32_T laxity[ numServices ];
+
+   for ( i = 0; i < numServices; ++i )
+   {
+      remainingComputationTime[ i ] = wcet[ i ];
+      timeUntilDeadline[ i ]        = deadline[ i ];
+   }
+
+   for ( k = 1; k <= lcm; ++k )
+   {
+      for ( i = 0; i < numServices; ++i )
+      {
+         laxity[ i ] = timeUntilDeadline[ i ] - remainingComputationTime[ i ];
+      }
+      min = getIndexOfMin( laxity, numServices );
+
+      if ( remainingComputationTime[ min ] > 0 )
+      {
+         remainingComputationTime[ min ]--;
+      }
+
+      for ( i = 0; i < numServices; i++ )
+      {
+         if ( remainingComputationTime[ i ] == 0 )
+         {
+            timeUntilDeadline[ i ] = lcm;
+         }
+         if ( timeUntilDeadline[ i ] > 0 )
+         {
+            //decrement all deadline times
+            timeUntilDeadline[ i ]--;
+         }
+         if ( timeUntilDeadline[ i ] < remainingComputationTime[ i ] )
+         {
+            return FALSE;
+         }
+
+         if ( k % period[ i ] == 0 )
+         {
+            timeUntilDeadline[ i ]        = deadline[ i ];
+            remainingComputationTime[ i ] = wcet[ i ];
+         }
+      }
+   }
    return TRUE;
 }
