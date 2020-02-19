@@ -1,3 +1,6 @@
+*.xml
+*.log
+
 # Prerequisites
 *.d
 
