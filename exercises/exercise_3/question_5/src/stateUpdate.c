@@ -4,10 +4,12 @@
 #include <stdlib.h>  // malloc, etc.
 #include <time.h>    // clock_gettime
 #include <unistd.h>  // for sleep()
+#include <signal.h>
 
 #define NSECS_PER_SEC   (1e9)
 pthread_t updateStateThread;
 pthread_t getStateThread;
+int stopAndJoin;
 
 // struct defining navigation state
 typedef struct
@@ -40,6 +42,7 @@ double yaw  = 6.6;
 void *updateState( void *args );
 void *getState( void *args );
 void printState( state_t *state );
+void signalHandler( int sigNum );
 
 void printState( state_t *state )
 {
@@ -53,7 +56,7 @@ void printState( state_t *state )
 
 void *updateState( void *args )
 {
-   while ( 1 )
+   while ( stopAndJoin != 1 )
    {
       //while ( gets != updates );
       pthread_mutex_lock( &navLock );
@@ -83,7 +86,7 @@ void *getState( void *args )
    timeout.tv_nsec = 0;
 
    int retVal = 0;
-   while ( 1 )
+   while ( stopAndJoin != 1 )
    {
       clock_gettime( CLOCK_REALTIME, &timeout );
       timeout.tv_sec += 10;
@@ -105,8 +108,18 @@ void *getState( void *args )
    return NULL;
 }
 
+void signalHandler( int sigNum )
+{
+   if( sigNum == SIGINT )
+   {
+      stopAndJoin = 1;
+      printf( "SIGINT received! Stopping...\n" );
+   }
+}
+
 int main( void )
 {
+   stopAndJoin = 0;
    pthread_attr_t updateStateThreadAttr;
    pthread_attr_t getStateThreadAttr;
 
@@ -134,6 +147,8 @@ int main( void )
       printf( "Failed to allocated memory for navState\n" );
       exit( EXIT_FAILURE );
    }
+
+   signal( SIGINT, signalHandler );
 
    // Create the threads
    pthread_create( &updateStateThread, &updateStateThreadAttr, updateState, NULL );
