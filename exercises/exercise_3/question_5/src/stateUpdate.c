@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>  // malloc, etc.
 #include <time.h>    // clock_gettime
+#include <unistd.h>  // for sleep()
+
+#define NSECS_PER_SEC   (1e9)
+pthread_t updateStateThread;
+pthread_t getStateThread;
 
 // struct defining navigation state
 typedef struct
@@ -21,10 +26,7 @@ state_t *navState;
 pthread_mutex_t navLock;
 
 // number of times to go through update/get operations
-int iterations = 5;
-int updates =0;
-int gets = 0;
-int started = 0;
+int updates    = 0;
 
 // initial nav data
 double x    = 1.1;
@@ -41,17 +43,21 @@ void printState( state_t *state );
 
 void printState( state_t *state )
 {
+   printf( "******************************\n" );
    printf( "accelX = %2.3f\taccelY = %2.3f\taccelZ = %2.3f\n", state->accelX, state->accelY, state->accelZ );
    printf( "row = %2.3f\tpitch = %2.3f\tyaw = %2.3f\n", state->roll, state->pitch, state->yaw );
-   printf( "time: %ld s, %ld ns\n", state->time.tv_sec, state->time.tv_nsec );
+   double timestamp = (double)state->time.tv_sec + (double)(state->time.tv_nsec/(double)NSECS_PER_SEC);
+   printf( "time: [%lf] s\n", timestamp );
+   printf( "******************************\n" );
 }
 
 void *updateState( void *args )
 {
-   while ( updates < iterations )
+   while ( 1 )
    {
-      while( gets != updates );
+      //while ( gets != updates );
       pthread_mutex_lock( &navLock );
+      printf( "******************************\n" );
       printf( "Updating state: %dth iteration\n", updates );
       navState->accelX = pow( x, updates );
       navState->accelY = pow( y, updates );
@@ -59,10 +65,13 @@ void *updateState( void *args )
       navState->roll   = pow( roll, updates );
       navState->pitch  = pow( pich, updates );
       navState->yaw    = pow( yaw, updates );
+      sleep(22);
       clock_gettime( CLOCK_REALTIME, &( navState->time ) );
       printf( "Finished updating state\n" );
+      printf( "******************************\n" );
       pthread_mutex_unlock( &navLock );
       updates++;
+      usleep(1);
    }
 
    return NULL;
@@ -70,35 +79,49 @@ void *updateState( void *args )
 
 void *getState( void *args )
 {
-   while ( gets < iterations )
+   struct timespec timeout;
+   timeout.tv_nsec = 0;
+
+   int retVal = 0;
+   while ( 1 )
    {
-      printf( "Reading state: %dth iteration\n", gets );
-      pthread_mutex_lock( &navLock );
-      printState( navState );
-      pthread_mutex_unlock( &navLock );
-      gets++;
+      clock_gettime( CLOCK_REALTIME, &timeout );
+      timeout.tv_sec += 10;
+      //printf( "Checking for new data\n" );
+      retVal = pthread_mutex_timedlock( &navLock, &timeout );
+      if ( retVal != 0 )
+      {
+         clock_gettime( CLOCK_REALTIME, &timeout );
+         double timestamp = (double)timeout.tv_sec + (double)(timeout.tv_nsec/(double)NSECS_PER_SEC);
+         printf( "No new data at time [%lf] s\n", timestamp );
+      }
+      else
+      {
+         printState( navState );
+         pthread_mutex_unlock( &navLock );
+      }
+   usleep(1);
    }
    return NULL;
 }
 
 int main( void )
 {
-   pthread_t updateStateThread;
-   pthread_t getStateThread;
    pthread_attr_t updateStateThreadAttr;
    pthread_attr_t getStateThreadAttr;
+
    struct sched_param updateStateThreadSchedParam;
    struct sched_param getStateThreadSchedParam;
 
    pthread_attr_init( &updateStateThreadAttr );
    pthread_attr_setinheritsched( &updateStateThreadAttr, PTHREAD_EXPLICIT_SCHED );
    pthread_attr_setschedpolicy( &updateStateThreadAttr, SCHED_FIFO );
-   updateStateThreadSchedParam.sched_priority = 4;
+   updateStateThreadSchedParam.sched_priority = 1;
 
    pthread_attr_init( &getStateThreadAttr );
    pthread_attr_setinheritsched( &getStateThreadAttr, PTHREAD_EXPLICIT_SCHED );
    pthread_attr_setschedpolicy( &getStateThreadAttr, SCHED_FIFO );
-   getStateThreadSchedParam.sched_priority = 4;
+   getStateThreadSchedParam.sched_priority = 1;
 
    pthread_attr_setschedparam( &updateStateThreadAttr, &updateStateThreadSchedParam );
    pthread_attr_setschedparam( &getStateThreadAttr, &getStateThreadSchedParam );
@@ -115,7 +138,6 @@ int main( void )
    // Create the threads
    pthread_create( &updateStateThread, &updateStateThreadAttr, updateState, NULL );
    pthread_create( &getStateThread, &getStateThreadAttr, getState, NULL );
-
    printf( "Threads started!\n" );
 
    pthread_join( updateStateThread, NULL );
