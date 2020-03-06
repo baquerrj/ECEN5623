@@ -1,10 +1,11 @@
 /*
 *  Code adapted from  http://mercury.pr.erau.edu/~siewerts/cec450/code/example-sync/
-*  Exercise3 Question3: This file demonstrates deadlock and was slightly modified
-*  in order to run properly in a linux environment.
+*  Exercise3 Question3: This file solves the deadlock encountered in deadlock.c
+*  by using pthread_mutex_timedlock with a random timeout to lock the second resource.
 *  compile: call make with included make file
-*  usage: $./deadlock
+*  usage: $./deadlock_fix
 */
+
 
 
 #include <pthread.h>
@@ -23,8 +24,9 @@ pthread_t threads[NUM_THREADS];
 struct sched_param nrt_param;
 pthread_mutex_t rsrcA, rsrcB; //two mutexes called resource a and b
 volatile int rsrcACnt=0, rsrcBCnt=0, noWait=0;
+struct timespec timeout_B;
+struct timespec timeout_A;
 int threadp;
-
 
 void *grabRsrcs(void *threadp)
 {
@@ -36,28 +38,58 @@ void *grabRsrcs(void *threadp)
      printf("THREAD 1 grabbing resources\n");
      pthread_mutex_lock(&rsrcA);
      rsrcACnt++;
-     if(!noWait) usleep(1000000);
+     if(!noWait) {sleep(1);}
      printf("THREAD 1 got A, trying for B\n");
-     pthread_mutex_lock(&rsrcB);
-     rsrcBCnt++;
-     printf("THREAD 1 got A and B\n");
-     pthread_mutex_unlock(&rsrcB);
-     pthread_mutex_unlock(&rsrcA);
-     printf("THREAD 1 done\n");
+
+	 clock_gettime(CLOCK_REALTIME,&(timeout_B));
+	 timeout_B.tv_sec += (rand()) % 10;
+	 int rscB_timeout = pthread_mutex_timedlock(&rsrcB,&timeout_B);
+ 	 if(rscB_timeout  != 0)
+	   {
+		   pthread_mutex_unlock(&rsrcA);
+		   sleep(1);
+		   pthread_mutex_lock(&rsrcA);
+		   pthread_mutex_lock(&rsrcB);
+
+	   }
+	 else
+	   {
+		   rsrcBCnt++;
+		   printf("THREAD 1 got A and B\n");
+		   pthread_mutex_unlock(&rsrcB);
+		   pthread_mutex_unlock(&rsrcA);
+		   printf("THREAD 1 done\n");
+	   }
    }
    else
    {
      printf("THREAD 2 grabbing resources\n");
      pthread_mutex_lock(&rsrcB);
      rsrcBCnt++;
-     if(!noWait) usleep(1000000);
+     if(!noWait) {sleep(3);}
      printf("THREAD 2 got B, trying for A\n");
-     pthread_mutex_lock(&rsrcA);
-     rsrcACnt++;
-     printf("THREAD 2 got B and A\n");
-     pthread_mutex_unlock(&rsrcA);
-     pthread_mutex_unlock(&rsrcB);
-     printf("THREAD 2 done\n");
+
+	 clock_gettime(CLOCK_REALTIME,&(timeout_A));
+	 timeout_A.tv_sec += (rand()) % 10;
+	 int rscA_timeout = pthread_mutex_timedlock(&rsrcA,&timeout_A);
+ 	 if(rscA_timeout  != 0)
+	   {
+		   pthread_mutex_unlock(&rsrcA);
+		   sleep(3);
+		   pthread_mutex_lock(&rsrcA);
+		   pthread_mutex_lock(&rsrcB);
+		    printf("working.... \n");
+	   }
+	 else
+	   {
+		rsrcACnt++;
+		printf("THREAD 2 got B and A\n");
+		pthread_mutex_unlock(&rsrcA);
+		pthread_mutex_unlock(&rsrcB);
+		printf("THREAD 2 done\n");
+	   }
+
+
    }
    pthread_exit(NULL);
 }

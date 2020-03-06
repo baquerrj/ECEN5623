@@ -3,6 +3,7 @@
 #include <sched.h>
 #include <time.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #define NUM_THREADS		4
 #define START_SERVICE 		0
@@ -17,14 +18,6 @@ int rt_max_prio, rt_min_prio;
 struct sched_param rt_param[NUM_THREADS];
 struct sched_param nrt_param;
 
-typedef struct
-{
-    int threadIdx;
-} threadParams_t;
-
-
-threadParams_t threadParams[NUM_THREADS];
-
 pthread_mutex_t msgSem;
 pthread_mutexattr_t rt_safe;
 
@@ -37,8 +30,10 @@ int intfTime=0;
 
 void *startService(void *threadid);
 
-unsigned const int seqIterations = 47;
-unsigned const int Iterations = 1000;
+unsigned int idx = 0, jdx = 1;
+unsigned int seqIterations = 47;
+unsigned int reqIterations = 1, Iterations = 1000;
+unsigned int fib = 0, fib0 = 0, fib1 = 1;
 
 #define FIB_TEST(seqCnt, iterCnt)      \
    for(idx=0; idx < iterCnt; idx++)    \
@@ -51,26 +46,21 @@ unsigned const int Iterations = 1000;
          fib = fib0 + fib1;            \
          jdx++;                        \
       }                                \
-      jdx=0;                           \
    }                                   \
 
 
-void *idleNoSem(void *threadp)
+void *idleNoSem(void *threadid)
 {
   struct timespec timeNow;
-  unsigned int idx = 0, jdx = 1;
-  volatile unsigned int fib = 0, fib0 = 0, fib1 = 1;
-  threadParams_t *threadParams = (threadParams_t *)threadp;
-  int idleIdx = threadParams->threadIdx;
 
   do
   {
     FIB_TEST(seqIterations, Iterations);
-    idleCount[idleIdx]++;
-  } while(idleCount[idleIdx] < runInterference);
+    idleCount[(int)threadid]++;
+  } while(idleCount[(int)threadid] < runInterference);
 
-  gettimeofday(&timeNow, (void *)0);
-  printf("**** %d idle NO SEM stopping at %d sec, %d nsec\n", idleIdx, (int)timeNow.tv_sec, (int)timeNow.tv_nsec);
+  gettimeofday(&timeNow,NULL);
+  printf("**** %d idle NO SEM stopping at %d sec, %d nsec\n", (int)threadid, timeNow.tv_sec, timeNow.tv_nsec);
 
   pthread_exit(NULL);
 }
@@ -78,13 +68,9 @@ void *idleNoSem(void *threadp)
 
 int CScnt=0;
 
-void *idle(void *threadp)
+void *idle(void *threadid)
 {
   struct timespec timeNow;
-  unsigned int idx = 0, jdx = 1;
-  volatile unsigned int fib = 0, fib0 = 0, fib1 = 1;
-  threadParams_t *threadParams = (threadParams_t *)threadp;
-  int idleIdx = threadParams->threadIdx;
 
   pthread_mutex_lock(&msgSem);
   CScnt++;
@@ -92,23 +78,23 @@ void *idle(void *threadp)
   do
   {
     FIB_TEST(seqIterations, Iterations);
-    idleCount[idleIdx]++;
-  } while(idleCount[idleIdx] < runInterference);
+    idleCount[(int)threadid]++;
+  } while(idleCount[(int)threadid] < runInterference);
 
   sleep(2);
 
-  idleCount[idleIdx]=0;
+  idleCount[(int)threadid]=0;
 
   do
   {
     FIB_TEST(seqIterations, Iterations);
-    idleCount[idleIdx]++;
-  } while(idleCount[idleIdx] < runInterference);
+    idleCount[(int)threadid]++;
+  } while(idleCount[(int)threadid] < runInterference);
 
   pthread_mutex_unlock(&msgSem);
 
-  gettimeofday(&timeNow, (void *)0);
-  printf("**** %d idle stopping at %d sec, %d nsec\n", idleIdx, (int)timeNow.tv_sec, (int)timeNow.tv_nsec);
+  gettimeofday(&timeNow,NULL);
+  printf("**** %d idle stopping at %d sec, %d nsec\n", (int)threadid, timeNow.tv_sec, timeNow.tv_nsec);
 
   pthread_exit(NULL);
 }
@@ -203,8 +189,7 @@ int main (int argc, char *argv[])
    pthread_attr_setschedparam(&rt_sched_attr[START_SERVICE], &rt_param[START_SERVICE]);
 
    printf("Creating thread %d\n", START_SERVICE);
-   threadParams[START_SERVICE].threadIdx=START_SERVICE;
-   rc = pthread_create(&threads[START_SERVICE], &rt_sched_attr[START_SERVICE], startService, (void *)&threadParams[START_SERVICE]);
+   rc = pthread_create(&threads[START_SERVICE], &rt_sched_attr[START_SERVICE], startService, (void *)START_SERVICE);
 
    if (rc)
    {
@@ -245,8 +230,7 @@ void *startService(void *threadid)
    pthread_attr_setschedparam(&rt_sched_attr[LOW_PRIO_SERVICE], &rt_param[LOW_PRIO_SERVICE]);
 
    printf("Creating thread %d\n", LOW_PRIO_SERVICE);
-   threadParams[LOW_PRIO_SERVICE].threadIdx=LOW_PRIO_SERVICE;
-   rc = pthread_create(&threads[LOW_PRIO_SERVICE], &rt_sched_attr[LOW_PRIO_SERVICE], idle, (void *)&threadParams[LOW_PRIO_SERVICE]);
+   rc = pthread_create(&threads[LOW_PRIO_SERVICE], &rt_sched_attr[LOW_PRIO_SERVICE], idle, (void *)LOW_PRIO_SERVICE);
 
    if (rc)
    {
@@ -255,8 +239,8 @@ void *startService(void *threadid)
        exit(-1);
    }
    //pthread_detach(threads[LOW_PRIO_SERVICE]);
-   gettimeofday(&timeNow, (void *)0);
-   printf("Low prio %d thread spawned at %d sec, %d nsec\n", LOW_PRIO_SERVICE, (int)timeNow.tv_sec, (int)timeNow.tv_nsec);
+   gettimeofday(&timeNow,NULL);
+   printf("Low prio %d thread spawned at %d sec, %d nsec\n", LOW_PRIO_SERVICE, timeNow.tv_sec, timeNow.tv_nsec);
 
 
    sleep(1);
@@ -265,8 +249,7 @@ void *startService(void *threadid)
    pthread_attr_setschedparam(&rt_sched_attr[MID_PRIO_SERVICE], &rt_param[MID_PRIO_SERVICE]);
 
    printf("Creating thread %d\n", MID_PRIO_SERVICE);
-   threadParams[MID_PRIO_SERVICE].threadIdx=MID_PRIO_SERVICE;
-   rc = pthread_create(&threads[MID_PRIO_SERVICE], &rt_sched_attr[MID_PRIO_SERVICE], idleNoSem, (void *)&threadParams[MID_PRIO_SERVICE]);
+   rc = pthread_create(&threads[MID_PRIO_SERVICE], &rt_sched_attr[MID_PRIO_SERVICE], idleNoSem, (void *)MID_PRIO_SERVICE);
 
    if (rc)
    {
@@ -275,16 +258,15 @@ void *startService(void *threadid)
        exit(-1);
    }
    //pthread_detach(threads[MID_PRIO_SERVICE]);
-   gettimeofday(&timeNow, (void *)0);
-   printf("Middle prio %d thread spawned at %d sec, %d nsec\n", MID_PRIO_SERVICE, (int)timeNow.tv_sec, (int)timeNow.tv_nsec);
+   gettimeofday(&timeNow,NULL);
+   printf("Middle prio %d thread spawned at %d sec, %d nsec\n", MID_PRIO_SERVICE, timeNow.tv_sec, timeNow.tv_nsec);
 
    rt_param[HIGH_PRIO_SERVICE].sched_priority = rt_max_prio-1;
    pthread_attr_setschedparam(&rt_sched_attr[HIGH_PRIO_SERVICE], &rt_param[HIGH_PRIO_SERVICE]);
 
 
    printf("Creating thread %d, CScnt=%d\n", HIGH_PRIO_SERVICE, CScnt);
-   threadParams[HIGH_PRIO_SERVICE].threadIdx=HIGH_PRIO_SERVICE;
-   rc = pthread_create(&threads[HIGH_PRIO_SERVICE], &rt_sched_attr[HIGH_PRIO_SERVICE], idle, (void *)&threadParams[HIGH_PRIO_SERVICE]);
+   rc = pthread_create(&threads[HIGH_PRIO_SERVICE], &rt_sched_attr[HIGH_PRIO_SERVICE], idle, (void *)HIGH_PRIO_SERVICE);
 
    if (rc)
    {
@@ -293,8 +275,8 @@ void *startService(void *threadid)
        exit(-1);
    }
    //pthread_detach(threads[HIGH_PRIO_SERVICE]);
-   gettimeofday(&timeNow, (void *)0);
-   printf("High prio %d thread spawned at %d sec, %d nsec\n", HIGH_PRIO_SERVICE, (int)timeNow.tv_sec, (int)timeNow.tv_nsec);
+   gettimeofday(&timeNow,NULL);
+   printf("High prio %d thread spawned at %d sec, %d nsec\n", HIGH_PRIO_SERVICE, timeNow.tv_sec, timeNow.tv_nsec);
 
 
 
