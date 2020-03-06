@@ -1,12 +1,12 @@
 #include <math.h>  // power
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>  // malloc, etc.
 #include <time.h>    // clock_gettime
 #include <unistd.h>  // for sleep()
-#include <signal.h>
 
-#define NSECS_PER_SEC   (1e9)
+#define NSECS_PER_SEC ( 1e9 )
 pthread_t updateStateThread;
 pthread_t getStateThread;
 int stopAndJoin;
@@ -28,7 +28,7 @@ state_t *navState;
 pthread_mutex_t navLock;
 
 // number of times to go through update/get operations
-int updates    = 0;
+int updates = 0;
 
 // initial nav data
 double x    = 1.1;
@@ -49,7 +49,7 @@ void printState( state_t *state )
    printf( "******************************\n" );
    printf( "accelX = %2.3f\taccelY = %2.3f\taccelZ = %2.3f\n", state->accelX, state->accelY, state->accelZ );
    printf( "row = %2.3f\tpitch = %2.3f\tyaw = %2.3f\n", state->roll, state->pitch, state->yaw );
-   double timestamp = (double)state->time.tv_sec + (double)(state->time.tv_nsec/(double)NSECS_PER_SEC);
+   double timestamp = (double)state->time.tv_sec + (double)( state->time.tv_nsec / (double)NSECS_PER_SEC );
    printf( "time: [%lf] s\n", timestamp );
    printf( "******************************\n" );
 }
@@ -58,7 +58,6 @@ void *updateState( void *args )
 {
    while ( stopAndJoin != 1 )
    {
-      //while ( gets != updates );
       pthread_mutex_lock( &navLock );
       printf( "******************************\n" );
       printf( "Updating state: %dth iteration\n", updates );
@@ -68,13 +67,13 @@ void *updateState( void *args )
       navState->roll   = pow( roll, updates );
       navState->pitch  = pow( pich, updates );
       navState->yaw    = pow( yaw, updates );
-      sleep(22);
+      sleep( 12 );
       clock_gettime( CLOCK_REALTIME, &( navState->time ) );
       printf( "Finished updating state\n" );
       printf( "******************************\n" );
       pthread_mutex_unlock( &navLock );
       updates++;
-      usleep(1);
+      sleep( 1 );
    }
 
    return NULL;
@@ -90,12 +89,11 @@ void *getState( void *args )
    {
       clock_gettime( CLOCK_REALTIME, &timeout );
       timeout.tv_sec += 10;
-      //printf( "Checking for new data\n" );
       retVal = pthread_mutex_timedlock( &navLock, &timeout );
       if ( retVal != 0 )
       {
          clock_gettime( CLOCK_REALTIME, &timeout );
-         double timestamp = (double)timeout.tv_sec + (double)(timeout.tv_nsec/(double)NSECS_PER_SEC);
+         double timestamp = (double)timeout.tv_sec + (double)( timeout.tv_nsec / (double)NSECS_PER_SEC );
          printf( "No new data at time [%lf] s\n", timestamp );
       }
       else
@@ -103,14 +101,14 @@ void *getState( void *args )
          printState( navState );
          pthread_mutex_unlock( &navLock );
       }
-   usleep(1);
+      sleep( 1 );
    }
    return NULL;
 }
 
 void signalHandler( int sigNum )
 {
-   if( sigNum == SIGINT )
+   if ( sigNum == SIGINT )
    {
       stopAndJoin = 1;
       printf( "SIGINT received! Stopping...\n" );

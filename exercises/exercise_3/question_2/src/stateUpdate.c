@@ -4,6 +4,8 @@
 #include <stdlib.h>  // malloc, etc.
 #include <time.h>    // clock_gettime
 
+#define NSECS_PER_SEC ( 1e9 )
+
 // struct defining navigation state
 typedef struct
 {
@@ -22,9 +24,8 @@ pthread_mutex_t navLock;
 
 // number of times to go through update/get operations
 int iterations = 5;
-int updates =0;
-int gets = 0;
-int started = 0;
+int updates    = 0;
+int gets       = 0;
 
 // initial nav data
 double x    = 1.1;
@@ -41,17 +42,22 @@ void printState( state_t *state );
 
 void printState( state_t *state )
 {
+   printf( "******************************\n" );
    printf( "accelX = %2.3f\taccelY = %2.3f\taccelZ = %2.3f\n", state->accelX, state->accelY, state->accelZ );
    printf( "row = %2.3f\tpitch = %2.3f\tyaw = %2.3f\n", state->roll, state->pitch, state->yaw );
-   printf( "time: %ld s, %ld ns\n", state->time.tv_sec, state->time.tv_nsec );
+   double timestamp = (double)state->time.tv_sec + (double)( state->time.tv_nsec / (double)NSECS_PER_SEC );
+   printf( "time: [%lf] s\n", timestamp );
+   printf( "******************************\n" );
 }
 
 void *updateState( void *args )
 {
    while ( updates < iterations )
    {
-      while( gets != updates );
+      while ( gets != updates )
+         ;
       pthread_mutex_lock( &navLock );
+      printf( "******************************\n" );
       printf( "Updating state: %dth iteration\n", updates );
       navState->accelX = pow( x, updates );
       navState->accelY = pow( y, updates );
@@ -60,6 +66,7 @@ void *updateState( void *args )
       navState->pitch  = pow( pich, updates );
       navState->yaw    = pow( yaw, updates );
       clock_gettime( CLOCK_REALTIME, &( navState->time ) );
+      printf( "******************************\n" );
       printf( "Finished updating state\n" );
       pthread_mutex_unlock( &navLock );
       updates++;
