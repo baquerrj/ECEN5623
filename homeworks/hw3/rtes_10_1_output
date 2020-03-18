@@ -1,0 +1,55 @@
+CTRL-A Z for help | 115200 8N1 | NOR | Minicom 2.7.1 | VT102 | Online 0:15 | ttyACM0                               
+RTES Problem 10.1 on EK-TM4C123GXL
+TASK: waiting on semaphore at 0 ticks - 0 ms
+TASK: got semaphore after 97 ticks - 97 ms
+TASK: waiting on semaphore at 100 ticks - 100 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 200 ticks - 200 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 300 ticks - 300 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 400 ticks - 400 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 500 ticks - 500 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 600 ticks - 600 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 700 ticks - 700 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 800 ticks - 800 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 900 ticks - 900 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1000 ticks - 1000 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1100 ticks - 1100 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1200 ticks - 1200 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1300 ticks - 1300 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1400 ticks - 1400 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1500 ticks - 1500 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1600 ticks - 1600 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1700 ticks - 1700 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1800 ticks - 1800 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 1900 ticks - 1900 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2000 ticks - 2000 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2100 ticks - 2100 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2200 ticks - 2200 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2300 ticks - 2300 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2400 ticks - 2400 ms
+TASK: got semaphore after 100 ticks - 100 ms
+TASK: waiting on semaphore at 2500 ticks - 2500 ms
+
+CTRL-A Z for help | 115200 8N1 | NOR | Minicom 2.7.1 | VT102 | Online 0:16 | ttyACM0                               

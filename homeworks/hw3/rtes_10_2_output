@@ -1,0 +1,157 @@
+Welcome to minicom 2.7.1
+
+OPTIONS: I18n 
+Compiled on Aug 13 2017, 15:25:34.
+Port /dev/ttyACM0, 22:04:03
+
+Press CTRL-A Z for help on special keys
+
+RTES Problem 10.2 on EK-TM4C123GXL
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 39 ticks - 39 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 9 ticks - 9 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 9 ticks - 9 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 9 ticks - 9 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+TASK T2: 40 ticks - 40 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+CTRL-A Z for help | 115200 8N1 | NOR | Minicom 2.7.1 | VT102 | Online 0:1 | ttyACM0                                

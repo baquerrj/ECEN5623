@@ -1,0 +1,333 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RTES Problem 10.3 on EK-TM4C123GXL
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 63 ticks - 63 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 62 ticks - 62 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 63 ticks - 63 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 62 ticks - 62 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 63 ticks - 63 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 62 ticks - 62 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+TASK T2: 63 ticks - 63 ms
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+***** TASK T2 *****
+
+***** TASK T1 *****
+TASK T1: 10 ticks - 10 ms
+
+CTRL-A Z for help | 115200 8N1 | NOR | Minicom 2.7.1 | VT102 | Online 0:20 | ttyACM0                               
