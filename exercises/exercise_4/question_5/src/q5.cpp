@@ -9,6 +9,9 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+static const uint32_t HRES = 640;
+static const uint32_t VRES = 480;
+
 const char* window_name[] = {
     "Edge Detector Transform",
     "Hough Line Transform",
@@ -23,10 +26,14 @@ cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 
 IplImage* frame;
 
-bool doCanny;
-bool doHoughLine;
-bool doHoughElliptical;
+bool doCanny = false;
+bool doHoughLine = false;
+bool doHoughElliptical = false;
 
+int width = HRES;
+int height = VRES;
+
+void* executeCanny( int8_t dev );
 void CannyThreshold( int, void* )
 {
    //Mat mat_frame(frame);
@@ -70,6 +77,7 @@ int main( int argc, char* argv[] )
       printf( "Usage:\n" );
       printf( "-h, --help\t\tDisplay this help text and exit.\n" );
       printf( "-d, --device DEVICE\tPath to the device to use.\n" );
+      printf( "-g, --geometry WxH\tWidth and Height in pixels for capture.\n" );
       printf( "Only one of the following three:\n" );
       printf( "-C, --canny\t\tPerform Canny Interactive Transformation.\n" );
       printf( "-L, --hough-line\tPerform Hough Straight Line Interactive Transformation.\n" );
@@ -102,12 +110,25 @@ int main( int argc, char* argv[] )
                             cmdOptionExists( argv, argv + argc, "--hough-elliptical" ) );
    }
 
+   char* geometry = getCmdOption( argv, argv + argc, "-g" );
+   if ( !geometry )
+   {
+      geometry = getCmdOption( argv, argv + argc, "--geometry" );
+   }
+    
+   if ( geometry )
+   {
+      sscanf( geometry, "%dx%d", &width, &height );
+   }
+
+   int device = -1;
    if ( deviceName )
    {
       struct stat buffer;
       if ( 0 == stat( deviceName, &buffer ) )
       {
          printf( "exists!\n" );
+         sscanf( deviceName, "%d", &device );
       }
       else
       {
@@ -115,5 +136,61 @@ int main( int argc, char* argv[] )
       }
    }
 
+   printf( "Using:\n\tdevice = %s\n", deviceName );
+   printf( "\tgeometry = %dx%d\n", width, height );
+   if ( doCanny )
+   {
+      printf( "\ttransform = canny\n" );
+   }
+   else if( doHoughLine )
+   {
+      printf( "\ttransform = hough-line\n" );
+   }
+   else if ( doHoughElliptical )
+   {
+      printf( "\ttransform = hough-elliptical\n" );
+   }
+   else
+   {
+      printf( "something went wrong - no transform chosen!\n" );
+      exit( -1 );
+   }
+
+   CvCapture* capture = NULL;
+   if ( doCanny )
+   {
+      capture = (CvCapture*) executeCanny( device );
+   }   
+
+   cvReleaseCapture( &capture );
    return 0;
+}
+
+void* executeCanny( int8_t dev )
+{
+   CvCapture* canny_capture;
+
+   cv::namedWindow( window_name[ 0 ], CV_WINDOW_AUTOSIZE );
+   // Create a Trackbar for user to enter threshold
+   cv::createTrackbar( "Min Threshold:", window_name[ 0 ], &lowThreshold, max_lowThreshold, CannyThreshold );
+
+   canny_capture = (CvCapture*)cvCreateCameraCapture( dev );
+   cvSetCaptureProperty( canny_capture, CV_CAP_PROP_FRAME_WIDTH, width );
+   cvSetCaptureProperty( canny_capture, CV_CAP_PROP_FRAME_HEIGHT, height );
+   
+   while ( 1 )
+   {
+      frame = cvQueryFrame( canny_capture );
+      if ( !frame )
+         break;
+
+      CannyThreshold( 0, 0 );
+
+      char q = cvWaitKey( 33 );
+      if ( q == 'q' )
+      {
+         printf( "got quit\n" );
+         break;
+      }
+   }
 }
