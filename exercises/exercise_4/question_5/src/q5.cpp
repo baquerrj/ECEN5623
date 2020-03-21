@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "canny.h"
+#include "hough.h"
 
 IplImage* frame;
 int width = HRES;
@@ -125,6 +126,10 @@ int main( int argc, char* argv[] )
    if ( doCanny )
    {
       capture = (CvCapture*) executeCanny( device );
+   }
+   else if ( doHoughLine )
+   {
+      capture = (CvCapture*) executeHough( device );
    }
 
    cvReleaseCapture( &capture );
