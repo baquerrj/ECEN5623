@@ -131,6 +131,10 @@ int main( int argc, char* argv[] )
    {
       capture = (CvCapture*) executeHough( device );
    }
+   else if ( doHoughElliptical )
+   {
+      capture = (CvCapture*) executeHoughElliptical( device );
+   }
 
    cvReleaseCapture( &capture );
    return 0;
