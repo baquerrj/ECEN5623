@@ -1,35 +1,42 @@
-INCLUDE_DIRS = 
-LIB_DIRS = 
+INCLUDE_DIRS =
+LIB_DIRS =
 CC=g++
+
+BINDIR	:= ./bin
+OBJDIR 	:= ./obj
+INCDIR	:= ./inc
+SRCDIR	:= ./src
 
 CDEFS=
 CFLAGS= -O0 -pg -g $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt
 CPPLIBS= -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video
 
-HFILES= 
-CFILES= 
-CPPFILES= capture.cpp
+HFILES=
+CFILES=
+CPPFILES= $(wildcard $(SRCDIR)/*.cpp)
 
 SRCS= ${HFILES} ${CFILES}
-CPPOBJS= ${CPPFILES:.cpp=.o}
+CPPOBJS= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(CPPFILES))
 
-all:	capture 
+.PHONY: all
+all:	directories $(BINDIR)/capture
 
+.PHONY: clean
 clean:
-	-rm -f *.o *.d
-	-rm -f capture
+	-rm -rf $(BINDIR) $(OBJDIR)
 
-distclean:
-	-rm -f *.o *.d
+.PHONY: directories
+directories: $(OBJDIR) $(BINDIR)
 
-capture: capture.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o `pkg-config --libs opencv` $(CPPLIBS)
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-depend:
+$(BINDIR):
+	mkdir -p $(BINDIR)
 
-.c.o:
-	$(CC) $(CFLAGS) -c $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
-.cpp.o:
-	$(CC) $(CFLAGS) -c $<
+$(BINDIR)/capture: $(OBJDIR)/capture.o
+	$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ `pkg-config --libs opencv` $(CPPLIBS)
