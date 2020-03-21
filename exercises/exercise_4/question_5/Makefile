@@ -1,4 +1,4 @@
-INCLUDE_DIRS =
+INCLUDE_DIRS = ./inc
 LIB_DIRS =
 CC=g++
 
@@ -8,7 +8,7 @@ INCDIR	:= ./inc
 SRCDIR	:= ./src
 
 CDEFS=
-CFLAGS= -O0 -pg -g $(INCLUDE_DIRS) $(CDEFS)
+CFLAGS= -O0 -pg -g -I$(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt
 CPPLIBS= -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video
 
@@ -38,5 +38,5 @@ $(BINDIR):
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BINDIR)/capture: $(OBJDIR)/q5.o
+$(BINDIR)/capture: $(CPPOBJS)
 	$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@ `pkg-config --libs opencv` $(CPPLIBS)
