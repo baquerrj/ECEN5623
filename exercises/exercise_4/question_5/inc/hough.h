@@ -2,9 +2,9 @@
 #define HOUGH_H
 
 void HoughLines( int, void* );
-void* executeHough( int dev );
+void* executeHough( void* args );
 
 void HoughElliptical( int, void* );
-void* executeHoughElliptical( int dev );
+void* executeHoughElliptical( void* args );
 
 #endif  // HOUGH_H

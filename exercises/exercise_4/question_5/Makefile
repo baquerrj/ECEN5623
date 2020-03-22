@@ -44,12 +44,6 @@ TGT_LIB := $(TGT_LIB) $(LIB_TGTS)
 COMP = 	$(CC) -o $@ -c $< $(CFLAGS) $(CF_TGT)
 LINK = 	$(CC) -o $@ $^ $(LF_TGT) $(LL_TGT) `pkg-config --libs opencv` $(LL_ALL)
 
-test:
-	@echo "SRCS = $(SRCS)"
-	@echo "SRC_OBJS = $(SRC_OBJS)"
-	@echo "BIN_TGTS = $(BIN_TGTS)"
-	@echo "LIB_TGTS = $(LIB_TGTS)"
-
 .PHONY: all
 all: $(TGT_BIN) $(TGT_LIB)
 
@@ -68,3 +62,9 @@ $(BIN_TGTS) : $(SRC_OBJS)
 $(LIB_TGTS) : LF_TGT := -shared
 $(LIB_TGTS) : $(SRC_OBJS)
 	$(LINK)
+
+test:
+	@echo "SRCS = $(SRCS)"
+	@echo "SRC_OBJS = $(SRC_OBJS)"
+	@echo "BIN_TGTS = $(BIN_TGTS)"
+	@echo "LIB_TGTS = $(LIB_TGTS)"

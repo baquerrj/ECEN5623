@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-extern IplImage* frame;
+static IplImage* frame;
 extern int width;
 extern int height;
 
@@ -36,8 +36,13 @@ void HoughElliptical( int, void* )
    cv::imshow( window_name[ 2 ], mat_frame );
 }
 
-void* executeHoughElliptical( int dev )
+void* executeHoughElliptical( void* args )
 {
+   int dev = 0;
+   if( NULL != args )
+   {
+      int dev = *((int *) args);
+   }
    CvCapture* capture;
 
    cv::namedWindow( window_name[ 2 ], CV_WINDOW_AUTOSIZE );

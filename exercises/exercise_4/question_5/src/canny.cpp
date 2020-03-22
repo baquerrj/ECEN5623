@@ -12,7 +12,7 @@ int kernel_size            = 3;
 int edgeThresh             = 1;
 int ratio                  = 3;
 
-extern IplImage* frame;
+static IplImage* frame;
 extern int width;
 extern int height;
 
@@ -37,8 +37,13 @@ void CannyThreshold( int, void* )
    cv::imshow( window_name[ 0 ], timg_grad );
 }
 
-void* executeCanny( int dev )
+void* executeCanny( void* args )
 {
+   int dev = 0;
+   if( NULL != args )
+   {
+      int dev = *((int *) args);
+   }
    CvCapture* canny_capture;
 
    cv::namedWindow( window_name[ 0 ], CV_WINDOW_AUTOSIZE );
@@ -64,6 +69,7 @@ void* executeCanny( int dev )
          break;
       }
    }
+   cvReleaseCapture( &canny_capture );
 
-   return (void*)canny_capture;
+   return NULL;
 }

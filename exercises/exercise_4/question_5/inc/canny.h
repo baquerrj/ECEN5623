@@ -3,6 +3,6 @@
 
 void CannyThreshold( int, void* );
 
-void* executeCanny( int dev );
+void* executeCanny( void* args );
 
 #endif  // CANNY_H
