@@ -1,14 +1,14 @@
-#include "hough.h"
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "common.h"
+#include "hough.h"
 
 static IplImage* frame;
 extern int width;
 extern int height;
+extern CvCapture* capture;
 
 static cv::Mat gray;
 std::vector< cv::Vec3f > circles;
@@ -32,38 +32,67 @@ void HoughElliptical( int, void* )
       // circle outline
       cv::circle( mat_frame, center, radius, cv::Scalar( 0, 0, 255 ), 3, 8, 0 );
    }
-
-   cv::imshow( window_name[ 2 ], mat_frame );
+   #ifdef SHOW_WINDOWS 
+   pthread_mutex_lock( &windowLock );
+   cv::imshow( window_name[ THREAD_HOUGHE ], mat_frame );
+   pthread_mutex_unlock( &windowLock );
+   #endif
 }
 
 void* executeHoughElliptical( void* args )
 {
    int dev = 0;
-   if( NULL != args )
+   uint16_t frame_count = 0;
+   float frame_rate;
+   struct timespec start_time, stop_time, diff_time;
+   
+   if ( NULL != args )
    {
-      int dev = *((int *) args);
+      int dev = *( (int*)args );
    }
-   CvCapture* capture;
+   //CvCapture* capture;
 
-   cv::namedWindow( window_name[ 2 ], CV_WINDOW_AUTOSIZE );
-
-   capture = (CvCapture*)cvCreateCameraCapture( dev );
-   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
-   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
-
-   while ( 1 )
-   {
-      frame = cvQueryFrame( capture );
-      if ( !frame )
-         break;
-
-      HoughElliptical( 0, 0 );
-
-      char c = cvWaitKey( 10 );
-      if ( c == 'q' )
+   #ifdef SHOW_WINDOWS 
+   cv::namedWindow( window_name[ THREAD_HOUGHE], CV_WINDOW_AUTOSIZE );
+   #endif
+   //capture = (CvCapture*)cvCreateCameraCapture( dev );
+   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
+   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
+   
+   while(1){
+      sem_wait(&syncThreads[THREAD_HOUGHE]);
+      
+      clock_gettime(CLOCK_REALTIME, &start_time);
+      while(frame_count < 50)
       {
-         printf( "got quit\n" );
-         break;
+         frame_count++;
+         pthread_mutex_lock( &captureLock );
+         frame = cvQueryFrame( capture );
+         pthread_mutex_unlock( &captureLock );
+         if ( !frame )
+            break;
+
+         HoughElliptical( 0, 0 );
+
+         char c = cvWaitKey( 10 );
+         if ( c == 'q' )
+         {
+            printf( "got quit\n" );
+            break;
+         }
       }
+      clock_gettime(CLOCK_REALTIME, &stop_time);
+      delta_t(&stop_time, &start_time, &diff_time);
+      frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
+      printf("Frame Rate of Hough Elliptical Detection is %f\n",frame_rate);
+     
+      #ifdef SHOW_WINDOWS 
+      cvDestroyWindow( window_name[ THREAD_HOUGHE ] );
+      #endif
+
+      break;
    }
+   
+   
+   return NULL;
 }

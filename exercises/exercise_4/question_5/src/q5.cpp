@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -12,6 +13,7 @@
 #include "canny.h"
 #include "common.h"
 #include "hough.h"
+#include "logging.h"
 
 int width  = HRES;
 int height = VRES;
@@ -20,18 +22,45 @@ bool doCanny           = false;
 bool doHoughLine       = false;
 bool doHoughElliptical = false;
 
+bool isTimeToDie;
 threadConfig_s* threadConfigs;
+pid_t mainThreadId;
 
-void* dummy( void* args )
+pthread_mutex_t captureLock;
+pthread_mutex_t windowLock;
+CvCapture* capture;
+
+sem_t syncThreads[ THREAD_MAX ];
+
+static void signalHandler( int signo )
 {
-   return NULL;
+   switch ( signo )
+   {
+      case SIGINT:
+      {
+         logging::INFO( "SIGINT Caught! Exiting...", true );
+         isTimeToDie = true;
+         break;
+      }
+      case SIGTERM:
+      {
+         logging::INFO( "SIGINT Caught! Exiting...", true );
+         isTimeToDie = true;
+         break;
+      }
+      default:
+      {
+         logging::INFO( "Unknown signal caught!" );
+         isTimeToDie = true;
+         break;
+      }
+   }
 }
 
 void* ( *thread_entry_fn[ THREAD_MAX ] )( void* ) = {
     executeCanny,
     executeHough,
-    executeHoughElliptical,
-    dummy};
+    executeHoughElliptical};
 
 char* getCmdOption( char** begin, char** end, const std::string& option )
 {
@@ -106,8 +135,53 @@ void createThreads( int device )
    }
 }
 
+void initializeSemaphores()
+{
+   for ( int tasks = 0; tasks < THREAD_MAX; tasks++ )
+      sem_init( &syncThreads[ tasks ], 0, 0 );
+}
+
+int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t )
+{
+   int dt_sec  = stop->tv_sec - start->tv_sec;
+   int dt_nsec = stop->tv_nsec - start->tv_nsec;
+
+   if ( dt_sec >= 0 )
+   {
+      if ( dt_nsec >= 0 )
+      {
+         delta_t->tv_sec  = dt_sec;
+         delta_t->tv_nsec = dt_nsec;
+      }
+      else
+      {
+         delta_t->tv_sec  = dt_sec - 1;
+         delta_t->tv_nsec = NSEC_PER_SEC + dt_nsec;
+      }
+   }
+   else
+   {
+      if ( dt_nsec >= 0 )
+      {
+         delta_t->tv_sec  = dt_sec;
+         delta_t->tv_nsec = dt_nsec;
+      }
+      else
+      {
+         delta_t->tv_sec  = dt_sec - 1;
+         delta_t->tv_nsec = NSEC_PER_SEC + dt_nsec;
+      }
+   }
+
+   return ( 1 );
+}
+
 int main( int argc, char* argv[] )
 {
+   // Preliminary stuff
+   mainThreadId = getpid();
+   signal( SIGINT, signalHandler );
+   signal( SIGTERM, signalHandler );
    if ( cmdOptionExists( argv, argv + argc, "-h" ) or cmdOptionExists( argv, argv + argc, "--help" ) )
    {
       printf( "Usage:\n" );
@@ -167,35 +241,36 @@ int main( int argc, char* argv[] )
       }
    }
 
+   initializeSemaphores();
+
+   capture = (CvCapture*)cvCreateCameraCapture( device );
+   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
+   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
+
+   pthread_mutex_init( &captureLock, NULL );
+   pthread_mutex_init( &windowLock, NULL );
    threadConfigs                           = new threadConfig_s[ THREAD_MAX ];
    threadConfigs[ THREAD_CANNY ].isActive  = doCanny;
    threadConfigs[ THREAD_HOUGHL ].isActive = doHoughLine;
    threadConfigs[ THREAD_HOUGHE ].isActive = doHoughElliptical;
+   logging::INFO( "Starting Threads!\n" );
+   isTimeToDie = false;
    createThreads( device );
 
    printf( "Using:\n\tdevice = %s\n", deviceName );
    printf( "\tgeometry = %dx%d\n", width, height );
+   sem_post( &syncThreads[ THREAD_CANNY ] );
 
+   //sleep(3);
+   //isTimeToDie = true;
    pthread_join( threadConfigs[ THREAD_CANNY ].thread, NULL );
    pthread_join( threadConfigs[ THREAD_HOUGHE ].thread, NULL );
    pthread_join( threadConfigs[ THREAD_HOUGHL ].thread, NULL );
 
+   logging::INFO( "Exiting!\n" );
+
    delete threadConfigs;
-#if 0
-   CvCapture* capture = NULL;
-   if ( doCanny )
-   {
-      capture = (CvCapture*)executeCanny( device );
-   }
-   else if ( doHoughLine )
-   {
-      capture = (CvCapture*)executeHough( device );
-   }
-   else if ( doHoughElliptical )
-   {
-      capture = (CvCapture*)executeHoughElliptical( device );
-   }
+
    cvReleaseCapture( &capture );
-#endif
    return 0;
 }

@@ -1,24 +1,49 @@
 #include "canny.h"
-#include "common.h"
+
+#include <signal.h>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+#include "common.h"
+#include "logging.h"
 
 static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 static int lowThreshold           = 0;
 static int const max_lowThreshold = 100;
 
-int kernel_size            = 3;
-int edgeThresh             = 1;
-int ratio                  = 3;
+int kernel_size = 3;
+int edgeThresh  = 1;
+int ratio       = 3;
 
 static IplImage* frame;
 extern int width;
 extern int height;
 
+extern CvCapture* capture;
+
+static void signalHandler( int signo )
+{
+   switch ( signo )
+   {
+      case SIGINT:
+      {
+         int exit = 0;
+         pthread_exit( &exit );
+         break;
+      }
+      default:
+      {
+         logging::INFO( "Unknown signal caught!" );
+         break;
+      }
+   }
+}
+
 void CannyThreshold( int, void* )
 {
-   //Mat mat_frame(frame);
+   logging::INFO( "canny start\n" );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
 
    cv::cvtColor( mat_frame, timg_gray, CV_RGB2GRAY );
@@ -33,43 +58,74 @@ void CannyThreshold( int, void* )
    timg_grad = cv::Scalar::all( 0 );
 
    mat_frame.copyTo( timg_grad, canny_frame );
-
+#ifdef SHOW_WINDOWS
+   pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ 0 ], timg_grad );
+   pthread_mutex_unlock( &windowLock );
+#endif
+   logging::INFO( "canny end\n" );
 }
 
 void* executeCanny( void* args )
 {
+   uint16_t frame_count = 0;
+   logging::INFO( "executeCanny entered!\n" );
+   signal( SIGINT, signalHandler );
    int dev = 0;
-   if( NULL != args )
+   if ( NULL != args )
    {
-      int dev = *((int *) args);
+      int dev = *( (int*)args );
    }
-   CvCapture* canny_capture;
+   //CvCapture* capture;
 
-   cv::namedWindow( window_name[ 0 ], CV_WINDOW_AUTOSIZE );
+#ifdef SHOW_WINDOWS
+   cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
    // Create a Trackbar for user to enter threshold
-   cv::createTrackbar( "Min Threshold:", window_name[ 0 ], &lowThreshold, max_lowThreshold, CannyThreshold );
+   cv::createTrackbar( "Min Threshold:", window_name[ THREAD_CANNY ], &lowThreshold, max_lowThreshold, CannyThreshold );
+#endif
 
-   canny_capture = (CvCapture*)cvCreateCameraCapture( dev );
-   cvSetCaptureProperty( canny_capture, CV_CAP_PROP_FRAME_WIDTH, width );
-   cvSetCaptureProperty( canny_capture, CV_CAP_PROP_FRAME_HEIGHT, height );
+   //capture = (CvCapture*)cvCreateCameraCapture( dev );
+   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
+   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
 
-   while ( 1 )
+   while ( false == isTimeToDie )
    {
-      frame = cvQueryFrame( canny_capture );
-      if ( !frame )
-         break;
+      sem_wait( &syncThreads[ THREAD_CANNY ] );
 
-      CannyThreshold( 0, 0 );
-
-      char q = cvWaitKey( 33 );
-      if ( q == 'q' )
+      //clock_gettime(CLOCK_REALTIME, &start_time);
+      while ( frame_count < 50 )
       {
-         printf( "got quit\n" );
-         break;
+         frame_count++;
+
+         pthread_mutex_lock( &captureLock );
+         frame = cvQueryFrame( capture );
+         pthread_mutex_unlock( &captureLock );
+
+         if ( !frame )
+            break;
+
+         CannyThreshold( 0, 0 );
+
+         char q = cvWaitKey( 33 );
+         if ( q == 'q' )
+         {
+            printf( "got quit\n" );
+            break;
+         }
       }
+      //clock_gettime(CLOCK_REALTIME, &stop_time);
+      //delta_t(&stop_time, &start_time, &diff_time);
+      //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
+      //printf("Frame Rate of Canny Edge Detection is %f\n",frame_rate);
+
+#ifdef SHOW_WINDOWS
+      cvDestroyWindow( window_name[ THREAD_CANNY ] );
+#endif
+
+      sem_post( &syncThreads[ THREAD_HOUGHL ] );
+
+      break;
    }
-   cvReleaseCapture( &canny_capture );
 
    return NULL;
 }
