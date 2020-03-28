@@ -22,11 +22,11 @@ static const char* window_name[] = {
 
 enum threads_e
 {
-   THREAD_CANNY = 0,
-   THREAD_HOUGHL,
-   THREAD_HOUGHE,
-   THREAD_MAIN,
-   THREAD_MAX = THREAD_MAIN
+   THREAD_CANNY  = 0,
+   THREAD_HOUGHL = 1,
+   THREAD_HOUGHE = 2,
+   THREAD_MAIN   = 3,
+   THREAD_MAX    = THREAD_MAIN
 };
 
 struct threadConfig_s
@@ -60,7 +60,7 @@ int delta_t( struct timespec* stop, struct timespec* start, struct timespec* del
 
 inline static void semPost( const threads_e thread )
 {
-   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] );
+   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] )
    {
       sem_post( &syncThreads[ thread ] );
    }
@@ -68,7 +68,7 @@ inline static void semPost( const threads_e thread )
 
 inline static void semWait( const threads_e thread )
 {
-   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] );
+   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] )
    {
       sem_wait( &syncThreads[ thread ] );
    }
