@@ -60,7 +60,7 @@ public:
    logger();
    virtual ~logger();
    virtual void log( const logging::message_s* message, const bool logToStdOut );
-   virtual void log( const std::string& message, const log_level level, const bool logToStdout  );
+   virtual void log( const std::string& message, const log_level level, const bool logToStdout );
    virtual void log( const std::string& message, const bool logToStdout );
    virtual std::string timestamp( void );
    virtual pthread_t getThreadId( void );
@@ -70,6 +70,9 @@ protected:
    std::mutex lock;
    mqd_t queue;
    pthread_t threadId;
+   struct timespec interval;
+   struct timespec lastTime;
+   struct timespec currentTime;
    log_level logLevelCutoff;
    const std::unordered_map< log_level, std::string, enum_hasher > levels;
 

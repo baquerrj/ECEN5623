@@ -1,15 +1,18 @@
 #include "logging.h"
-#include "common.h"
+
 #include <string.h>
+
+#include "common.h"
 
 std::string logging::logger::timestamp( void )
 {
    //get the time
-   struct timespec time;
-   clock_gettime( CLOCK_REALTIME, &time );
+   clock_gettime( CLOCK_REALTIME, &currentTime );
+   delta_t( &currentTime, &lastTime, &interval );
+   lastTime = currentTime;
    //format the string
    std::string buffer( "xxxxxxxxxxxxxxxxxx" );
-   sprintf( &buffer.front(), "%ld.%ld", time.tv_sec, time.tv_nsec );
+   sprintf( &buffer.front(), "%ld.%ld", currentTime.tv_sec, currentTime.tv_nsec );
    return buffer;
 }
 
@@ -75,8 +78,12 @@ void logging::logger::log( const std::string& message, const log_level level, co
    std::string output;
    output.reserve( message.length() + 64 );
    output.append( timestamp() );
+   std::string deltaT = std::string( " DT: " ) +
+                        std::to_string( (long)interval.tv_sec ) + "." +
+                        std::to_string( interval.tv_nsec );
    output.append( levels.find( level )->second );
    output.append( message );
+   output.append( deltaT );
    output.push_back( '\n' );
    log( output, logToStdout );
 }
