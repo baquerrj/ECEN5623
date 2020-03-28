@@ -18,10 +18,6 @@
 int width  = HRES;
 int height = VRES;
 
-bool doCanny           = false;
-bool doHoughLine       = false;
-bool doHoughElliptical = false;
-
 bool isTimeToDie;
 threadConfig_s* threadConfigs;
 pid_t mainThreadId;
@@ -77,6 +73,21 @@ char* getCmdOption( char** begin, char** end, const std::string& option )
 bool cmdOptionExists( char** begin, char** end, const std::string& option )
 {
    return std::find( begin, end, option ) != end;
+}
+
+void printHelp( int argc, char* argv[] )
+{
+   if ( cmdOptionExists( argv, argv + argc, "-h" ) or cmdOptionExists( argv, argv + argc, "--help" ) )
+   {
+      printf( "Usage:\n" );
+      printf( "-h, --help\t\tDisplay this help text and exit.\n" );
+      printf( "-d, --device DEVICE\tPath to the device to use.\n" );
+      printf( "-g, --geometry WxH\tWidth and Height in pixels for capture.\n" );
+      printf( "-C, --canny\t\tPerform Canny Interactive Transformation.\n" );
+      printf( "-L, --hough-line\tPerform Hough Straight Line Interactive Transformation.\n" );
+      printf( "-E, --hough-elliptical\tPerform Hough Elliptical Interactive Transformation.\n" );
+      exit( 0 );
+   }
 }
 
 void createThreads( int device )
@@ -184,17 +195,10 @@ int main( int argc, char* argv[] )
    mainThreadId = getpid();
    signal( SIGINT, signalHandler );
    signal( SIGTERM, signalHandler );
-   if ( cmdOptionExists( argv, argv + argc, "-h" ) or cmdOptionExists( argv, argv + argc, "--help" ) )
-   {
-      printf( "Usage:\n" );
-      printf( "-h, --help\t\tDisplay this help text and exit.\n" );
-      printf( "-d, --device DEVICE\tPath to the device to use.\n" );
-      printf( "-g, --geometry WxH\tWidth and Height in pixels for capture.\n" );
-      printf( "-C, --canny\t\tPerform Canny Interactive Transformation.\n" );
-      printf( "-L, --hough-line\tPerform Hough Straight Line Interactive Transformation.\n" );
-      printf( "-E, --hough-elliptical\tPerform Hough Elliptical Interactive Transformation.\n" );
-      return 0;
-   }
+
+   threadConfigs = new threadConfig_s[ THREAD_MAX ];
+
+   printHelp( argc, argv );
 
    char* deviceName = getCmdOption( argv, argv + argc, "-d" );
    if ( !deviceName )
@@ -202,14 +206,14 @@ int main( int argc, char* argv[] )
       deviceName = getCmdOption( argv, argc + argv, "--device" );
    }
 
-   doCanny = ( cmdOptionExists( argv, argv + argc, "-C" ) or
-               cmdOptionExists( argv, argv + argc, "--canny" ) );
+   threadConfigs[ THREAD_CANNY ].isActive = ( cmdOptionExists( argv, argv + argc, "-C" ) or
+                                              cmdOptionExists( argv, argv + argc, "--canny" ) );
 
-   doHoughLine = ( cmdOptionExists( argv, argv + argc, "-L" ) or
-                   cmdOptionExists( argv, argv + argc, "--hough-line" ) );
+   threadConfigs[ THREAD_HOUGHL ].isActive = ( cmdOptionExists( argv, argv + argc, "-L" ) or
+                                               cmdOptionExists( argv, argv + argc, "--hough-line" ) );
 
-   doHoughElliptical = ( cmdOptionExists( argv, argv + argc, "-E" ) or
-                         cmdOptionExists( argv, argv + argc, "--hough-elliptical" ) );
+   threadConfigs[ THREAD_HOUGHE ].isActive = ( cmdOptionExists( argv, argv + argc, "-E" ) or
+                                               cmdOptionExists( argv, argv + argc, "--hough-elliptical" ) );
 
    char* geometry = getCmdOption( argv, argv + argc, "-g" );
    if ( !geometry )
@@ -254,10 +258,7 @@ int main( int argc, char* argv[] )
 
    pthread_mutex_init( &captureLock, NULL );
    pthread_mutex_init( &windowLock, NULL );
-   threadConfigs                           = new threadConfig_s[ THREAD_MAX ];
-   threadConfigs[ THREAD_CANNY ].isActive  = doCanny;
-   threadConfigs[ THREAD_HOUGHL ].isActive = doHoughLine;
-   threadConfigs[ THREAD_HOUGHE ].isActive = doHoughElliptical;
+
    logging::INFO( "Starting Threads!" );
    isTimeToDie = false;
    createThreads( device );
