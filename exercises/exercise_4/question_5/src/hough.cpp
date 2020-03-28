@@ -64,7 +64,7 @@ void* executeHough( void* args )
 
    while ( false == isTimeToDie )
    {
-      sem_wait( &syncThreads[ THREAD_HOUGHL ] );
+      semWait( THREAD_HOUGHL );
 
       //clock_gettime( CLOCK_REALTIME, &start_time );
       while ( frame_count < 50 and false == isTimeToDie )
@@ -93,7 +93,7 @@ void* executeHough( void* args )
       cvDestroyWindow( window_name[ THREAD_HOUGHL ] );
 #endif
 
-      sem_post( &syncThreads[ THREAD_HOUGHE ] );
+      semPost( THREAD_HOUGHE );
       break;
    }
 

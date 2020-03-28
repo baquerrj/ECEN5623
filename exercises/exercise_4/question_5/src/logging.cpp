@@ -20,7 +20,7 @@ logging::logger::logger() :
    mq_unlink( logging::LOGGER_QUEUE_NAME );
    struct mq_attr attr;
    attr.mq_flags   = 0;
-   attr.mq_maxmsg  = 100;
+   attr.mq_maxmsg  = 10;
    attr.mq_msgsize = sizeof( message_s );
    attr.mq_curmsgs = 0;
 

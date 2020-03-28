@@ -150,8 +150,24 @@ void createThreads( int device )
 
 void initializeSemaphores()
 {
-   for ( int tasks = 0; tasks < THREAD_MAX; tasks++ )
-      sem_init( &syncThreads[ tasks ], 0, 0 );
+   for ( int task = 0; task < THREAD_MAX; task++ )
+   {
+      if ( threadConfigs[ task ].isActive )
+      {
+         sem_init( &syncThreads[ task ], 0, 0 );
+      }
+   }
+}
+
+void destroySemaphores()
+{
+   for ( int task = 0; task < THREAD_MAX; task++ )
+   {
+      if ( threadConfigs[ task ].isActive )
+      {
+         sem_destroy( &syncThreads[ task ] );
+      }
+   }
 }
 
 int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t )
@@ -263,14 +279,20 @@ int main( int argc, char* argv[] )
    isTimeToDie = false;
    createThreads( device );
 
-   sem_post( &syncThreads[ THREAD_CANNY ] );
+   //sem_post( &syncThreads[ THREAD_CANNY ] );
+   semPost( THREAD_CANNY );
 
    //sleep(3);
    //isTimeToDie = true;
-   pthread_join( threadConfigs[ THREAD_CANNY ].thread, NULL );
-   pthread_join( threadConfigs[ THREAD_HOUGHE ].thread, NULL );
-   pthread_join( threadConfigs[ THREAD_HOUGHL ].thread, NULL );
+   for ( int thread = 0; thread < THREAD_MAX; thread++ )
+   {
+      if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )
+      {
+         pthread_join( threadConfigs[ thread ].thread, NULL );
+      }
+   }
 
+   destroySemaphores();
    logging::INFO( "Exiting!", true );
 
    delete threadConfigs;

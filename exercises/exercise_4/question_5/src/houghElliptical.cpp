@@ -64,7 +64,7 @@ void* executeHoughElliptical( void* args )
 
    while ( false == isTimeToDie )
    {
-      sem_wait( &syncThreads[ THREAD_HOUGHE ] );
+      semWait( THREAD_HOUGHE );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
       while ( frame_count < 50 and false == isTimeToDie )

@@ -10,7 +10,7 @@
 
 #define NSEC_PER_SEC ( 1000000000 )
 
-#define SHOW_WINDOWS
+//#define SHOW_WINDOWS
 
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
@@ -57,5 +57,21 @@ extern CvCapture* capture;
  * @return int
  */
 int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t );
+
+inline static void semPost( const threads_e thread )
+{
+   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] );
+   {
+      sem_post( &syncThreads[ thread ] );
+   }
+}
+
+inline static void semWait( const threads_e thread )
+{
+   if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] );
+   {
+      sem_wait( &syncThreads[ thread ] );
+   }
+}
 
 #endif  // COMMON_H
