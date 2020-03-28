@@ -59,7 +59,7 @@ class logger
 public:
    logger();
    virtual ~logger();
-   virtual void log( const logging::message_s* message, const bool logToStdOut );
+   virtual void log( const logging::message_s* message );
    virtual void log( const std::string& message, const log_level level, const bool logToStdout );
    virtual void log( const std::string& message, const bool logToStdout );
    virtual std::string timestamp( void );
@@ -105,6 +105,11 @@ inline void configure( const logging_config_t& config )
 inline pthread_t getLoggerThreadId( void )
 {
    return getLogger().getThreadId();
+}
+
+inline void log( const logging::message_s* message )
+{
+   getLogger().log( message );
 }
 
 inline void log( const std::string& message, const log_level level )

@@ -7,16 +7,22 @@
 #include "logging.h"
 
 static IplImage* frame;
-extern int width;
-extern int height;
-extern CvCapture* capture;
-
 static cv::Mat gray;
-std::vector< cv::Vec3f > circles;
+static std::vector< cv::Vec3f > circles;
+
+static const logging::message_s start = {
+    logging::log_level::INFO,
+    "HOUGH-ELLIP START"};
+
+static const logging::message_s end = {
+    logging::log_level::INFO,
+    "HOUGH-ELLIP END"};
+
+extern CvCapture* capture;
 
 void HoughElliptical( int, void* )
 {
-   logging::INFO( "houghElliptical start" );
+   logging::log( &start );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
 
    cv::cvtColor( mat_frame, gray, CV_BGR2GRAY );
@@ -39,7 +45,7 @@ void HoughElliptical( int, void* )
    cv::imshow( window_name[ THREAD_HOUGHE ], mat_frame );
    pthread_mutex_unlock( &windowLock );
 #endif
-   logging::INFO( "houghElliptical end" );
+   logging::log( &end );
 }
 
 void* executeHoughElliptical( void* args )

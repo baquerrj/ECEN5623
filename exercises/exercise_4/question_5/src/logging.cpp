@@ -61,7 +61,7 @@ logging::logger::~logger()
    mq_unlink( logging::LOGGER_QUEUE_NAME );
 }
 
-void logging::logger::log( const logging::message_s* message, const bool logToStdout )
+void logging::logger::log( const logging::message_s* message )
 {
    if ( -1 == mq_send( queue, (const char*)message, sizeof( logging::message_s ), 0 ) )
    {

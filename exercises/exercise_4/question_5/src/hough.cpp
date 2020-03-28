@@ -8,16 +8,22 @@
 #include "logging.h"
 
 static IplImage* frame;
-extern int width;
-extern int height;
-extern CvCapture* capture;
-
 static cv::Mat gray, canny_frame, cdst, mat_frame;
-std::vector< cv::Vec4i > lines;
+static std::vector< cv::Vec4i > lines;
+
+static const logging::message_s start = {
+    logging::log_level::INFO,
+    "HOUGH-LINES START"};
+
+static const logging::message_s end = {
+    logging::log_level::INFO,
+    "HOUGH-LINES END"};
+
+extern CvCapture* capture;
 
 void HoughLines( int, void* )
 {
-   logging::INFO( "hough start" );
+   logging::log( &start );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
    cv::Canny( mat_frame, canny_frame, 50, 200, 3 );
 
@@ -40,7 +46,7 @@ void HoughLines( int, void* )
    cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
    pthread_mutex_unlock( &windowLock );
 #endif
-   logging::INFO( "hough end" );
+   logging::log( &end );
 }
 
 void* executeHough( void* args )

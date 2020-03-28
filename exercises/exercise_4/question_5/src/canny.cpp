@@ -9,17 +9,22 @@
 #include "common.h"
 #include "logging.h"
 
+static IplImage* frame;
 static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 static int lowThreshold           = 0;
-static int const max_lowThreshold = 100;
+static const int max_lowThreshold = 100;
+
+static const logging::message_s start = {
+    logging::log_level::INFO,
+    "CANNY START"};
+
+static const logging::message_s end = {
+    logging::log_level::INFO,
+    "CANNY END"};
 
 int kernel_size = 3;
 int edgeThresh  = 1;
 int ratio       = 3;
-
-static IplImage* frame;
-extern int width;
-extern int height;
 
 extern CvCapture* capture;
 
@@ -43,7 +48,7 @@ static void signalHandler( int signo )
 
 void CannyThreshold( int, void* )
 {
-   logging::INFO( "canny start" );
+   logging::log( &start );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
 
    cv::cvtColor( mat_frame, timg_gray, CV_RGB2GRAY );
@@ -63,7 +68,7 @@ void CannyThreshold( int, void* )
    cv::imshow( window_name[ 0 ], timg_grad );
    pthread_mutex_unlock( &windowLock );
 #endif
-   logging::INFO( "canny end" );
+   logging::log( &end );
 }
 
 void* executeCanny( void* args )
