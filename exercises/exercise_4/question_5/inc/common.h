@@ -29,6 +29,21 @@ enum threads_e
    THREAD_MAX    = THREAD_MAIN
 };
 
+static threads_e operator++( threads_e thread )
+{
+   switch ( thread )
+   {
+      case THREAD_CANNY:
+         return THREAD_HOUGHL;
+      case THREAD_HOUGHL:
+         return THREAD_HOUGHE;
+      case THREAD_HOUGHE:
+         return THREAD_CANNY;
+      default:
+         return THREAD_CANNY;
+   }
+}
+
 struct threadConfig_s
 {
    char* threadName[ 50 ];
@@ -64,6 +79,10 @@ inline static void semPost( const threads_e thread )
    {
       sem_post( &syncThreads[ thread ] );
    }
+   else
+   {
+      semPost( ++thread );
+   }
 }
 
 inline static void semWait( const threads_e thread )
@@ -72,6 +91,11 @@ inline static void semWait( const threads_e thread )
    {
       sem_wait( &syncThreads[ thread ] );
    }
+   else
+   {
+      semWait( ++thread );
+   }
+
 }
 
 #endif  // COMMON_H
