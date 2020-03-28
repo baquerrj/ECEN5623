@@ -59,10 +59,6 @@ void* executeHough( void* args )
    {
       int dev = *( (int*)args );
    }
-#ifdef SHOW_WINDOWS
-   //CvCapture* capture;
-   cv::namedWindow( window_name[ THREAD_HOUGHL ], CV_WINDOW_AUTOSIZE );
-#endif
 
    //capture = (CvCapture*)cvCreateCameraCapture( dev );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );

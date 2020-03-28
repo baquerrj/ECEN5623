@@ -10,7 +10,7 @@
 
 #define NSEC_PER_SEC ( 1000000000 )
 
-//#define SHOW_WINDOWS
+#define SHOW_WINDOWS
 
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
@@ -19,6 +19,8 @@ static const char* window_name[] = {
     "Edge Detector Transform",
     "Hough Line Transform",
     "Hough Elliptical Transform"};
+
+static std::vector < cv::Mat > images;
 
 enum threads_e
 {
@@ -62,6 +64,8 @@ extern pthread_mutex_t captureLock;
 extern pthread_mutex_t windowLock;
 
 extern CvCapture* capture;
+extern int lowThreshold;
+extern int max_lowThreshold;
 
 /**
  * @brief calculates the difference between the start and stop times

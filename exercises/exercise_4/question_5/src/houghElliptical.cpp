@@ -61,9 +61,6 @@ void* executeHoughElliptical( void* args )
    }
    //CvCapture* capture;
 
-#ifdef SHOW_WINDOWS
-   cv::namedWindow( window_name[ THREAD_HOUGHE ], CV_WINDOW_AUTOSIZE );
-#endif
    //capture = (CvCapture*)cvCreateCameraCapture( dev );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );

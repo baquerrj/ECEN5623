@@ -11,8 +11,6 @@
 
 static IplImage* frame;
 static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
-static int lowThreshold           = 0;
-static const int max_lowThreshold = 100;
 
 static const logging::message_s start = {
     logging::log_level::INFO,
@@ -83,12 +81,6 @@ void* executeCanny( void* args )
       int dev = *( (int*)args );
    }
    //CvCapture* capture;
-
-#ifdef SHOW_WINDOWS
-   cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
-   // Create a Trackbar for user to enter threshold
-   cv::createTrackbar( "Min Threshold:", window_name[ THREAD_CANNY ], &lowThreshold, max_lowThreshold, CannyThreshold );
-#endif
 
    //capture = (CvCapture*)cvCreateCameraCapture( dev );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );

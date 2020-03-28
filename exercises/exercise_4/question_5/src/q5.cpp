@@ -18,6 +18,9 @@
 int width  = HRES;
 int height = VRES;
 
+int lowThreshold = 0;
+int max_lowThreshold = 100;
+
 bool isTimeToDie;
 threadConfig_s* threadConfigs;
 pid_t mainThreadId;
@@ -279,6 +282,22 @@ int main( int argc, char* argv[] )
    isTimeToDie = false;
    createThreads( device );
 
+#ifdef SHOW_WINDOWS
+   if ( threadConfigs[ THREAD_CANNY ].isActive )
+   {
+      cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
+      // Create a Trackbar for user to enter threshold
+      cv::createTrackbar( "Min Threshold:", window_name[ THREAD_CANNY ], &lowThreshold, max_lowThreshold, CannyThreshold );
+   }
+   if ( threadConfigs[ THREAD_HOUGHL ].isActive )
+   {
+      cv::namedWindow( window_name[ THREAD_HOUGHL ], CV_WINDOW_AUTOSIZE );
+   }
+   if ( threadConfigs[ THREAD_HOUGHE ].isActive )
+   {
+      cv::namedWindow( window_name[ THREAD_HOUGHE ], CV_WINDOW_AUTOSIZE );
+   }
+#endif
    //sem_post( &syncThreads[ THREAD_CANNY ] );
    semPost( THREAD_CANNY );
 
