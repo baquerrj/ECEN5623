@@ -5,17 +5,19 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "common.h"
+#include "logging.h"
 
 static IplImage* frame;
 extern int width;
 extern int height;
 extern CvCapture* capture;
 
-static cv::Mat gray, canny_frame, cdst,mat_frame;
+static cv::Mat gray, canny_frame, cdst, mat_frame;
 std::vector< cv::Vec4i > lines;
 
 void HoughLines( int, void* )
 {
+   logging::INFO( "hough start\n" );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
    cv::Canny( mat_frame, canny_frame, 50, 200, 3 );
 
@@ -33,38 +35,39 @@ void HoughLines( int, void* )
                 cv::Scalar( 0, 0, 255 ), 3, CV_AA );
    }
 
-   #ifdef SHOW_WINDOWS
+#ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
-   cv::imshow( window_name[ THREAD_HOUGHL], mat_frame );
+   cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
    pthread_mutex_unlock( &windowLock );
-   #endif
+#endif
+   logging::INFO( "hough end\n" );
 }
 
 void* executeHough( void* args )
 {
    uint16_t frame_count = 0;
-   float frame_rate;
-   struct timespec start_time, stop_time, diff_time;
+   //float frame_rate;
+   //struct timespec start_time, stop_time, diff_time;
    int dev = 0;
-   if( NULL != args )
+   if ( NULL != args )
    {
-      int dev = *((int *) args);
+      int dev = *( (int*)args );
    }
-   #ifdef SHOW_WINDOWS
+#ifdef SHOW_WINDOWS
    //CvCapture* capture;
    cv::namedWindow( window_name[ THREAD_HOUGHL ], CV_WINDOW_AUTOSIZE );
-   #endif
+#endif
 
    //capture = (CvCapture*)cvCreateCameraCapture( dev );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
 
+   while ( 1 )
+   {
+      sem_wait( &syncThreads[ THREAD_HOUGHL ] );
 
-   while(1){
-      sem_wait(&syncThreads[THREAD_HOUGHL]);
-
-      clock_gettime(CLOCK_REALTIME, &start_time);
-      while(frame_count < 50)
+      //clock_gettime( CLOCK_REALTIME, &start_time );
+      while ( frame_count < 50 )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );
@@ -74,27 +77,25 @@ void* executeHough( void* args )
             break;
 
          HoughLines( 0, 0 );
-        /* char c = cvWaitKey( 10 );
+         /* char c = cvWaitKey( 10 );
          if ( c == 'q' )
          {
             printf( "got quit\n" );
             break;
          } */
-
       }
-      clock_gettime(CLOCK_REALTIME, &stop_time);
-      delta_t(&stop_time, &start_time, &diff_time);
-      frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
-      printf("Frame Rate of Hough Edge Detection is %f\n",frame_rate);
+      //clock_gettime(CLOCK_REALTIME, &stop_time);
+      //delta_t(&stop_time, &start_time, &diff_time);
+      //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
+      //printf("Frame Rate of Hough Edge Detection is %f\n",frame_rate);
 
-      #ifdef SHOW_WINDOWS
+#ifdef SHOW_WINDOWS
       cvDestroyWindow( window_name[ THREAD_HOUGHL ] );
-      #endif
+#endif
 
-      sem_post(&syncThreads[THREAD_HOUGHE]);
-           break;
+      sem_post( &syncThreads[ THREAD_HOUGHE ] );
+      break;
    }
-
 
    return NULL;
 }
