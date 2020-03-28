@@ -17,10 +17,14 @@
 #include <string>
 #include <unordered_map>
 
+//! @brief Namespace defining logging classes, types, etc.
 namespace logging
 {
+
+//! @brief Name of message queue threads send messages to
 static const char* LOGGER_QUEUE_NAME = "/logger-queue";
 
+//! @brief Logging level
 enum class log_level : uint8_t
 {
    TRACE = 0,
@@ -30,6 +34,7 @@ enum class log_level : uint8_t
    ERROR = 4
 };
 
+//! @brief Defines structure for message posted to logger's message queue
 struct message_s
 {
    log_level level;
@@ -45,6 +50,7 @@ struct enum_hasher
    }
 };
 
+//! @brief Hash map mapping log_level to string representation
 const std::unordered_map< log_level, std::string, enum_hasher > tagMap{
     {log_level::ERROR, " [ERROR] "},
     {log_level::WARN, " [WARN] "},
@@ -52,32 +58,70 @@ const std::unordered_map< log_level, std::string, enum_hasher > tagMap{
     {log_level::DEBUG, " [DEBUG] "},
     {log_level::TRACE, " [TRACE] "}};
 
-//logger base class, not pure virtual so you can use as a null logger if you want
 using logging_config_t = std::unordered_map< std::string, std::string >;
+
+//! Our logger class
 class logger
 {
 public:
+   /*! Default constructor */
    logger();
+   /*! Default destructor */
    virtual ~logger();
+   /*! @brief Logs POSIX message queue
+    *
+    * @param message
+    */
    virtual void log( const logging::message_s* message );
+
+   /*! @brief Logs messages with logging level check
+    *
+    * @param message
+    * @param level
+    * @param logToStdout
+    */
    virtual void log( const std::string& message, const log_level level, const bool logToStdout );
+
+   /*! @brief Logs messages - not intended to be called directly by other threads
+    *
+    * @param message
+    * @param logToStdout
+    */
    virtual void log( const std::string& message, const bool logToStdout );
-   virtual std::string timestamp( void );
+
+   /*! @brief Get logger's pthread_t threadId
+    *
+    * @param void
+    * @returns logger::threadId
+    */
    virtual pthread_t getThreadId( void );
+
+   /*! @brief Get logger's mqd_t POSIX message queue id
+    *
+    * @param void
+    * @returns logger::queue
+    */
    virtual mqd_t getMsgQueueId( void );
+private:
+   /*! @brief Calculates timestamp
+    *
+    * @param void
+    * @returns formatted timestamp in a std::string buffer
+    */
+   virtual std::string timestamp( void );
 
 protected:
-   std::mutex lock;
-   mqd_t queue;
-   pthread_t threadId;
-   struct timespec interval;
-   struct timespec lastTime;
-   struct timespec currentTime;
+   std::mutex lock;  /*! Mutex protecting log file access */
+   mqd_t queue;      /*! POSIX message queue id */
+   pthread_t threadId;  /*! Thread identifier */
+   struct timespec interval;  /*! timespec used to calculate time interval between log calls */
+   struct timespec lastTime;  /*! timespec used to calculate time interval between log calls */
+   struct timespec currentTime;  /*! used to timestamp and calculate call intervals */
    log_level logLevelCutoff;
    const std::unordered_map< log_level, std::string, enum_hasher > levels;
 
-   std::string fileName;
-   std::ofstream file;
+   std::string fileName;   /*! Name of log file logger writes to */
+   std::ofstream file;     /*! Log file handle */
 };
 
 inline pthread_t logger::getThreadId( void )

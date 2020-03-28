@@ -73,6 +73,13 @@ extern CvCapture* capture;
  */
 int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t );
 
+/**
+ * @brief calls sem_post on next waiting semaphore. !\n
+ *        checks if the thread we wanted to wake up is active !\n
+ *        otherwise, recursively calls semPost on the next thread
+ *
+ * @param thread
+ */
 inline static void semPost( const threads_e thread )
 {
    if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] )
@@ -85,6 +92,13 @@ inline static void semPost( const threads_e thread )
    }
 }
 
+/**
+ * @brief calls sem_wait on a semaphore. !\n
+ *        checks if the thread we wait on is active !\n
+ *        otherwise, recursively calls semWait on the next thread
+ *
+ * @param thread
+ */
 inline static void semWait( const threads_e thread )
 {
    if ( threadConfigs[ thread ].isActive and &syncThreads[ thread ] )
