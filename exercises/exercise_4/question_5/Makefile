@@ -24,14 +24,11 @@ $(shell mkdir -p $(LIB_DIR) &> /dev/null)
 BIN_TGTS	:= $(BIN_DIR)/capture
 LIB_TGTS := $(LIB_DIR)/libCapture.so
 
-CPPFILES= $(wildcard $(SRC_DIR)/*.cpp)
-
-CPPOBJS= $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPFILES))
-
 SRCS	:=	canny.cpp \
 			hough.cpp \
 			houghElliptical.cpp \
-			q5.cpp
+			q5.cpp \
+			logging.cpp
 
 SRC_OBJS := $(patsubst %, $(OBJ_DIR)/%.o, $(basename $(SRCS)))
 
