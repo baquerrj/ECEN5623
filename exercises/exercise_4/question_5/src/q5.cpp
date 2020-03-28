@@ -32,6 +32,8 @@ CvCapture* capture;
 
 sem_t syncThreads[ THREAD_MAX ];
 
+static const char* defaultDevice = "/dev/video0";
+
 static void signalHandler( int signo )
 {
    switch ( signo )
@@ -44,7 +46,7 @@ static void signalHandler( int signo )
       }
       case SIGTERM:
       {
-         logging::INFO( "SIGINT Caught! Exiting...", true );
+         logging::INFO( "SIGTERM Caught! Exiting...", true );
          isTimeToDie = true;
          break;
       }
@@ -194,12 +196,6 @@ int main( int argc, char* argv[] )
       return 0;
    }
 
-   if ( not( cmdOptionExists( argv, argv + argc, "-d" ) or cmdOptionExists( argv, argv + argc, "--device" ) ) )
-   {
-      printf( "Must specify a device to use!\n" );
-      return 0;
-   }
-
    char* deviceName = getCmdOption( argv, argv + argc, "-d" );
    if ( !deviceName )
    {
@@ -227,19 +223,28 @@ int main( int argc, char* argv[] )
    }
 
    int device = -1;
+   struct stat buffer;
+
    if ( deviceName )
    {
-      struct stat buffer;
       if ( 0 == stat( deviceName, &buffer ) )
       {
-         printf( "exists!\n" );
          sscanf( deviceName, "%d", &device );
-      }
-      else
-      {
-         printf( "does not exist!\n" );
+         printf( "Using:\n\tdevice = %s\n", deviceName );
       }
    }
+   else if ( 0 == stat( defaultDevice, &buffer ) )
+   {
+      sscanf( defaultDevice, "%d", &device );
+      printf( "Using:\n\tdevice = %s\n", defaultDevice );
+   }
+   else
+   {
+      logging::ERROR( "Device does not exist!", true );
+      return 1;
+   }
+
+   printf( "\tgeometry = %dx%d\n", width, height );
 
    initializeSemaphores();
 
@@ -253,12 +258,10 @@ int main( int argc, char* argv[] )
    threadConfigs[ THREAD_CANNY ].isActive  = doCanny;
    threadConfigs[ THREAD_HOUGHL ].isActive = doHoughLine;
    threadConfigs[ THREAD_HOUGHE ].isActive = doHoughElliptical;
-   logging::INFO( "Starting Threads!\n" );
+   logging::INFO( "Starting Threads!" );
    isTimeToDie = false;
    createThreads( device );
 
-   printf( "Using:\n\tdevice = %s\n", deviceName );
-   printf( "\tgeometry = %dx%d\n", width, height );
    sem_post( &syncThreads[ THREAD_CANNY ] );
 
    //sleep(3);
@@ -267,7 +270,7 @@ int main( int argc, char* argv[] )
    pthread_join( threadConfigs[ THREAD_HOUGHE ].thread, NULL );
    pthread_join( threadConfigs[ THREAD_HOUGHL ].thread, NULL );
 
-   logging::INFO( "Exiting!\n" );
+   logging::INFO( "Exiting!", true );
 
    delete threadConfigs;
 

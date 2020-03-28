@@ -43,7 +43,7 @@ static void signalHandler( int signo )
 
 void CannyThreshold( int, void* )
 {
-   logging::INFO( "canny start\n" );
+   logging::INFO( "canny start" );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
 
    cv::cvtColor( mat_frame, timg_gray, CV_RGB2GRAY );
@@ -63,13 +63,14 @@ void CannyThreshold( int, void* )
    cv::imshow( window_name[ 0 ], timg_grad );
    pthread_mutex_unlock( &windowLock );
 #endif
-   logging::INFO( "canny end\n" );
+   logging::INFO( "canny end" );
 }
 
 void* executeCanny( void* args )
 {
    uint16_t frame_count = 0;
-   logging::INFO( "executeCanny entered!\n" );
+   //float frame_rate;
+   //struct timespec start_time, stop_time, diff_time;
    signal( SIGINT, signalHandler );
    int dev = 0;
    if ( NULL != args )
@@ -93,7 +94,7 @@ void* executeCanny( void* args )
       sem_wait( &syncThreads[ THREAD_CANNY ] );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
-      while ( frame_count < 50 )
+      while ( frame_count < 50 and false == isTimeToDie )
       {
          frame_count++;
 

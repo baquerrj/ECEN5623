@@ -62,12 +62,12 @@ void* executeHoughElliptical( void* args )
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
 
-   while ( 1 )
+   while ( false == isTimeToDie )
    {
       sem_wait( &syncThreads[ THREAD_HOUGHE ] );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
-      while ( frame_count < 50 )
+      while ( frame_count < 50 and false == isTimeToDie )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );

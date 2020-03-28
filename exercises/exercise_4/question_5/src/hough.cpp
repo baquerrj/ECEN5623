@@ -17,7 +17,7 @@ std::vector< cv::Vec4i > lines;
 
 void HoughLines( int, void* )
 {
-   logging::INFO( "hough start\n" );
+   logging::INFO( "hough start" );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
    cv::Canny( mat_frame, canny_frame, 50, 200, 3 );
 
@@ -40,7 +40,7 @@ void HoughLines( int, void* )
    cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
    pthread_mutex_unlock( &windowLock );
 #endif
-   logging::INFO( "hough end\n" );
+   logging::INFO( "hough end" );
 }
 
 void* executeHough( void* args )
@@ -62,12 +62,12 @@ void* executeHough( void* args )
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
    //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
 
-   while ( 1 )
+   while ( false == isTimeToDie )
    {
       sem_wait( &syncThreads[ THREAD_HOUGHL ] );
 
       //clock_gettime( CLOCK_REALTIME, &start_time );
-      while ( frame_count < 50 )
+      while ( frame_count < 50 and false == isTimeToDie )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );
