@@ -96,7 +96,7 @@ void* executeCanny( void* args )
 
    while ( false == isTimeToDie )
    {
-      sem_wait( &syncThreads[ THREAD_CANNY ] );
+      semWait( THREAD_CANNY );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
       while ( frame_count < 50 and false == isTimeToDie )
@@ -128,7 +128,7 @@ void* executeCanny( void* args )
       cvDestroyWindow( window_name[ THREAD_CANNY ] );
 #endif
 
-      sem_post( &syncThreads[ THREAD_HOUGHL ] );
+      semPost( THREAD_HOUGHL );
 
       break;
    }
