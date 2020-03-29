@@ -18,7 +18,7 @@
 int width  = HRES;
 int height = VRES;
 
-int lowThreshold = 0;
+int lowThreshold     = 0;
 int max_lowThreshold = 100;
 
 bool isTimeToDie;
@@ -259,7 +259,8 @@ int main( int argc, char* argv[] )
    else if ( 0 == stat( defaultDevice, &buffer ) )
    {
       sscanf( defaultDevice, "%d", &device );
-      printf( "Using:\n\tdevice = %s\n", defaultDevice );
+      logging::log( "Using:\n\tdevice = " + std::string( defaultDevice ) + "\n",
+                    true );
    }
    else
    {
@@ -267,7 +268,8 @@ int main( int argc, char* argv[] )
       return 1;
    }
 
-   printf( "\tgeometry = %dx%d\n", width, height );
+   logging::log( "\tgeometry = " + std::to_string( width ) + "x" + std::to_string( height ) + "\n",
+                 true );
 
    initializeSemaphores();
 

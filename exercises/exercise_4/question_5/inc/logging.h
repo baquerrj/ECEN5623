@@ -157,9 +157,9 @@ inline void log( const std::string& message, const LogLevel level )
    getLogger().log( message, level, false );
 }
 
-inline void log( const std::string& message )
+inline void log( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, false );
+   getLogger().log( message, logToStdout );
 }
 
 //these standout when reading code
