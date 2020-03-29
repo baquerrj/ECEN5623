@@ -56,8 +56,6 @@ const std::unordered_map< LogLevel, std::string, enumHasher > tagMap{
     {LogLevel::DEBUG, " [DEBUG] "},
     {LogLevel::TRACE, " [TRACE] "}};
 
-typedef std::unordered_map< std::string, std::string > loggingConfig_t;
-
 //! Our Logger class
 class Logger
 {
@@ -139,8 +137,7 @@ inline Logger& getLogger( void )
    return *singleton;
 }
 
-//configure the singleton (once only)
-inline void configure( const loggingConfig_t& config )
+inline void configure( void )
 {
    getLogger();
 }
