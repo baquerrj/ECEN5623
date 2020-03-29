@@ -72,10 +72,9 @@ extern int max_lowThreshold;
  *
  * @param stop
  * @param start
- * @param delta_t
- * @return int
+ * @return double
  */
-int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t );
+double delta_t( struct timespec* stop, struct timespec* start );
 
 /**
  * @brief calls sem_post on next waiting semaphore. !\n

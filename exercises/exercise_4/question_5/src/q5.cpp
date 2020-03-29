@@ -173,43 +173,22 @@ void destroySemaphores()
    }
 }
 
-int delta_t( struct timespec* stop, struct timespec* start, struct timespec* delta_t )
+double delta_t( struct timespec* stop, struct timespec* start )
 {
-   int dt_sec  = stop->tv_sec - start->tv_sec;
-   int dt_nsec = stop->tv_nsec - start->tv_nsec;
-
-   if ( dt_sec >= 0 )
-   {
-      if ( dt_nsec >= 0 )
-      {
-         delta_t->tv_sec  = dt_sec;
-         delta_t->tv_nsec = dt_nsec;
-      }
-      else
-      {
-         delta_t->tv_sec  = dt_sec - 1;
-         delta_t->tv_nsec = NSEC_PER_SEC + dt_nsec;
-      }
-   }
-   else
-   {
-      if ( dt_nsec >= 0 )
-      {
-         delta_t->tv_sec  = dt_sec;
-         delta_t->tv_nsec = dt_nsec;
-      }
-      else
-      {
-         delta_t->tv_sec  = dt_sec - 1;
-         delta_t->tv_nsec = NSEC_PER_SEC + dt_nsec;
-      }
-   }
-
-   return ( 1 );
+   double current = ( (double)stop->tv_sec * 1000.0 ) +
+                    ( (double)( (double)stop->tv_nsec / 1000000.0 ) );
+   double last = ( (double)start->tv_sec * 1000.0 ) +
+                 ( (double)( (double)start->tv_nsec / 1000000.0 ) );
+   return ( current - last );
 }
 
 int main( int argc, char* argv[] )
 {
+   // See if we need to print help first. No use in
+   // allocating memory and registering signals
+   // if we're just going to exit right away
+   printHelp( argc, argv );
+
    // Preliminary stuff
    mainThreadId = getpid();
    signal( SIGINT, signalHandler );
@@ -217,7 +196,10 @@ int main( int argc, char* argv[] )
 
    threadConfigs = new threadConfig_s[ THREAD_MAX ];
 
-   printHelp( argc, argv );
+   // Configure logger with logging level
+   std::string fileName     = "capture" + std::to_string( mainThreadId ) + ".log";
+   logging::config_s config = {logging::LogLevel::TRACE, fileName};
+   logging::configure( config );
 
    char* deviceName = getCmdOption( argv, argv + argc, "-d" );
    if ( !deviceName )
@@ -253,7 +235,8 @@ int main( int argc, char* argv[] )
       if ( 0 == stat( deviceName, &buffer ) )
       {
          sscanf( deviceName, "%d", &device );
-         printf( "Using:\n\tdevice = %s\n", deviceName );
+         logging::log( "Using:\n\tdevice = " + std::string( deviceName ) + "\n",
+                       true );
       }
    }
    else if ( 0 == stat( defaultDevice, &buffer ) )
