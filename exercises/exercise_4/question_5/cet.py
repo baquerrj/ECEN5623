@@ -2,34 +2,51 @@
 import numpy as np
 import sys
 
-file = sys.argv[1]
-transform = sys.argv[2].upper()
-geometry = ''
-with open(file) as f:
-   for line in f.readlines():
-      if 'geometry' in line.lower():
-         items = line.split(' ')
-         geometry = items[-1].rstrip('\n')
+def print_execution_times( transform, file ):
+   deltaTimes = []
+   with open(file) as f:
+      for line in f.readlines():
+         if transform in line.upper() and 'END' in line.upper():
+            items = line.split(' ')
+            deltaTimes.append( items[-2] )
 
-print('*'*80)
-print('file: {}'.format(file))
-print('transform: {}'.format(transform))
-print('geometry: {}'.format(geometry))
-print('*'*80)
-deltaTimes = []
-with open(file) as f:
-   for line in f.readlines():
-      if transform in line.upper() and 'END' in line.upper():
-         items = line.split(' ')
-         dt = items[-1].rstrip('\n')
-         deltaTimes.append( dt )
+   deltaTimes = np.asarray(deltaTimes, dtype=np.float64)
 
-deltaTimes = np.asarray(deltaTimes, dtype=np.float64)
+   worst = deltaTimes.max()
+   best = deltaTimes.min()
+   average = deltaTimes.mean()
+   print(transform)
+   print('average execution time: {} ms\n'.format(average))
+   print('worst execution time: {} ms\n'.format(worst))
+   print('best execution time: {} ms\n'.format(best))
+   print('*'*80)
 
-worst = deltaTimes.max()
-best = deltaTimes.min()
-average = deltaTimes.mean()
-print('average execution time: {} secs\n'.format(average))
-print('worst execution time: {} secs\n'.format(worst))
-print('best execution time: {} secs\n'.format(best))
-print('*'*80)
+def main():
+
+   file = sys.argv[1]
+
+   argCount = len(sys.argv[2:])
+   transforms = []
+   for i in range(argCount):
+      try:
+         transforms.append(sys.argv[i+2].upper())
+      except IndexError:
+         pass
+
+   geometry = ''
+   with open(file) as f:
+      for line in f.readlines():
+         if 'geometry' in line.lower():
+            items = line.split(' ')
+            geometry = items[-1].rstrip('\n')
+
+   print('*'*80)
+   print('file: {}'.format(file))
+   print('geometry: {}'.format(geometry))
+   print('*'*80)
+
+   for transform in transforms:
+      print_execution_times(transform, file)
+
+if __name__ == '__main__':
+   main()
