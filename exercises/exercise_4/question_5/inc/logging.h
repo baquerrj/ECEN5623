@@ -56,15 +56,21 @@ const std::unordered_map< LogLevel, std::string, enumHasher > tagMap{
     {LogLevel::DEBUG, " [DEBUG] "},
     {LogLevel::TRACE, " [TRACE] "}};
 
+struct config_s
+{
+   LogLevel cutoff;
+   std::string file;
+};
+
 //! Our Logger class
 class Logger
 {
 public:
    /*! Default constructor */
-   Logger();
+   Logger( const logging::config_s& config );
    /*! Default destructor */
    virtual ~Logger();
-   /*! @brief Logs POSIX message queue
+   /*! @brief Most basic logging
     *
     * @param message
     */
@@ -78,7 +84,7 @@ public:
     */
    virtual void log( const std::string& message, const LogLevel level, const bool logToStdout );
 
-   /*! @brief Logs messages - not intended to be called directly by other threads
+   /*! @brief Logs messages without logging level check
     *
     * @param message
     * @param logToStdout
@@ -131,15 +137,15 @@ inline mqd_t Logger::getMsgQueueId( void )
    return queue;
 }
 
-inline Logger& getLogger( void )
+inline Logger& getLogger( const config_s& config = {LogLevel::INFO, "capture.log"} )
 {
-   static std::unique_ptr< Logger > singleton( new Logger() );
+   static std::unique_ptr< Logger > singleton( new Logger( config ) );
    return *singleton;
 }
 
-inline void configure( void )
+inline void configure( const config_s& config )
 {
-   getLogger();
+   getLogger( config );
 }
 
 inline pthread_t getLoggerThreadId( void )
@@ -191,12 +197,42 @@ inline void* cycle( void* args )
    while ( 1 )
    {
       memset( &message, 0, sizeof( message ) );
-      int retVal = mq_receive( getLogger().getMsgQueueId(), (char*)&message, sizeof( message ), &prio );
+      if ( 0 > mq_receive( getLogger().getMsgQueueId(), (char*)&message, sizeof( message ), &prio ) )
+      {
+         int errnum = errno;
+         logging::ERROR( std::string( strerror( errnum ) ), true );
+      }
       switch ( message.level )
       {
+         case logging::LogLevel::TRACE:
+         {
+            logging::TRACE( message.msg );
+            break;
+         }
+         case logging::LogLevel::DEBUG:
+         {
+            logging::DEBUG( message.msg );
+            break;
+         }
          case logging::LogLevel::INFO:
          {
             logging::INFO( message.msg );
+            break;
+         }
+         case logging::LogLevel::WARN:
+         {
+            logging::WARN( message.msg );
+            break;
+         }
+         case logging::LogLevel::ERROR:
+         {
+            logging::ERROR( message.msg );
+            break;
+         }
+         default:
+         {
+            logging::WARN( "Invalid logging level!", true );
+            break;
          }
       }
    }

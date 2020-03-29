@@ -8,32 +8,31 @@ std::string logging::Logger::timestamp( void )
 {
    //get the time
    clock_gettime( CLOCK_REALTIME, &currentTime );
-   delta_t( &currentTime, &lastTime, &interval );
-   lastTime = currentTime;
    //format the string
    std::string buffer( "xxxxxxxxxxxxxxxxxx" );
    sprintf( &buffer.front(), "%ld.%ld", currentTime.tv_sec, currentTime.tv_nsec );
    return buffer;
 }
 
-logging::Logger::Logger() :
+logging::Logger::Logger( const logging::config_s& config ) :
     levels( logging::tagMap ),
-    logLevelCutoff( logging::LogLevel::INFO )
+    logLevelCutoff( config.cutoff ),
+    fileName( config.file )
 {
    mq_unlink( logging::LOGGER_QUEUE_NAME );
    struct mq_attr attr;
    attr.mq_flags   = 0;
    attr.mq_maxmsg  = 10;
-   attr.mq_msgsize = sizeof( message_s );
+   attr.mq_msgsize = sizeof( logging::message_s );
    attr.mq_curmsgs = 0;
 
    queue = mq_open( logging::LOGGER_QUEUE_NAME, O_CREAT | O_RDWR, 0666, &attr );
    if ( 0 > queue )
    {
+      perror( "ERROR: mq_open: " );
       throw std::runtime_error( "Could not open queue for Logger\n" );
    }
 
-   fileName = std::string( "capture" ) + std::to_string( mainThreadId ) + ".log";
    pthread_mutex_lock( &lock );
    try
    {
@@ -65,6 +64,8 @@ void logging::Logger::log( const logging::message_s* message )
 {
    if ( -1 == mq_send( queue, (const char*)message, sizeof( logging::message_s ), 0 ) )
    {
+      int errnum = errno;
+      logging::ERROR( std::string( strerror( errnum ) ), true );
       throw std::runtime_error( "Could not en-queue message!\n" );
    }
 }
@@ -78,12 +79,17 @@ void logging::Logger::log( const std::string& message, const LogLevel level, con
    std::string output;
    output.reserve( message.length() + 64 );
    output.append( timestamp() );
-   std::string deltaT = std::string( " DT: " ) +
-                        std::to_string( (long)interval.tv_sec ) + "." +
-                        std::to_string( interval.tv_nsec );
    output.append( levels.find( level )->second );
    output.append( message );
-   output.append( deltaT );
+   // Only calculate tack on DT to message if this is a trace
+   if ( level == LogLevel::TRACE )
+   {
+      double dt = delta_t( &currentTime, &lastTime );
+      lastTime  = currentTime;
+      std::string deltaT( " DT: " +
+                          std::to_string( dt ) + " ms" );
+      output.append( deltaT );
+   }
    output.push_back( '\n' );
    log( output, logToStdout );
 }
