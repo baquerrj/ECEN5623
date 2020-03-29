@@ -4,9 +4,17 @@ import sys
 
 file = sys.argv[1]
 transform = sys.argv[2].upper()
+geometry = ''
+with open(file) as f:
+   for line in f.readlines():
+      if 'geometry' in line.lower():
+         items = line.split(' ')
+         geometry = items[-1].rstrip('\n')
 
-print(file)
-print(transform)
+print('*'*80)
+print('file: {}'.format(file))
+print('transform: {}'.format(transform))
+print('geometry: {}'.format(geometry))
 print('*'*80)
 deltaTimes = []
 with open(file) as f:
