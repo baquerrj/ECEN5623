@@ -51,7 +51,7 @@ void HoughLines( int, void* )
 
 void* executeHough( void* args )
 {
-   uint16_t frame_count = 0;
+   uint32_t frame_count = 0;
    //float frame_rate;
    //struct timespec start_time, stop_time, diff_time;
    int dev = 0;

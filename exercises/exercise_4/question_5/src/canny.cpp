@@ -71,7 +71,7 @@ void CannyThreshold( int, void* )
 
 void* executeCanny( void* args )
 {
-   uint16_t frame_count = 0;
+   uint32_t frame_count = 0;
    //float frame_rate;
    //struct timespec start_time, stop_time, diff_time;
    signal( SIGINT, signalHandler );
