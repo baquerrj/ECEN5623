@@ -12,11 +12,11 @@ static cv::Mat gray, canny_frame, cdst, mat_frame;
 static std::vector< cv::Vec4i > lines;
 
 static const logging::message_s start = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "HOUGH-LINES START"};
 
 static const logging::message_s end = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "HOUGH-LINES END"};
 
 extern CvCapture* capture;
@@ -69,7 +69,7 @@ void* executeHough( void* args )
       semWait( THREAD_HOUGHL );
 
       //clock_gettime( CLOCK_REALTIME, &start_time );
-      while ( frame_count < 50 and false == isTimeToDie )
+      while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );
@@ -79,21 +79,21 @@ void* executeHough( void* args )
             break;
 
          HoughLines( 0, 0 );
-         /* char c = cvWaitKey( 10 );
+         char c = cvWaitKey( 10 );
          if ( c == 'q' )
          {
             printf( "got quit\n" );
             break;
-         } */
+         }
       }
       //clock_gettime(CLOCK_REALTIME, &stop_time);
       //delta_t(&stop_time, &start_time, &diff_time);
       //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
       //printf("Frame Rate of Hough Edge Detection is %f\n",frame_rate);
 
-#ifdef SHOW_WINDOWS
-      cvDestroyWindow( window_name[ THREAD_HOUGHL ] );
-#endif
+//#ifdef SHOW_WINDOWS
+//      cvDestroyWindow( window_name[ THREAD_HOUGHL ] );
+//#endif
 
       semPost( THREAD_HOUGHE );
       break;

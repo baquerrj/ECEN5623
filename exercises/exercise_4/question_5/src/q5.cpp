@@ -288,17 +288,20 @@ int main( int argc, char* argv[] )
       cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
       // Create a Trackbar for user to enter threshold
       cv::createTrackbar( "Min Threshold:", window_name[ THREAD_CANNY ], &lowThreshold, max_lowThreshold, CannyThreshold );
+      logging::INFO( "Spawned " + std::string( window_name[ THREAD_CANNY ] ), true );
    }
    if ( threadConfigs[ THREAD_HOUGHL ].isActive )
    {
       cv::namedWindow( window_name[ THREAD_HOUGHL ], CV_WINDOW_AUTOSIZE );
+      logging::INFO( "Spawned " + std::string( window_name[ THREAD_HOUGHL ] ), true );
    }
    if ( threadConfigs[ THREAD_HOUGHE ].isActive )
    {
       cv::namedWindow( window_name[ THREAD_HOUGHE ], CV_WINDOW_AUTOSIZE );
+      logging::INFO( "Spawned " + std::string( window_name[ THREAD_HOUGHE ] ), true );
    }
 #endif
-   //sem_post( &syncThreads[ THREAD_CANNY ] );
+
    semPost( THREAD_CANNY );
 
    //sleep(3);

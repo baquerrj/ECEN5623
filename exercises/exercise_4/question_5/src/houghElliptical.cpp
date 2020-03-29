@@ -11,11 +11,11 @@ static cv::Mat gray;
 static std::vector< cv::Vec3f > circles;
 
 static const logging::message_s start = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "HOUGH-ELLIP START"};
 
 static const logging::message_s end = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "HOUGH-ELLIP END"};
 
 extern CvCapture* capture;
@@ -70,7 +70,7 @@ void* executeHoughElliptical( void* args )
       semWait( THREAD_HOUGHE );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
-      while ( frame_count < 50 and false == isTimeToDie )
+      while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );
@@ -93,9 +93,9 @@ void* executeHoughElliptical( void* args )
       //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
       //printf("Frame Rate of Hough Elliptical Detection is %f\n",frame_rate);
 
-#ifdef SHOW_WINDOWS
-      cvDestroyWindow( window_name[ THREAD_HOUGHE ] );
-#endif
+//#ifdef SHOW_WINDOWS
+//      cvDestroyWindow( window_name[ THREAD_HOUGHE ] );
+//#endif
 
       break;
    }

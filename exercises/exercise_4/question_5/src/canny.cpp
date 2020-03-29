@@ -13,11 +13,11 @@ static IplImage* frame;
 static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 
 static const logging::message_s start = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "CANNY START"};
 
 static const logging::message_s end = {
-    logging::log_level::INFO,
+    logging::LogLevel::INFO,
     "CANNY END"};
 
 int kernel_size = 3;
@@ -91,7 +91,7 @@ void* executeCanny( void* args )
       semWait( THREAD_CANNY );
 
       //clock_gettime(CLOCK_REALTIME, &start_time);
-      while ( frame_count < 50 and false == isTimeToDie )
+      while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
          frame_count++;
 
@@ -116,9 +116,9 @@ void* executeCanny( void* args )
       //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
       //printf("Frame Rate of Canny Edge Detection is %f\n",frame_rate);
 
-#ifdef SHOW_WINDOWS
-      cvDestroyWindow( window_name[ THREAD_CANNY ] );
-#endif
+//#ifdef SHOW_WINDOWS
+//      cvDestroyWindow( window_name[ THREAD_CANNY ] );
+//#endif
 
       semPost( THREAD_HOUGHL );
 
