@@ -15,7 +15,7 @@
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
 
-static const uint32_t FRAMES_TO_EXECUTE = 1000;
+static const uint32_t FRAMES_TO_EXECUTE = 200;
 
 static const char* window_name[] = {
     "Edge Detector Transform",
