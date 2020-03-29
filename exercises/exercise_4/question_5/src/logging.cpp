@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-std::string logging::logger::timestamp( void )
+std::string logging::Logger::timestamp( void )
 {
    //get the time
    clock_gettime( CLOCK_REALTIME, &currentTime );
@@ -16,7 +16,7 @@ std::string logging::logger::timestamp( void )
    return buffer;
 }
 
-logging::logger::logger() :
+logging::Logger::Logger() :
     levels( logging::tagMap ),
     logLevelCutoff( logging::log_level::INFO )
 {
@@ -30,7 +30,7 @@ logging::logger::logger() :
    queue = mq_open( logging::LOGGER_QUEUE_NAME, O_CREAT | O_RDWR, 0666, &attr );
    if ( 0 > queue )
    {
-      throw std::runtime_error( "Could not open queue for logger\n" );
+      throw std::runtime_error( "Could not open queue for Logger\n" );
    }
 
    fileName = std::string( "capture" ) + std::to_string( mainThreadId ) + ".log";
@@ -56,12 +56,12 @@ logging::logger::logger() :
    pthread_create( &threadId, NULL, logging::cycle, NULL );
 }
 
-logging::logger::~logger()
+logging::Logger::~Logger()
 {
    mq_unlink( logging::LOGGER_QUEUE_NAME );
 }
 
-void logging::logger::log( const logging::message_s* message )
+void logging::Logger::log( const logging::message_s* message )
 {
    if ( -1 == mq_send( queue, (const char*)message, sizeof( logging::message_s ), 0 ) )
    {
@@ -69,7 +69,7 @@ void logging::logger::log( const logging::message_s* message )
    }
 }
 
-void logging::logger::log( const std::string& message, const log_level level, const bool logToStdout )
+void logging::Logger::log( const std::string& message, const log_level level, const bool logToStdout )
 {
    if ( level < logLevelCutoff )
    {
@@ -88,7 +88,7 @@ void logging::logger::log( const std::string& message, const log_level level, co
    log( output, logToStdout );
 }
 
-void logging::logger::log( const std::string& message, const bool logToStdout )
+void logging::Logger::log( const std::string& message, const bool logToStdout )
 {
    pthread_mutex_lock( &lock );
    file << message;

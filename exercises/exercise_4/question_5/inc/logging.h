@@ -19,9 +19,8 @@
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
 {
-
 //! @brief Name of message queue threads send messages to
-static const char* LOGGER_QUEUE_NAME = "/logger-queue";
+static const char* LOGGER_QUEUE_NAME = "/Logger-queue";
 
 //! @brief Logging level
 enum class log_level : uint8_t
@@ -33,7 +32,7 @@ enum class log_level : uint8_t
    ERROR = 4
 };
 
-//! @brief Defines structure for message posted to logger's message queue
+//! @brief Defines structure for message posted to Logger's message queue
 struct message_s
 {
    log_level level;
@@ -59,14 +58,14 @@ const std::unordered_map< log_level, std::string, enum_hasher > tagMap{
 
 using logging_config_t = std::unordered_map< std::string, std::string >;
 
-//! Our logger class
-class logger
+//! Our Logger class
+class Logger
 {
 public:
    /*! Default constructor */
-   logger();
+   Logger();
    /*! Default destructor */
-   virtual ~logger();
+   virtual ~Logger();
    /*! @brief Logs POSIX message queue
     *
     * @param message
@@ -88,19 +87,20 @@ public:
     */
    virtual void log( const std::string& message, const bool logToStdout );
 
-   /*! @brief Get logger's pthread_t threadId
+   /*! @brief Get Logger's pthread_t threadId
     *
     * @param void
-    * @returns logger::threadId
+    * @returns Logger::threadId
     */
    virtual pthread_t getThreadId( void );
 
-   /*! @brief Get logger's mqd_t POSIX message queue id
+   /*! @brief Get Logger's mqd_t POSIX message queue id
     *
     * @param void
-    * @returns logger::queue
+    * @returns Logger::queue
     */
    virtual mqd_t getMsgQueueId( void );
+
 private:
    /*! @brief Calculates timestamp
     *
@@ -110,32 +110,32 @@ private:
    virtual std::string timestamp( void );
 
 protected:
-   pthread_mutex_t lock;  /*! Mutex protecting log file access */
-   mqd_t queue;      /*! POSIX message queue id */
-   pthread_t threadId;  /*! Thread identifier */
-   struct timespec interval;  /*! timespec used to calculate time interval between log calls */
-   struct timespec lastTime;  /*! timespec used to calculate time interval between log calls */
-   struct timespec currentTime;  /*! used to timestamp and calculate call intervals */
+   pthread_mutex_t lock;        /*! Mutex protecting log file access */
+   mqd_t queue;                 /*! POSIX message queue id */
+   pthread_t threadId;          /*! Thread identifier */
+   struct timespec interval;    /*! timespec used to calculate time interval between log calls */
+   struct timespec lastTime;    /*! timespec used to calculate time interval between log calls */
+   struct timespec currentTime; /*! used to timestamp and calculate call intervals */
    log_level logLevelCutoff;
    const std::unordered_map< log_level, std::string, enum_hasher > levels;
 
-   std::string fileName;   /*! Name of log file logger writes to */
-   std::ofstream file;     /*! Log file handle */
+   std::string fileName; /*! Name of log file Logger writes to */
+   std::ofstream file;   /*! Log file handle */
 };
 
-inline pthread_t logger::getThreadId( void )
+inline pthread_t Logger::getThreadId( void )
 {
    return threadId;
 }
 
-inline mqd_t logger::getMsgQueueId( void )
+inline mqd_t Logger::getMsgQueueId( void )
 {
    return queue;
 }
 
-inline logger& getLogger( void )
+inline Logger& getLogger( void )
 {
-   static std::unique_ptr< logger > singleton( new logger() );
+   static std::unique_ptr< Logger > singleton( new Logger() );
    return *singleton;
 }
 
