@@ -23,7 +23,7 @@ namespace logging
 static const char* LOGGER_QUEUE_NAME = "/Logger-queue";
 
 //! @brief Logging level
-enum class log_level : uint8_t
+enum class LogLevel : uint8_t
 {
    TRACE = 0,
    DEBUG = 1,
@@ -35,11 +35,11 @@ enum class log_level : uint8_t
 //! @brief Defines structure for message posted to Logger's message queue
 struct message_s
 {
-   log_level level;
+   LogLevel level;
    char msg[ 64 ];
 };
 
-struct enum_hasher
+struct enumHasher
 {
    template < typename T >
    std::size_t operator()( T t ) const
@@ -48,15 +48,15 @@ struct enum_hasher
    }
 };
 
-//! @brief Hash map mapping log_level to string representation
-const std::unordered_map< log_level, std::string, enum_hasher > tagMap{
-    {log_level::ERROR, " [ERROR] "},
-    {log_level::WARN, " [WARN] "},
-    {log_level::INFO, " [INFO] "},
-    {log_level::DEBUG, " [DEBUG] "},
-    {log_level::TRACE, " [TRACE] "}};
+//! @brief Hash map mapping LogLevel to string representation
+const std::unordered_map< LogLevel, std::string, enumHasher > tagMap{
+    {LogLevel::ERROR, " [ERROR] "},
+    {LogLevel::WARN, " [WARN] "},
+    {LogLevel::INFO, " [INFO] "},
+    {LogLevel::DEBUG, " [DEBUG] "},
+    {LogLevel::TRACE, " [TRACE] "}};
 
-using logging_config_t = std::unordered_map< std::string, std::string >;
+typedef std::unordered_map< std::string, std::string > loggingConfig_t;
 
 //! Our Logger class
 class Logger
@@ -78,7 +78,7 @@ public:
     * @param level
     * @param logToStdout
     */
-   virtual void log( const std::string& message, const log_level level, const bool logToStdout );
+   virtual void log( const std::string& message, const LogLevel level, const bool logToStdout );
 
    /*! @brief Logs messages - not intended to be called directly by other threads
     *
@@ -116,8 +116,8 @@ protected:
    struct timespec interval;    /*! timespec used to calculate time interval between log calls */
    struct timespec lastTime;    /*! timespec used to calculate time interval between log calls */
    struct timespec currentTime; /*! used to timestamp and calculate call intervals */
-   log_level logLevelCutoff;
-   const std::unordered_map< log_level, std::string, enum_hasher > levels;
+   LogLevel logLevelCutoff;
+   const std::unordered_map< LogLevel, std::string, enumHasher > levels;
 
    std::string fileName; /*! Name of log file Logger writes to */
    std::ofstream file;   /*! Log file handle */
@@ -140,7 +140,7 @@ inline Logger& getLogger( void )
 }
 
 //configure the singleton (once only)
-inline void configure( const logging_config_t& config )
+inline void configure( const loggingConfig_t& config )
 {
    getLogger();
 }
@@ -155,7 +155,7 @@ inline void log( const logging::message_s* message )
    getLogger().log( message );
 }
 
-inline void log( const std::string& message, const log_level level )
+inline void log( const std::string& message, const LogLevel level )
 {
    getLogger().log( message, level, false );
 }
@@ -168,23 +168,23 @@ inline void log( const std::string& message )
 //these standout when reading code
 inline void TRACE( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, log_level::TRACE, logToStdout );
+   getLogger().log( message, LogLevel::TRACE, logToStdout );
 };
 inline void DEBUG( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, log_level::DEBUG, logToStdout );
+   getLogger().log( message, LogLevel::DEBUG, logToStdout );
 };
 inline void INFO( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, log_level::INFO, logToStdout );
+   getLogger().log( message, LogLevel::INFO, logToStdout );
 };
 inline void WARN( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, log_level::WARN, logToStdout );
+   getLogger().log( message, LogLevel::WARN, logToStdout );
 };
 inline void ERROR( const std::string& message, const bool logToStdout = false )
 {
-   getLogger().log( message, log_level::ERROR, logToStdout );
+   getLogger().log( message, LogLevel::ERROR, logToStdout );
 };
 
 inline void* cycle( void* args )
@@ -197,7 +197,7 @@ inline void* cycle( void* args )
       int retVal = mq_receive( getLogger().getMsgQueueId(), (char*)&message, sizeof( message ), &prio );
       switch ( message.level )
       {
-         case logging::log_level::INFO:
+         case logging::LogLevel::INFO:
          {
             logging::INFO( message.msg );
          }

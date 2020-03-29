@@ -18,7 +18,7 @@ std::string logging::Logger::timestamp( void )
 
 logging::Logger::Logger() :
     levels( logging::tagMap ),
-    logLevelCutoff( logging::log_level::INFO )
+    logLevelCutoff( logging::LogLevel::INFO )
 {
    mq_unlink( logging::LOGGER_QUEUE_NAME );
    struct mq_attr attr;
@@ -69,7 +69,7 @@ void logging::Logger::log( const logging::message_s* message )
    }
 }
 
-void logging::Logger::log( const std::string& message, const log_level level, const bool logToStdout )
+void logging::Logger::log( const std::string& message, const LogLevel level, const bool logToStdout )
 {
    if ( level < logLevelCutoff )
    {
