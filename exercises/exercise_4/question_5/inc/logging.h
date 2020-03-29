@@ -11,7 +11,6 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -111,7 +110,7 @@ private:
    virtual std::string timestamp( void );
 
 protected:
-   std::mutex lock;  /*! Mutex protecting log file access */
+   pthread_mutex_t lock;  /*! Mutex protecting log file access */
    mqd_t queue;      /*! POSIX message queue id */
    pthread_t threadId;  /*! Thread identifier */
    struct timespec interval;  /*! timespec used to calculate time interval between log calls */

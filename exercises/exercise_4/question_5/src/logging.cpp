@@ -34,7 +34,7 @@ logging::logger::logger() :
    }
 
    fileName = std::string( "capture" ) + std::to_string( mainThreadId ) + ".log";
-   lock.lock();
+   pthread_mutex_lock( &lock );
    try
    {
       file.open( fileName, std::ofstream::out | std::ofstream::app );
@@ -50,7 +50,7 @@ logging::logger::logger() :
          throw e;
       }
    }
-   lock.unlock();
+   pthread_mutex_unlock( &lock );
 
    printf( "Created logfile %s\n", fileName.c_str() );
    pthread_create( &threadId, NULL, logging::cycle, NULL );
@@ -90,10 +90,10 @@ void logging::logger::log( const std::string& message, const log_level level, co
 
 void logging::logger::log( const std::string& message, const bool logToStdout )
 {
-   lock.lock();
+   pthread_mutex_lock( &lock );
    file << message;
    file.flush();
-   lock.unlock();
+   pthread_mutex_unlock( &lock );
    if ( logToStdout == true )
    {
       std::cout << message;
