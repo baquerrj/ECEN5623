@@ -13,11 +13,11 @@ static IplImage* frame;
 static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 
 static const logging::message_s start = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "CANNY START"};
 
 static const logging::message_s end = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "CANNY END"};
 
 int kernel_size = 3;

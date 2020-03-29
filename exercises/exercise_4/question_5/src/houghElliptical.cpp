@@ -11,11 +11,11 @@ static cv::Mat gray;
 static std::vector< cv::Vec3f > circles;
 
 static const logging::message_s start = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "HOUGH-ELLIP START"};
 
 static const logging::message_s end = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "HOUGH-ELLIP END"};
 
 extern CvCapture* capture;

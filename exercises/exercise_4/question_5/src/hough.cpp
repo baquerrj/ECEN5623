@@ -12,11 +12,11 @@ static cv::Mat gray, canny_frame, cdst, mat_frame;
 static std::vector< cv::Vec4i > lines;
 
 static const logging::message_s start = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "HOUGH-LINES START"};
 
 static const logging::message_s end = {
-    logging::LogLevel::INFO,
+    logging::LogLevel::TRACE,
     "HOUGH-LINES END"};
 
 extern CvCapture* capture;
