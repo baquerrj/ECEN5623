@@ -38,7 +38,7 @@ void CannyThreshold( int, void* )
    mat_frame.copyTo( timg_grad, canny_frame );
 
    pthread_mutex_lock( &windowLock );
-   cv::imshow( window_name[ 0 ], timg_grad );
+   cv::imshow( window_name[ THREAD_CANNY ], timg_grad );
    pthread_mutex_unlock( &windowLock );
    logging::log( &end );
 }
@@ -49,7 +49,7 @@ void* executeCanny( void* args )
 
    while ( false == isTimeToDie )
    {
-      semWait( THREAD_CANNY );
+      //semWait( THREAD_CANNY );
 
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
@@ -64,7 +64,7 @@ void* executeCanny( void* args )
 
          CannyThreshold( 0, 0 );
 
-         char q = cvWaitKey( 33 );
+         char q = cvWaitKey( 1 );
          if ( q == 'q' )
          {
             printf( "got quit\n" );
@@ -72,7 +72,7 @@ void* executeCanny( void* args )
          }
       }
 
-      semPost( THREAD_HOUGHL );
+      //semPost( THREAD_HOUGHL );
 
       break;
    }

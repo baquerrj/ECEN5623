@@ -49,7 +49,7 @@ void* executeHoughElliptical( void* args )
 
    while ( false == isTimeToDie )
    {
-      semWait( THREAD_HOUGHE );
+      //semWait( THREAD_HOUGHE );
 
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
@@ -62,7 +62,7 @@ void* executeHoughElliptical( void* args )
 
          HoughElliptical( 0, 0 );
 
-         char c = cvWaitKey( 10 );
+         char c = cvWaitKey( 1 );
          if ( c == 'q' )
          {
             printf( "got quit\n" );

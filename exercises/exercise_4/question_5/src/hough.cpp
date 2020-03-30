@@ -48,7 +48,7 @@ void* executeHough( void* args )
 
    while ( false == isTimeToDie )
    {
-      semWait( THREAD_HOUGHL );
+      //semWait( THREAD_HOUGHL );
 
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
@@ -60,7 +60,7 @@ void* executeHough( void* args )
             break;
 
          HoughLines( 0, 0 );
-         char c = cvWaitKey( 10 );
+         char c = cvWaitKey( 1 );
          if ( c == 'q' )
          {
             printf( "got quit\n" );
@@ -68,7 +68,7 @@ void* executeHough( void* args )
          }
       }
 
-      semPost( THREAD_HOUGHE );
+      //semPost( THREAD_HOUGHE );
       break;
    }
 
