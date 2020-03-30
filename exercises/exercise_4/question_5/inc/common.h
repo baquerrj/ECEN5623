@@ -8,6 +8,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <unordered_map>
+#define USE_FIFO
 
 enum threads_e
 {

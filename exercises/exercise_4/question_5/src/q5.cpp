@@ -86,39 +86,34 @@ void printHelp( int argc, char* argv[] )
 
 void createThreads( int device )
 {
-#if 0
-
-   int max_prio  = sched_get_priority_max( SCHED_FIFO );
-   int min_prio  = sched_get_priority_min( SCHED_FIFO );
-   /*Initialise threads and attributes*/
-   pthread_attr_init( &threadConfigs[ THREAD_MAIN ].atrributes );
-   pthread_attr_setinheritsched( &threadConfigs[ THREAD_MAIN ].atrributes, PTHREAD_EXPLICIT_SCHED );
-   pthread_attr_setschedpolicy( &threadConfigs[ THREAD_MAIN ].atrributes, SCHED_FIFO );
-   threadConfigs[ THREAD_MAIN ].params.sched_priority = max_prio;
-
-   if ( doCanny )
+#ifdef USE_FIFO
+   int max_prio = sched_get_priority_max( SCHED_FIFO );
+   /* Initialize threads and attributes */
+   if ( threadConfigs[ THREAD_CANNY ].isActive )
    {
       pthread_attr_init( &threadConfigs[ THREAD_CANNY ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_CANNY ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_CANNY ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_CANNY ].params.sched_priority = max_prio;
+      threadConfigs[ THREAD_CANNY ].params.sched_priority = max_prio - 1;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_CANNY ].atrributes, &threadConfigs[ THREAD_CANNY ].params );
    }
 
-   if ( doHoughLine )
+   if ( threadConfigs[ THREAD_HOUGHL ].isActive )
    {
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHL ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHL ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHL ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio;
+      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio - 2;
+      pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHL ].atrributes, &threadConfigs[ THREAD_HOUGHL ].params );
    }
 
-   if ( doHoughElliptical )
+   if ( threadConfigs[ THREAD_HOUGHE ].isActive )
    {
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHE ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHE ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHE ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio;
+      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio - 3;
+      pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHE ].atrributes, &threadConfigs[ THREAD_HOUGHE ].params );
    }
 #endif
 
@@ -131,7 +126,7 @@ void createThreads( int device )
                               thread_entry_fn[ i ],
                               NULL ) != 0 )
          {
-            perror( "ERROR; pthread_create:" );
+            perror( "ERROR: pthread_create:" );
             exit( -1 );
          }
          else
