@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
 #include "canny.h"
 #include "common.h"
 #include "hough.h"
@@ -130,7 +129,7 @@ void createThreads( int device )
          if ( pthread_create( &threadConfigs[ i ].thread,
                               &threadConfigs[ i ].atrributes,
                               thread_entry_fn[ i ],
-                              (void*)&device ) != 0 )
+                              NULL ) != 0 )
          {
             perror( "ERROR; pthread_create:" );
             exit( -1 );
@@ -279,11 +278,13 @@ int main( int argc, char* argv[] )
 
    //semPost( THREAD_CANNY );
 
+   // Join threads and destroy windows
    for ( int thread = 0; thread < THREAD_MAX; thread++ )
    {
       if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )
       {
          pthread_join( threadConfigs[ thread ].thread, NULL );
+         cvDestroyWindow( window_name[ thread ] );
       }
    }
 
