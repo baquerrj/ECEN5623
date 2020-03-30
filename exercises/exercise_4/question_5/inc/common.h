@@ -7,20 +7,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
-#define NSEC_PER_SEC ( 1000000000 )
+#include <unordered_map>
 
 #define SHOW_WINDOWS
-
-static const uint32_t HRES = 640;
-static const uint32_t VRES = 480;
-
-static const uint32_t FRAMES_TO_EXECUTE = 200;
-
-static const char* window_name[] = {
-    "Edge Detector Transform",
-    "Hough Line Transform",
-    "Hough Elliptical Transform"};
 
 enum threads_e
 {
@@ -55,6 +44,27 @@ struct threadConfig_s
    bool isAlive;
    bool isActive;
 };
+
+static const uint32_t HRES = 640;
+static const uint32_t VRES = 480;
+
+static const uint32_t FRAMES_TO_EXECUTE = 200;
+
+static const char* window_name[] = {
+    "Edge Detector Transform",
+    "Hough Line Transform",
+    "Hough Elliptical Transform"};
+
+static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
+    {THREAD_CANNY, {{"320x240", 20}, {"640x480", 30}, {"1280x960", 50}}},
+    {THREAD_HOUGHL, {{"320x240", 70}, {"640x480", 110}, {"1280x960", 220}}},
+    {THREAD_HOUGHE, {{"320x240", 30}, {"640x480", 70}, {"1280x960", 330}}}};
+
+static inline uint32_t getDeadline( threads_e thread, const std::string& res )
+{
+   auto deadline = ( ( deadlines.find( thread )->second ).find( res )->second );
+   return deadline;
+}
 
 extern pid_t mainThreadId;
 extern bool isTimeToDie;
