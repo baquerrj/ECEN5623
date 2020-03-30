@@ -18,6 +18,7 @@ logging::Logger::Logger( const logging::config_s& config ) :
     logLevelCutoff( config.cutoff ),
     fileName( config.file )
 {
+   logging::done = false;
    mq_unlink( logging::LOGGER_QUEUE_NAME );
    struct mq_attr attr;
    attr.mq_flags   = 0;
@@ -62,16 +63,24 @@ logging::Logger::Logger( const logging::config_s& config ) :
    pthread_attr_setschedpolicy( &threadAttr, SCHED_FIFO );
    schedParam.sched_priority = min_prio;
    pthread_attr_setschedparam( &threadAttr, &schedParam );
-   pthread_create( &threadId, &threadAttr, logging::cycle, NULL );
+   pthread_create( &threadId, &threadAttr, logging::Logger::cycle, NULL );
 #else
-   pthread_create( &threadId, NULL, logging::cycle, NULL );
+   pthread_create( &threadId, NULL, logging::Logger::cycle, NULL );
 #endif
 }
 
 logging::Logger::~Logger()
 {
+   // Close the message queue
    mq_unlink( logging::LOGGER_QUEUE_NAME );
+
+   // Destroy file mutex and close the file
    pthread_mutex_destroy( &lock );
+   file.close();
+
+   // Stop logging thread by setting logging::done to true
+   logging::done = true;
+   pthread_join( threadId, NULL );
 }
 
 void logging::Logger::log( const logging::message_s* message )
@@ -119,4 +128,62 @@ void logging::Logger::log( const std::string& message, const bool logToStdout )
       std::cout << message;
       std::cout.flush();
    }
+}
+
+void* logging::Logger::cycle( void* args )
+{
+   logging::message_s message = {};
+   unsigned int prio          = 0;
+   struct timespec timeout    = {0};
+   while ( !logging::done )
+   {
+      clock_gettime( CLOCK_REALTIME, &timeout );
+      timeout.tv_sec += 2;
+      memset( &message, 0, sizeof( message ) );
+      if ( 0 > mq_timedreceive( getLoggerMsgQueueId(), (char*)&message, sizeof( message ), &prio, &timeout ) )
+      {
+         int errnum = errno;
+         if ( ETIMEDOUT != errnum )
+         {
+            logging::ERROR( std::string( strerror( errnum ) ), true );
+         }
+      }
+      else
+      {
+         switch ( message.level )
+         {
+            case logging::LogLevel::TRACE:
+            {
+               logging::TRACE( message.msg );
+               break;
+            }
+            case logging::LogLevel::DEBUG:
+            {
+               logging::DEBUG( message.msg );
+               break;
+            }
+            case logging::LogLevel::INFO:
+            {
+               logging::INFO( message.msg );
+               break;
+            }
+            case logging::LogLevel::WARN:
+            {
+               logging::WARN( message.msg );
+               break;
+            }
+            case logging::LogLevel::ERROR:
+            {
+               logging::ERROR( message.msg );
+               break;
+            }
+            default:
+            {
+               logging::WARN( "Invalid logging level!", true );
+               break;
+            }
+         }
+      }
+   }
+   return NULL;
 }

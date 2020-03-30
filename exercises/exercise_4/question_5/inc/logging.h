@@ -57,6 +57,8 @@ struct config_s
    std::string file;
 };
 
+static bool done;
+
 //! Our Logger class
 class Logger
 {
@@ -108,6 +110,15 @@ private:
     */
    virtual std::string timestamp( void );
 
+   /*! @brief Logger thread entry point
+    * Logger cycles waiting for messages to show up in its queue
+    * and services them as appropriate
+    *
+    * @param args
+    * @returns void pointer
+    */
+   static void* cycle( void* args );
+
 protected:
    pthread_mutex_t lock;        /*! Mutex protecting log file access */
    mqd_t queue;                 /*! POSIX message queue id */
@@ -148,6 +159,11 @@ inline pthread_t getLoggerThreadId( void )
    return getLogger().getThreadId();
 }
 
+inline mqd_t getLoggerMsgQueueId( void )
+{
+   return getLogger().getMsgQueueId();
+}
+
 inline void log( const logging::message_s* message )
 {
    getLogger().log( message );
@@ -185,53 +201,5 @@ inline void ERROR( const std::string& message, const bool logToStdout = false )
    getLogger().log( message, LogLevel::ERROR, logToStdout );
 };
 
-inline void* cycle( void* args )
-{
-   message_s message = {};
-   unsigned int prio = 0;
-   while ( 1 )
-   {
-      memset( &message, 0, sizeof( message ) );
-      if ( 0 > mq_receive( getLogger().getMsgQueueId(), (char*)&message, sizeof( message ), &prio ) )
-      {
-         int errnum = errno;
-         logging::ERROR( std::string( strerror( errnum ) ), true );
-      }
-      switch ( message.level )
-      {
-         case logging::LogLevel::TRACE:
-         {
-            logging::TRACE( message.msg );
-            break;
-         }
-         case logging::LogLevel::DEBUG:
-         {
-            logging::DEBUG( message.msg );
-            break;
-         }
-         case logging::LogLevel::INFO:
-         {
-            logging::INFO( message.msg );
-            break;
-         }
-         case logging::LogLevel::WARN:
-         {
-            logging::WARN( message.msg );
-            break;
-         }
-         case logging::LogLevel::ERROR:
-         {
-            logging::ERROR( message.msg );
-            break;
-         }
-         default:
-         {
-            logging::WARN( "Invalid logging level!", true );
-            break;
-         }
-      }
-   }
-   return NULL;
-}
 }  // namespace logging
 #endif  // LOGGING_H
