@@ -1,3 +1,4 @@
+
 #include "logging.h"
 
 #include "common.h"
@@ -31,6 +32,7 @@ logging::Logger::Logger( const logging::config_s& config ) :
       throw std::runtime_error( "Could not open queue for Logger\n" );
    }
 
+   pthread_mutex_init( &lock );
    pthread_mutex_lock( &lock );
    try
    {
@@ -50,12 +52,26 @@ logging::Logger::Logger( const logging::config_s& config ) :
    pthread_mutex_unlock( &lock );
 
    printf( "Created logfile %s\n", fileName.c_str() );
+#ifdef USE_FIFO
+   int min_prio = sched_get_priority_min( SCHED_FIFO );
+
+   pthread_attr_t threadAttr;
+   struct sched_param schedParam;
+   pthread_attr_init( &threadAttr );
+   pthread_attr_setinheritsched( &threadAttr, PTHREAD_EXPLICIT_SCHED );
+   pthread_attr_setschedpolicy( &threadAttr, SCHED_FIFO );
+   schedParam.sched_priority = min_prio;
+   pthread_attr_setschedparam( &threadAttr, &schedParam );
+   pthread_create( &threadId, &threadAttr, logging::cycle, NULL );
+#else
    pthread_create( &threadId, NULL, logging::cycle, NULL );
+#endif
 }
 
 logging::Logger::~Logger()
 {
    mq_unlink( logging::LOGGER_QUEUE_NAME );
+   pthread_mutex_destroy( &lock );
 }
 
 void logging::Logger::log( const logging::message_s* message )
