@@ -1,12 +1,5 @@
-#include "canny.h"
-
-#include <signal.h>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
 #include "common.h"
+#include "canny.h"
 #include "logging.h"
 
 static IplImage* frame;
@@ -26,24 +19,6 @@ int ratio       = 3;
 
 extern CvCapture* capture;
 
-static void signalHandler( int signo )
-{
-   switch ( signo )
-   {
-      case SIGINT:
-      {
-         int exit = 0;
-         pthread_exit( &exit );
-         break;
-      }
-      default:
-      {
-         logging::INFO( "Unknown signal caught!" );
-         break;
-      }
-   }
-}
-
 void CannyThreshold( int, void* )
 {
    logging::log( &start );
@@ -61,36 +36,21 @@ void CannyThreshold( int, void* )
    timg_grad = cv::Scalar::all( 0 );
 
    mat_frame.copyTo( timg_grad, canny_frame );
-#ifdef SHOW_WINDOWS
+
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ 0 ], timg_grad );
    pthread_mutex_unlock( &windowLock );
-#endif
    logging::log( &end );
 }
 
 void* executeCanny( void* args )
 {
    uint32_t frame_count = 0;
-   //float frame_rate;
-   //struct timespec start_time, stop_time, diff_time;
-   signal( SIGINT, signalHandler );
-   int dev = 0;
-   if ( NULL != args )
-   {
-      int dev = *( (int*)args );
-   }
-   //CvCapture* capture;
-
-   //capture = (CvCapture*)cvCreateCameraCapture( dev );
-   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
-   //cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
 
    while ( false == isTimeToDie )
    {
       semWait( THREAD_CANNY );
 
-      //clock_gettime(CLOCK_REALTIME, &start_time);
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
          frame_count++;
@@ -111,14 +71,6 @@ void* executeCanny( void* args )
             break;
          }
       }
-      //clock_gettime(CLOCK_REALTIME, &stop_time);
-      //delta_t(&stop_time, &start_time, &diff_time);
-      //frame_rate = (float)frame_count/((diff_time.tv_sec * NSEC_PER_SEC + diff_time.tv_nsec) / NSEC_PER_SEC );
-      //printf("Frame Rate of Canny Edge Detection is %f\n",frame_rate);
-
-//#ifdef SHOW_WINDOWS
-//      cvDestroyWindow( window_name[ THREAD_CANNY ] );
-//#endif
 
       semPost( THREAD_HOUGHL );
 

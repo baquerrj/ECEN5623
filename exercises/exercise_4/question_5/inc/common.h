@@ -9,8 +9,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <unordered_map>
 
-#define SHOW_WINDOWS
-
 enum threads_e
 {
    THREAD_CANNY  = 0,
@@ -66,7 +64,6 @@ static inline uint32_t getDeadline( threads_e thread, const std::string& res )
    return deadline;
 }
 
-extern pid_t mainThreadId;
 extern bool isTimeToDie;
 extern threadConfig_s* threadConfigs;
 extern sem_t syncThreads[ THREAD_MAX ];

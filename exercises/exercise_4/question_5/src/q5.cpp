@@ -1,14 +1,7 @@
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <algorithm>
-#include <iostream>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include "canny.h"
 #include "common.h"
@@ -23,7 +16,6 @@ int max_lowThreshold = 100;
 
 bool isTimeToDie;
 threadConfig_s* threadConfigs;
-pid_t mainThreadId;
 
 pthread_mutex_t captureLock;
 pthread_mutex_t windowLock;
@@ -190,7 +182,7 @@ int main( int argc, char* argv[] )
    printHelp( argc, argv );
 
    // Preliminary stuff
-   mainThreadId = getpid();
+   pid_t mainThreadId = getpid();
    signal( SIGINT, signalHandler );
    signal( SIGTERM, signalHandler );
 
@@ -267,7 +259,6 @@ int main( int argc, char* argv[] )
    isTimeToDie = false;
    createThreads( device );
 
-#ifdef SHOW_WINDOWS
    if ( threadConfigs[ THREAD_CANNY ].isActive )
    {
       cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
@@ -285,12 +276,9 @@ int main( int argc, char* argv[] )
       cv::namedWindow( window_name[ THREAD_HOUGHE ], CV_WINDOW_AUTOSIZE );
       logging::INFO( "Spawned " + std::string( window_name[ THREAD_HOUGHE ] ), true );
    }
-#endif
 
    semPost( THREAD_CANNY );
 
-   //sleep(3);
-   //isTimeToDie = true;
    for ( int thread = 0; thread < THREAD_MAX; thread++ )
    {
       if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )

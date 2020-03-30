@@ -1,19 +1,14 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
-#include <fcntl.h>
 #include <mqueue.h>
 #include <string.h>
 #include <sys/types.h>
 
-#include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
-#include <string>
 #include <unordered_map>
 
 //! @brief Namespace defining logging classes, types, etc.
