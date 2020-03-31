@@ -1,5 +1,5 @@
-CDEFS		:=
-CFLAGS	:= -O0 -pg -g $(CDEFS)
+CPPDEFS	:=
+CFLAGS	:= -O0 -pg -g
 LL_NAMES = 	pthread \
 				rt \
 				opencv_core \
@@ -38,11 +38,24 @@ $(LIB_DIR)/libCapture.so_OBJECTS := $(SRC_OBJS)
 TGT_BIN := $(TGT_LIB) $(BIN_TGTS)
 TGT_LIB := $(TGT_LIB) $(LIB_TGTS)
 
-COMP = 	$(CC) -o $@ -c $< $(CFLAGS) $(CF_TGT)
-LINK = 	$(CC) -o $@ $^ $(LF_TGT) $(LL_TGT) `pkg-config --libs opencv` $(LL_ALL)
+COMP = 	$(CC) -o $@ -c $< $(CFLAGS) $(CF_TGT) $(CPPDEFS)
+LINK = 	$(CC) -o $@ $^ $(LF_TGT) $(LL_TGT) `pkg-config --libs opencv`
 
-.PHONY: all
-all: $(TGT_BIN) $(TGT_LIB)
+.PHONY : all
+all : CPPDEFS += -DSHOW_WINDOWS
+all : CPPDEFS += -DUSE_FIFO
+all : bare
+
+.PHONY: fifo
+fifo : CPPDEFS += -DUSE_FIFO
+fifo : bare
+
+.PHONY: windows
+windows : CPPDEFS += -DSHOW_WINDOWS
+windows : bare
+
+.PHONY: bare
+bare: $(TGT_BIN) $(TGT_LIB)
 
 .PHONY: clean
 clean:

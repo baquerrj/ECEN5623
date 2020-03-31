@@ -9,10 +9,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <unordered_map>
 
-#define USE_FIFO
-
-//#define SHOW_WINDOWS
-
 enum threads_e
 {
    THREAD_CANNY  = 0,
