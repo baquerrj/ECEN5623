@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SRC=${PWD}
-DST=${PWD}
+SRC=`realpath $1`
+DST=${SRC}
 
 COMMAND="scp ${SRC}/src/* jetsonnano:${DST}/src/"
 eval $COMMAND
