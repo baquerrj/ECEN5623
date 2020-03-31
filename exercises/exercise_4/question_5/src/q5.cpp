@@ -10,11 +10,14 @@
 int width  = HRES;
 int height = VRES;
 
+std::string WindowSize(std::to_string(HRES) + "x" + std::to_string(VRES)); 
+
 int lowThreshold     = 0;
 int max_lowThreshold = 100;
 
 bool isTimeToDie;
 threadConfig_s* threadConfigs;
+TransformAnalysis_s *threadAnalysis;
 
 pthread_mutex_t captureLock;
 pthread_mutex_t windowLock;
@@ -170,6 +173,10 @@ double delta_t( struct timespec* stop, struct timespec* start )
 
 int main( int argc, char* argv[] )
 {
+
+   
+   char jitter[100];
+   char missed_deadline[100];
    // See if we need to print help first. No use in
    // allocating memory and registering signals
    // if we're just going to exit right away
@@ -181,6 +188,8 @@ int main( int argc, char* argv[] )
    signal( SIGTERM, signalHandler );
 
    threadConfigs = new threadConfig_s[ THREAD_MAX ];
+   threadAnalysis = new TransformAnalysis_s[ THREAD_MAX ];
+   memset(threadAnalysis, 0, (THREAD_MAX - 1)*sizeof(TransformAnalysis_s));
 
    // Configure logger with logging level
    std::string fileName     = "capture" + std::to_string( mainThreadId ) + ".log";
@@ -253,6 +262,7 @@ int main( int argc, char* argv[] )
    isTimeToDie = false;
    createThreads( device );
 
+   #ifdef SHOW_WINDOWS
    if ( threadConfigs[ THREAD_CANNY ].isActive )
    {
       cv::namedWindow( window_name[ THREAD_CANNY ], CV_WINDOW_AUTOSIZE );
@@ -270,7 +280,7 @@ int main( int argc, char* argv[] )
       cv::namedWindow( window_name[ THREAD_HOUGHE ], CV_WINDOW_AUTOSIZE );
       logging::INFO( "Spawned " + std::string( window_name[ THREAD_HOUGHE ] ), true );
    }
-
+#endif
    //semPost( THREAD_CANNY );
 
    // Join threads and destroy windows
@@ -279,10 +289,26 @@ int main( int argc, char* argv[] )
       if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )
       {
          pthread_join( threadConfigs[ thread ].thread, NULL );
+         
+      #ifdef SHOW_WINDOWS
          cvDestroyWindow( window_name[ thread ] );
+      #endif
       }
    }
 
+   for(int thread= 0 ; thread<THREAD_MAX; thread ++){
+      if(threadConfigs[thread].isActive)
+      {
+         snprintf(jitter,sizeof(jitter),"%s Total Jitter = %dms",thread_name[thread],(threadAnalysis[thread].jitter));   
+         logging::INFO(jitter,true);  
+         snprintf(jitter,sizeof(jitter),"%s Average Jitter = %fms/frame ",thread_name[thread],(float)(threadAnalysis[thread].jitter)/FRAMES_TO_EXECUTE);   
+         logging::INFO(jitter,true);  
+         snprintf(missed_deadline,sizeof(missed_deadline),"%s Total Missed Deadline = %d/%d",thread_name[thread], threadAnalysis[thread].deadline_missed,FRAMES_TO_EXECUTE);
+         logging::INFO(missed_deadline,true);
+
+         
+      }
+}
    //destroySemaphores();
    logging::INFO( "Exiting!", true );
 

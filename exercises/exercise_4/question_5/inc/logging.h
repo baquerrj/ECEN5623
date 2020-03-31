@@ -11,6 +11,8 @@
 #include <stdexcept>
 #include <unordered_map>
 
+#include "common.h"
+
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
 {
@@ -31,6 +33,8 @@ enum class LogLevel : uint8_t
 struct message_s
 {
    LogLevel level;
+   threads_e ThreadID;
+   bool cal_execution;
    char msg[ 64 ];
 };
 
@@ -80,6 +84,17 @@ public:
     * @param logToStdout
     */
    virtual void log( const std::string& message, const LogLevel level, const bool logToStdout );
+   /*!
+    * @brief log Messages with execution time check
+    *
+    * @param message
+    * @param level
+    * @param ThreadID
+    * @param execution_time
+    * @param logToStdout
+    */
+
+   virtual void log( const std::string& message, const LogLevel level, threads_e ThreadID, bool execution_time, const bool logToStdout );
 
    /*! @brief Logs messages without logging level check
     *
@@ -179,10 +194,15 @@ inline void log( const std::string& message, const bool logToStdout = false )
    getLogger().log( message, logToStdout );
 }
 
-//these standout when reading code
-inline void TRACE( const std::string& message, const bool logToStdout = false )
+inline void log( const std::string& message, const LogLevel level, const threads_e ThreadID, const bool execution_time, const bool logToStdout )
 {
-   getLogger().log( message, LogLevel::TRACE, logToStdout );
+   getLogger().log( message, level, ThreadID, execution_time, false );
+}
+
+//these standout when reading code
+inline void TRACE( const std::string& message, threads_e ThreadID, bool execution, const bool logToStdout = false )
+{
+   getLogger().log( message, LogLevel::TRACE, ThreadID, execution, logToStdout );
 };
 inline void DEBUG( const std::string& message, const bool logToStdout = false )
 {

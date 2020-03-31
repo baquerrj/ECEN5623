@@ -53,6 +53,7 @@ logging::Logger::Logger( const logging::config_s& config ) :
    pthread_mutex_unlock( &lock );
 
    printf( "Created logfile %s\n", fileName.c_str() );
+
 #ifdef USE_FIFO
    int min_prio = sched_get_priority_min( SCHED_FIFO );
 
@@ -117,6 +118,40 @@ void logging::Logger::log( const std::string& message, const LogLevel level, con
    log( output, logToStdout );
 }
 
+void logging::Logger::log( const std::string& message, const LogLevel level, threads_e ThreadID, bool execution_time, const bool logToStdout )
+{
+   if ( level < logLevelCutoff )
+   {
+      return;
+   }
+   std::string output;
+   output.reserve( message.length() + 64 );
+   output.append( timestamp() );
+   output.append( levels.find( level )->second );
+   output.append( message );
+   // Only calculate tack on DT to message if this is a trace
+   if ( level == LogLevel::TRACE )
+   {
+      double dt = delta_t( &currentTime, &lastTime );
+      lastTime  = currentTime;
+      std::string deltaT( " DT: " +
+                          std::to_string( dt ) + " ms" );
+      output.append( deltaT );
+      if ( execution_time )
+      {
+         double deadline = (double)getDeadline( ThreadID, WindowSize );
+         if ( dt > deadline )
+         {
+            threadAnalysis[ ThreadID ].deadline_missed++;
+            threadAnalysis[ ThreadID ].jitter += dt - deadline;
+         }
+      }
+   }
+
+   output.push_back( '\n' );
+   log( output, logToStdout );
+}
+
 void logging::Logger::log( const std::string& message, const bool logToStdout )
 {
    pthread_mutex_lock( &lock );
@@ -154,7 +189,7 @@ void* logging::Logger::cycle( void* args )
          {
             case logging::LogLevel::TRACE:
             {
-               logging::TRACE( message.msg );
+               logging::TRACE( message.msg, message.ThreadID, message.cal_execution );
                break;
             }
             case logging::LogLevel::DEBUG:

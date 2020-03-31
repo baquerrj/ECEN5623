@@ -8,7 +8,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <unordered_map>
+
 #define USE_FIFO
+
+//#define SHOW_WINDOWS
 
 enum threads_e
 {
@@ -44,6 +47,12 @@ struct threadConfig_s
    bool isActive;
 };
 
+struct TransformAnalysis_s
+{
+   uint32_t jitter;
+   uint32_t deadline_missed;
+};
+
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
 
@@ -54,10 +63,24 @@ static const char* window_name[] = {
     "Hough Line Transform",
     "Hough Elliptical Transform"};
 
+static const char* thread_name[] = {
+    "CANNY",
+    "HOUGH-LINES",
+    "HOUGH-ELLIP"};
+
+#ifdef SHOW_WINDOWS
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
     {THREAD_CANNY, {{"320x240", 20}, {"640x480", 30}, {"1280x960", 50}}},
     {THREAD_HOUGHL, {{"320x240", 70}, {"640x480", 110}, {"1280x960", 220}}},
     {THREAD_HOUGHE, {{"320x240", 30}, {"640x480", 70}, {"1280x960", 330}}}};
+
+#else
+static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
+    {THREAD_CANNY, {{"320x240", 2}, {"640x480", 3}, {"1280x960", 5}}},
+    {THREAD_HOUGHL, {{"320x240", 7}, {"640x480", 10}, {"1280x960", 22}}},
+    {THREAD_HOUGHE, {{"320x240", 3}, {"640x480", 7}, {"1280x960", 33}}}};
+
+#endif
 
 static inline uint32_t getDeadline( threads_e thread, const std::string& res )
 {
@@ -67,9 +90,11 @@ static inline uint32_t getDeadline( threads_e thread, const std::string& res )
 
 extern bool isTimeToDie;
 extern threadConfig_s* threadConfigs;
+extern TransformAnalysis_s* threadAnalysis;
 extern sem_t syncThreads[ THREAD_MAX ];
 extern pthread_mutex_t captureLock;
 extern pthread_mutex_t windowLock;
+extern std::string WindowSize;
 
 extern CvCapture* capture;
 extern int lowThreshold;

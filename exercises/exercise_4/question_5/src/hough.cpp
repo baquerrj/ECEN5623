@@ -8,11 +8,15 @@ static std::vector< cv::Vec4i > lines;
 
 static const logging::message_s start = {
     logging::LogLevel::TRACE,
+    THREAD_HOUGHL,
+    false,
     "HOUGH-LINES START"};
 
 static const logging::message_s end = {
     logging::LogLevel::TRACE,
-    "HOUGH-LINES END"};
+    THREAD_HOUGHL,
+    true,
+    "HOUGH-LINES END  "};
 
 extern CvCapture* capture;
 
@@ -36,9 +40,12 @@ void HoughLines( int, void* )
                 cv::Scalar( 0, 0, 255 ), 3, CV_AA );
    }
 
+   
+   #ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
    pthread_mutex_unlock( &windowLock );
+   #endif
    logging::log( &end );
 }
 
@@ -67,7 +74,7 @@ void* executeHough( void* args )
             break;
          }
       }
-
+     
       //semPost( THREAD_HOUGHE );
       break;
    }

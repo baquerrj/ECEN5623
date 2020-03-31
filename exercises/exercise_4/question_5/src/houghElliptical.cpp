@@ -8,11 +8,15 @@ static std::vector< cv::Vec3f > circles;
 
 static const logging::message_s start = {
     logging::LogLevel::TRACE,
+    THREAD_HOUGHE,
+    false,
     "HOUGH-ELLIP START"};
 
 static const logging::message_s end = {
     logging::LogLevel::TRACE,
-    "HOUGH-ELLIP END"};
+    THREAD_HOUGHE,
+    true,
+    "HOUGH-ELLIP END  "};
 
 extern CvCapture* capture;
 
@@ -36,10 +40,11 @@ void HoughElliptical( int, void* )
       // circle outline
       cv::circle( mat_frame, center, radius, cv::Scalar( 0, 0, 255 ), 3, 8, 0 );
    }
-
+   #ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_HOUGHE ], mat_frame );
    pthread_mutex_unlock( &windowLock );
+   #endif
    logging::log( &end );
 }
 
@@ -69,7 +74,6 @@ void* executeHoughElliptical( void* args )
             break;
          }
       }
-
       break;
    }
 

@@ -7,11 +7,15 @@ static cv::Mat canny_frame, cdst, timg_gray, timg_grad;
 
 static const logging::message_s start = {
     logging::LogLevel::TRACE,
-    "CANNY START"};
+   THREAD_CANNY,
+   false,
+   "CANNY START"};
 
 static const logging::message_s end = {
     logging::LogLevel::TRACE,
-    "CANNY END"};
+    THREAD_CANNY,
+    true,
+    "CANNY END  "};
 
 int kernel_size = 3;
 int edgeThresh  = 1;
@@ -21,6 +25,7 @@ extern CvCapture* capture;
 
 void CannyThreshold( int, void* )
 {
+
    logging::log( &start );
    cv::Mat mat_frame( cv::cvarrToMat( frame ) );
 
@@ -36,17 +41,20 @@ void CannyThreshold( int, void* )
    timg_grad = cv::Scalar::all( 0 );
 
    mat_frame.copyTo( timg_grad, canny_frame );
-
+   
+   #ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_CANNY ], timg_grad );
    pthread_mutex_unlock( &windowLock );
+   #endif
    logging::log( &end );
 }
 
 void* executeCanny( void* args )
 {
-   uint32_t frame_count = 0;
 
+   uint32_t frame_count = 0;
+  
    while ( false == isTimeToDie )
    {
       //semWait( THREAD_CANNY );
@@ -54,7 +62,6 @@ void* executeCanny( void* args )
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
          frame_count++;
-
          pthread_mutex_lock( &captureLock );
          frame = cvQueryFrame( capture );
          pthread_mutex_unlock( &captureLock );
@@ -71,7 +78,6 @@ void* executeCanny( void* args )
             break;
          }
       }
-
       //semPost( THREAD_HOUGHL );
 
       break;
