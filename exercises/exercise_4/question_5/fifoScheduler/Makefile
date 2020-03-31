@@ -43,8 +43,12 @@ LINK = 	$(CC) -o $@ $^ $(LF_TGT) $(LL_TGT) `pkg-config --libs opencv`
 
 .PHONY : all
 all : CPPDEFS += -DSHOW_WINDOWS
+all : CPPDEFS += -DUSE_FIFO
 all : bare
 
+.PHONY: fifo
+fifo : CPPDEFS += -DUSE_FIFO
+fifo : bare
 
 .PHONY: windows
 windows : CPPDEFS += -DSHOW_WINDOWS
