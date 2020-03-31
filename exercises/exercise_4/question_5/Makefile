@@ -9,7 +9,7 @@ LL_FLAG = $(addprefix -l,$(LL_NAMES))
 
 INCLUDE_DIRS := ./inc
 LIB_DIRS 	 :=
-CC				 := g++
+CC				 := g++-7
 
 LIB_DIR  := ./lib
 BIN_DIR	:= ./bin
