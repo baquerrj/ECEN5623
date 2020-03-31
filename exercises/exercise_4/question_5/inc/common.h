@@ -45,7 +45,7 @@ struct threadConfig_s
 
 struct TransformAnalysis_s
 {
-   uint32_t jitter;
+   double jitter;
    uint32_t deadline_missed;
 };
 
