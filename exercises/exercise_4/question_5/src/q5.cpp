@@ -248,7 +248,7 @@ int main( int argc, char* argv[] )
    logging::log( "\tgeometry = " + std::to_string( width ) + "x" + std::to_string( height ) + "\n",
                  true );
 
-   //initializeSemaphores();
+   initializeSemaphores();
 
    capture = (CvCapture*)cvCreateCameraCapture( device );
    cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
@@ -280,7 +280,7 @@ int main( int argc, char* argv[] )
       logging::INFO( "Spawned " + std::string( window_name[ THREAD_HOUGHE ] ), true );
    }
 #endif
-   //semPost( THREAD_CANNY );
+   semPost( THREAD_CANNY );
 
    // Join threads and destroy windows
    for ( int thread = 0; thread < THREAD_MAX; thread++ )
@@ -310,7 +310,8 @@ int main( int argc, char* argv[] )
          logging::INFO( missedDeadlines, true );
       }
    }
-   //destroySemaphores();
+
+   destroySemaphores();
    logging::INFO( "Exiting!", true );
 
    delete threadConfigs;

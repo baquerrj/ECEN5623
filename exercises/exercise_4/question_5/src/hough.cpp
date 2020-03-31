@@ -40,7 +40,7 @@ void HoughLines( int, void* )
                 cv::Scalar( 0, 0, 255 ), 3, CV_AA );
    }
 
-   
+
    #ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
@@ -55,7 +55,7 @@ void* executeHough( void* args )
 
    while ( false == isTimeToDie )
    {
-      //semWait( THREAD_HOUGHL );
+      semWait( THREAD_HOUGHL );
 
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
@@ -74,8 +74,8 @@ void* executeHough( void* args )
             break;
          }
       }
-     
-      //semPost( THREAD_HOUGHE );
+
+      semPost( THREAD_HOUGHE );
       break;
    }
 

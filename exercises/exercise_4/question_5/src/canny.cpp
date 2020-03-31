@@ -41,7 +41,7 @@ void CannyThreshold( int, void* )
    timg_grad = cv::Scalar::all( 0 );
 
    mat_frame.copyTo( timg_grad, canny_frame );
-   
+
    #ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_CANNY ], timg_grad );
@@ -54,10 +54,10 @@ void* executeCanny( void* args )
 {
 
    uint32_t frame_count = 0;
-  
+
    while ( false == isTimeToDie )
    {
-      //semWait( THREAD_CANNY );
+      semWait( THREAD_CANNY );
 
       while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
       {
@@ -78,7 +78,7 @@ void* executeCanny( void* args )
             break;
          }
       }
-      //semPost( THREAD_HOUGHL );
+      semPost( THREAD_HOUGHL );
 
       break;
    }
