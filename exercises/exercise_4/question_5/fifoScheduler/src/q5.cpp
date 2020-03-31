@@ -187,9 +187,8 @@ int main( int argc, char* argv[] )
 
    threadConfigs  = new threadConfig_s[ THREAD_MAX ];
    threadAnalysis = new TransformAnalysis_s[ THREAD_MAX ];
-   threadAnalysis[ THREAD_CANNY ] = {0,0};
-   threadAnalysis[ THREAD_HOUGHE ] = {0,0};
-   threadAnalysis[ THREAD_HOUGHL ] = {0,0};
+   memset( threadAnalysis, 0, ( THREAD_MAX ) * sizeof( TransformAnalysis_s ) );
+
    // Configure logger with logging level
    std::string fileName     = "capture" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
@@ -300,15 +299,12 @@ int main( int argc, char* argv[] )
    {
       if ( threadConfigs[ thread ].isActive )
       {
-         std::string totalJitter = std::string( thread_name[ thread ] ) + " Total Jitter = " + std::to_string( threadAnalysis[ thread ].jitter ) + "ms";
-         //snprintf( jitter, sizeof( jitter ), "%s Total Jitter = %dms", thread_name[ thread ], ( threadAnalysis[ thread ].jitter ) );
-         logging::INFO( totalJitter, true );
-         std::string aveJitter = std::string( thread_name[ thread ] ) + " Average Jitter = " + std::to_string( (float)( threadAnalysis[ thread ].jitter / FRAMES_TO_EXECUTE ) );
-         //snprintf( jitter, sizeof( jitter ), "%s Average Jitter = %fms/frame ", thread_name[ thread ], (float)( threadAnalysis[ thread ].jitter ) / FRAMES_TO_EXECUTE );
-         logging::INFO( aveJitter, true );
-         std::string missedDeadlines = std::string( thread_name[ thread ] ) + " Total Missed Deadlines = " + std::to_string( threadAnalysis[ thread ].deadline_missed ) + "/" + std::to_string( FRAMES_TO_EXECUTE );
-         //snprintf( missed_deadline, sizeof( missed_deadline ), "%s Total Missed Deadline = %d/%d", thread_name[ thread ], threadAnalysis[ thread ].deadline_missed, FRAMES_TO_EXECUTE );
-         logging::INFO( missedDeadlines, true );
+         snprintf( jitter, sizeof( jitter ), "%s Positive Jitter = %0.2lfms", thread_name[ thread ], ( threadAnalysis[ thread ].pos_jitter ) );
+         logging::INFO( jitter, true );
+         snprintf( jitter, sizeof( jitter ), "%s Negative Jitter = %0.2lfms ", thread_name[ thread ], ( threadAnalysis[ thread ].neg_jitter ) );
+         logging::INFO( jitter, true );
+         snprintf( missed_deadline, sizeof( missed_deadline ), "%s Total Missed Deadline = %d/%d frames", thread_name[ thread ], threadAnalysis[ thread ].deadline_missed, FRAMES_TO_EXECUTE );
+         logging::INFO( missed_deadline, true );
       }
    }
    //destroySemaphores();

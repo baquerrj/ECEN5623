@@ -45,8 +45,9 @@ struct threadConfig_s
 
 struct TransformAnalysis_s
 {
-   double jitter;
    uint32_t deadline_missed;
+   double pos_jitter;
+   double neg_jitter;
 };
 
 static const uint32_t HRES = 640;

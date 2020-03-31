@@ -140,11 +140,14 @@ void logging::Logger::log( const std::string& message, const LogLevel level, thr
       if ( execution_time )
       {
          double deadline = (double)getDeadline( ThreadID, WindowSize );
-         double jitter = dt - deadline;
-         threadAnalysis[ ThreadID ].jitter += jitter;
-         if ( jitter > 0 )
+         if ( dt > deadline )
          {
             threadAnalysis[ ThreadID ].deadline_missed++;
+            threadAnalysis[ ThreadID ].pos_jitter += dt - deadline;
+         }
+         else
+         {
+            threadAnalysis[ ThreadID ].neg_jitter += deadline - dt;
          }
       }
    }
