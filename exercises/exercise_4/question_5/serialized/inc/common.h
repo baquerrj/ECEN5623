@@ -45,8 +45,9 @@ struct threadConfig_s
 
 struct TransformAnalysis_s
 {
-   double jitter;
    uint32_t deadline_missed;
+   double pos_jitter;
+   double neg_jitter;
 };
 
 static const uint32_t HRES = 640;
@@ -66,10 +67,9 @@ static const char* thread_name[] = {
 
 #ifdef SHOW_WINDOWS
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
-    {THREAD_CANNY, {{"320x240", 20}, {"640x480", 30}, {"1280x960", 50}}},
-    {THREAD_HOUGHL, {{"320x240", 70}, {"640x480", 110}, {"1280x960", 220}}},
-    {THREAD_HOUGHE, {{"320x240", 30}, {"640x480", 70}, {"1280x960", 330}}}};
-
+    {THREAD_CANNY, {{"320x240", 5}, {"640x480", 13}, {"1280x960", 44}}},
+    {THREAD_HOUGHL, {{"320x240", 48}, {"640x480", 104}, {"1280x960", 240}}},
+    {THREAD_HOUGHE, {{"320x240", 12}, {"640x480", 78}, {"1280x960", 1000}}}};
 #else
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
     {THREAD_CANNY, {{"320x240", 2}, {"640x480", 3}, {"1280x960", 5}}},

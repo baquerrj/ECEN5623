@@ -70,7 +70,6 @@ static const std::unordered_map< threads_e, std::unordered_map< std::string, uin
     {THREAD_CANNY, {{"320x240", 5}, {"640x480", 13}, {"1280x960", 44}}},
     {THREAD_HOUGHL, {{"320x240", 48}, {"640x480", 104}, {"1280x960", 240}}},
     {THREAD_HOUGHE, {{"320x240", 12}, {"640x480", 78}, {"1280x960", 1000}}}};
-
 #else
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
     {THREAD_CANNY, {{"320x240", 2}, {"640x480", 3}, {"1280x960", 5}}},
