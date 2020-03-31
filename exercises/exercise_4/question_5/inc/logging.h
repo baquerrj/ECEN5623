@@ -63,9 +63,9 @@ static bool done;
 class Logger
 {
 public:
-   /*! Default constructor */
+   //! Default constructor
    Logger( const logging::config_s& config );
-   /*! Default destructor */
+   //! Default destructor
    virtual ~Logger();
    /*! @brief Most basic logging
     *
@@ -120,17 +120,17 @@ private:
    static void* cycle( void* args );
 
 protected:
-   pthread_mutex_t lock;        /*! Mutex protecting log file access */
-   mqd_t queue;                 /*! POSIX message queue id */
-   pthread_t threadId;          /*! Thread identifier */
-   struct timespec interval;    /*! timespec used to calculate time interval between log calls */
-   struct timespec lastTime;    /*! timespec used to calculate time interval between log calls */
-   struct timespec currentTime; /*! used to timestamp and calculate call intervals */
+   pthread_mutex_t lock;         //! Mutex protecting log file access
+   mqd_t queue;                  //! POSIX message queue id
+   pthread_t threadId;           //! Thread identifier
+   struct timespec interval;     //! timespec used to calculate time interval between log calls
+   struct timespec lastTime;     //! timespec used to calculate time interval between log calls
+   struct timespec currentTime;  //! used to timestamp and calculate call intervals
    LogLevel logLevelCutoff;
    const std::unordered_map< LogLevel, std::string, enumHasher > levels;
 
-   std::string fileName; /*! Name of log file Logger writes to */
-   std::ofstream file;   /*! Log file handle */
+   std::string fileName;  //! Name of log file Logger writes to
+   std::ofstream file;    //! Log file handle
 };
 
 inline pthread_t Logger::getThreadId( void )

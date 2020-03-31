@@ -85,8 +85,8 @@ extern int max_lowThreshold;
 double delta_t( struct timespec* stop, struct timespec* start );
 
 /**
- * @brief calls sem_post on next waiting semaphore. !\n
- *        checks if the thread we wanted to wake up is active !\n
+ * @brief calls sem_post on next waiting semaphore.
+ *        checks if the thread we wanted to wake up is active
  *        otherwise, recursively calls semPost on the next thread
  *
  * @param thread
@@ -104,8 +104,8 @@ inline static void semPost( const threads_e thread )
 }
 
 /**
- * @brief calls sem_wait on a semaphore. !\n
- *        checks if the thread we wait on is active !\n
+ * @brief calls sem_wait on a semaphore.
+ *        checks if the thread we wait on is active
  *        otherwise, recursively calls semWait on the next thread
  *
  * @param thread
