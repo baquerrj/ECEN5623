@@ -1,5 +1,6 @@
-#include "common.h"
 #include "houghElliptical.h"
+
+#include "common.h"
 #include "logging.h"
 
 static IplImage* eFrame;
@@ -40,42 +41,39 @@ void HoughElliptical( int, void* )
       // circle outline
       cv::circle( eMatFrame, center, radius, cv::Scalar( 0, 0, 255 ), 3, 8, 0 );
    }
-   #ifdef SHOW_WINDOWS
+#ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
    cv::imshow( window_name[ THREAD_HOUGHE ], eMatFrame );
    pthread_mutex_unlock( &windowLock );
-   #endif
+#endif
    logging::log( &end );
 }
 
 void* executeHoughElliptical( void* args )
 {
+   logging::INFO( "executeHoughElliptical entered!", true );
    uint32_t frame_count = 0;
 
-   while ( false == isTimeToDie )
+   while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
    {
-      //semWait( THREAD_HOUGHE );
+      frame_count++;
+      pthread_mutex_lock( &captureLock );
+      eFrame = cvQueryFrame( capture );
+      pthread_mutex_unlock( &captureLock );
+      if ( !eFrame )
+         break;
 
-      while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
+      HoughElliptical( 0, 0 );
+
+      char c = cvWaitKey( 1 );
+      if ( c == 'q' )
       {
-         frame_count++;
-         pthread_mutex_lock( &captureLock );
-         eFrame = cvQueryFrame( capture );
-         pthread_mutex_unlock( &captureLock );
-         if ( !eFrame )
-            break;
-
-         HoughElliptical( 0, 0 );
-
-         char c = cvWaitKey( 1 );
-         if ( c == 'q' )
-         {
-            printf( "got quit\n" );
-            break;
-         }
+         printf( "got quit\n" );
+         break;
       }
-      break;
    }
+
+   logging::INFO( "executeHoughElliptical exiting!", true );
 
    return NULL;
 }

@@ -51,33 +51,31 @@ void HoughLines( int, void* )
 
 void* executeHough( void* args )
 {
+   logging::INFO( "executeHough entered!", true );
+
    uint32_t frame_count = 0;
 
-   while ( false == isTimeToDie )
+   while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
    {
-      //semWait( THREAD_HOUGHL );
+      frame_count++;
+      pthread_mutex_lock( &captureLock );
+      lFrame = cvQueryFrame( capture );
+      pthread_mutex_unlock( &captureLock );
+      if ( !lFrame )
+         break;
 
-      while ( frame_count < FRAMES_TO_EXECUTE and false == isTimeToDie )
+      HoughLines( 0, 0 );
+      char c = cvWaitKey( 1 );
+      if ( c == 'q' )
       {
-         frame_count++;
-         pthread_mutex_lock( &captureLock );
-         lFrame = cvQueryFrame( capture );
-         pthread_mutex_unlock( &captureLock );
-         if ( !lFrame )
-            break;
-
-         HoughLines( 0, 0 );
-         char c = cvWaitKey( 1 );
-         if ( c == 'q' )
-         {
-            printf( "got quit\n" );
-            break;
-         }
+         printf( "got quit\n" );
+         break;
       }
-
-      //semPost( THREAD_HOUGHE );
-      break;
    }
+
+   logging::INFO( "executeHough exiting!", true );
+
+
 
    return NULL;
 }

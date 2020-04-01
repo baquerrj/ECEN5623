@@ -98,7 +98,7 @@ void createThreads( int device )
       pthread_attr_init( &threadConfigs[ THREAD_CANNY ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_CANNY ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_CANNY ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_CANNY ].params.sched_priority = max_prio - 1;
+      threadConfigs[ THREAD_CANNY ].params.sched_priority = max_prio - 2;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_CANNY ].atrributes, &threadConfigs[ THREAD_CANNY ].params );
    }
 
@@ -107,7 +107,7 @@ void createThreads( int device )
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHL ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHL ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHL ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio - 3;
+      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio - 1;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHL ].atrributes, &threadConfigs[ THREAD_HOUGHL ].params );
    }
 
@@ -116,7 +116,7 @@ void createThreads( int device )
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHE ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHE ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHE ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio - 2;
+      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio - 1;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHE ].atrributes, &threadConfigs[ THREAD_HOUGHE ].params );
    }
 #endif
@@ -283,16 +283,24 @@ int main( int argc, char* argv[] )
 #endif
    //semPost( THREAD_CANNY );
 
+   struct timespec timeout = {0, 0};
    // Join threads and destroy windows
-   for ( int thread = 0; thread < THREAD_MAX; thread++ )
+   while ( threadConfigs[ THREAD_CANNY ].isAlive or threadConfigs[ THREAD_HOUGHL ].isAlive or threadConfigs[ THREAD_HOUGHE ].isAlive )
    {
-      if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )
+      for ( int thread = 0; thread < THREAD_MAX; thread++ )
       {
-         pthread_join( threadConfigs[ thread ].thread, NULL );
-
+         if ( threadConfigs[ thread ].isActive and threadConfigs[ thread ].isAlive )
+         {
+            clock_gettime( CLOCK_REALTIME, &timeout );
+            timeout.tv_sec += 1;
+            if ( 0 == pthread_timedjoin_np( threadConfigs[ thread ].thread, NULL, &timeout ) )
+            {
+               threadConfigs[ thread ].isAlive = false;
 #ifdef SHOW_WINDOWS
-         cvDestroyWindow( window_name[ thread ] );
+               cvDestroyWindow( window_name[ thread ] );
 #endif
+            }
+         }
       }
    }
 
