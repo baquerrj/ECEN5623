@@ -1,9 +1,10 @@
-#include "common.h"
 #include "hough.h"
+
+#include "common.h"
 #include "logging.h"
 
-static IplImage* frame;
-static cv::Mat gray, canny_frame, cdst, mat_frame;
+static IplImage* lFrame;
+static cv::Mat lGray, lCannyFrame, lCdst;
 static std::vector< cv::Vec4i > lines;
 
 static const logging::message_s start = {
@@ -23,29 +24,28 @@ extern CvCapture* capture;
 void HoughLines( int, void* )
 {
    logging::log( &start );
-   cv::Mat mat_frame( cv::cvarrToMat( frame ) );
-   cv::Canny( mat_frame, canny_frame, 50, 200, 3 );
+   cv::Mat lMatFrame( cv::cvarrToMat( lFrame ) );
+   cv::Canny( lMatFrame, lCannyFrame, 50, 200, 3 );
 
-   cv::cvtColor( canny_frame, cdst, CV_GRAY2BGR );
-   cv::cvtColor( mat_frame, gray, CV_BGR2GRAY );
+   cv::cvtColor( lCannyFrame, lCdst, CV_GRAY2BGR );
+   cv::cvtColor( lMatFrame, lGray, CV_BGR2GRAY );
 
-   cv::HoughLinesP( canny_frame, lines, 1, CV_PI / 180, 50, 50, 10 );
+   cv::HoughLinesP( lCannyFrame, lines, 1, CV_PI / 180, 50, 50, 10 );
 
    for ( size_t i = 0; i < lines.size(); i++ )
    {
       cv::Vec4i l = lines[ i ];
-      cv::line( mat_frame,
+      cv::line( lMatFrame,
                 cv::Point( l[ 0 ], l[ 1 ] ),
                 cv::Point( l[ 2 ], l[ 3 ] ),
                 cv::Scalar( 0, 0, 255 ), 3, CV_AA );
    }
 
-   
-   #ifdef SHOW_WINDOWS
+#ifdef SHOW_WINDOWS
    pthread_mutex_lock( &windowLock );
-   cv::imshow( window_name[ THREAD_HOUGHL ], mat_frame );
+   cv::imshow( window_name[ THREAD_HOUGHL ], lMatFrame );
    pthread_mutex_unlock( &windowLock );
-   #endif
+#endif
    logging::log( &end );
 }
 
@@ -61,9 +61,9 @@ void* executeHough( void* args )
       {
          frame_count++;
          pthread_mutex_lock( &captureLock );
-         frame = cvQueryFrame( capture );
+         lFrame = cvQueryFrame( capture );
          pthread_mutex_unlock( &captureLock );
-         if ( !frame )
+         if ( !lFrame )
             break;
 
          HoughLines( 0, 0 );
@@ -74,7 +74,7 @@ void* executeHough( void* args )
             break;
          }
       }
-     
+
       //semPost( THREAD_HOUGHE );
       break;
    }

@@ -5,6 +5,7 @@
 #include "canny.h"
 #include "common.h"
 #include "hough.h"
+#include "houghElliptical.h"
 #include "logging.h"
 
 int width  = HRES;
@@ -106,7 +107,7 @@ void createThreads( int device )
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHL ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHL ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHL ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio - 2;
+      threadConfigs[ THREAD_HOUGHL ].params.sched_priority = max_prio - 3;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHL ].atrributes, &threadConfigs[ THREAD_HOUGHL ].params );
    }
 
@@ -115,7 +116,7 @@ void createThreads( int device )
       pthread_attr_init( &threadConfigs[ THREAD_HOUGHE ].atrributes );
       pthread_attr_setinheritsched( &threadConfigs[ THREAD_HOUGHE ].atrributes, PTHREAD_EXPLICIT_SCHED );
       pthread_attr_setschedpolicy( &threadConfigs[ THREAD_HOUGHE ].atrributes, SCHED_FIFO );
-      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio - 3;
+      threadConfigs[ THREAD_HOUGHE ].params.sched_priority = max_prio - 2;
       pthread_attr_setschedparam( &threadConfigs[ THREAD_HOUGHE ].atrributes, &threadConfigs[ THREAD_HOUGHE ].params );
    }
 #endif
@@ -311,6 +312,9 @@ int main( int argc, char* argv[] )
    logging::INFO( "Exiting!", true );
 
    delete threadConfigs;
+
+   pthread_mutex_destroy( &captureLock );
+   pthread_mutex_destroy( &windowLock );
 
    cvReleaseCapture( &capture );
    return 0;
