@@ -67,9 +67,9 @@ static const char* thread_name[] = {
 
 #ifdef SHOW_WINDOWS
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
-    {THREAD_CANNY, {{"320x240", 5}, {"640x480", 15}, {"1280x960", 44}}},
-    {THREAD_HOUGHL, {{"320x240", 55}, {"640x480", 100}, {"1280x960", 240}}},
-    {THREAD_HOUGHE, {{"320x240", 15}, {"640x480", 60}, {"1280x960", 380}}}};
+    {THREAD_CANNY, {{"320x240", 3}, {"640x480", 10}, {"1280x960", 40}}},
+    {THREAD_HOUGHL, {{"320x240", 45}, {"640x480", 85}, {"1280x960", 210}}},
+    {THREAD_HOUGHE, {{"320x240", 10}, {"640x480", 45}, {"1280x960", 290}}}};
 #else
 static const std::unordered_map< threads_e, std::unordered_map< std::string, uint32_t > > deadlines{
     {THREAD_CANNY, {{"320x240", 2}, {"640x480", 3}, {"1280x960", 5}}},
