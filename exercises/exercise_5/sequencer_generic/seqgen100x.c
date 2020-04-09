@@ -25,33 +25,33 @@
 // clock images (unique second hand / seconds) per image, you might use the
 // following rates for each service:
 //
-// Sequencer - 30 Hz
+// Sequencer - 3000 Hz
 //                   [gives semaphores to all other services]
-// Service_1 - 3 Hz  , every 10th Sequencer loop
+// Service_1 - 300 Hz  , every 10th Sequencer loop
 //                   [buffers 3 images per second]
-// Service_2 - 1 Hz  , every 30th Sequencer loop
+// Service_2 - 100 Hz  , every 30th Sequencer loop
 //                   [time-stamp middle sample image with cvPutText or header]
-// Service_3 - 0.5 Hz, every 60th Sequencer loop
+// Service_3 - 50 Hz, every 60th Sequencer loop
 //                   [difference current and previous time stamped images]
-// Service_4 - 1 Hz, every 30th Sequencer loop
+// Service_4 - 100 Hz, every 30th Sequencer loop
 //                   [save time stamped image with cvSaveImage or write()]
-// Service_5 - 0.5 Hz, every 60th Sequencer loop
+// Service_5 - 50 Hz, every 60th Sequencer loop
 //                   [save difference image with cvSaveImage or write()]
-// Service_6 - 1 Hz, every 30th Sequencer loop
+// Service_6 - 100 Hz, every 30th Sequencer loop
 //                   [write current time-stamped image to TCP socket server]
-// Service_7 - 0.1 Hz, every 300th Sequencer loop
+// Service_7 - 10 Hz, every 300th Sequencer loop
 //                   [syslog the time for debug]
 //
 // With the above, priorities by RM policy would be:
 //
-// Sequencer = RT_MAX	@ 30 Hz
-// Servcie_1 = RT_MAX-1	@ 3 Hz
-// Service_2 = RT_MAX-2	@ 1 Hz
-// Service_3 = RT_MAX-3	@ 0.5 Hz
-// Service_4 = RT_MAX-2	@ 1 Hz
-// Service_5 = RT_MAX-3	@ 0.5 Hz
-// Service_6 = RT_MAX-2	@ 1 Hz
-// Service_7 = RT_MIN	0.1 Hz
+// Sequencer = RT_MAX	@ 3000 Hz
+// Servcie_1 = RT_MAX-1	@ 300 Hz
+// Service_2 = RT_MAX-2	@ 100 Hz
+// Service_3 = RT_MAX-3	@ 50 Hz
+// Service_4 = RT_MAX-2	@ 100 Hz
+// Service_5 = RT_MAX-3	@ 20 Hz
+// Service_6 = RT_MAX-2	@ 100 Hz
+// Service_7 = RT_MIN	10 Hz
 //
 // Here are a few hardware/platform configuration settings on your Jetson
 // that you should also check before running this code:
@@ -375,7 +375,7 @@ void main( void )
 void *Sequencer( void *threadp )
 {
    struct timeval current_time_val;
-   struct timespec delay_time = {0, 33333333};  // delay for 33.33 msec, 30 Hz
+   struct timespec delay_time = {0, 333333};  // delay for 333.3 microseconds (3000Hz)
    struct timespec remaining_time;
    double current_time;
    double residual;
