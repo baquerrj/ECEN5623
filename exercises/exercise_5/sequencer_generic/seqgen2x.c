@@ -113,13 +113,13 @@ typedef struct
    unsigned long long sequencePeriods;
 } threadParams_t;
 
-long unsigned int Timestamp()
+double timestamp()
 {
-   struct timespec time;
-   long unsigned int nanosecond;
-   clock_gettime( CLOCK_MONOTONIC, &time );
-   nanosecond = time.tv_nsec;
-   return nanosecond;
+   struct timespec time = {0, 0};
+   clock_gettime( CLOCK_REALTIME, &time );
+   double msecs = ( (double)time.tv_sec * 1000.0 ) +
+                  ( (double)( (double)time.tv_nsec / 1000000.0 ) );
+   return msecs;
 }
 
 void *Sequencer( void *threadp );
@@ -131,7 +131,6 @@ void *Service_4( void *threadp );
 void *Service_5( void *threadp );
 void *Service_6( void *threadp );
 void *Service_7( void *threadp );
-double getTimeMsec( void );
 void print_scheduler( void );
 
 void main( void )
@@ -150,7 +149,7 @@ void main( void )
    cpu_set_t allcpuset;
 
    printf( "Starting High Rate Sequencer Demo\n" );
-   printf( "Checkpoint 1: Start time: %lu \n", Timestamp() );
+   printf( "Checkpoint 1: Start time: %.4f \n", timestamp() );
    gettimeofday( &start_time_val, (struct timezone *)0 );
    gettimeofday( &current_time_val, (struct timezone *)0 );
    syslog( LOG_CRIT, "START High Rate Sequencer @ sec=%d, msec=%d\n", (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
@@ -163,7 +162,7 @@ void main( void )
       CPU_SET( i, &allcpuset );
 
    printf( "Using CPUS=%d from total available.\n", CPU_COUNT( &allcpuset ) );
-   printf( "Checkpoint 2: Time: %lu \n", Timestamp() );
+   printf( "Checkpoint 2: Time: %.4f \n", timestamp() );
 
    // initialize the sequencer semaphores
    //
@@ -244,7 +243,7 @@ void main( void )
    }
 
    printf( "Service threads will run on %d CPU cores\n", CPU_COUNT( &threadcpu ) );
-   printf( "Checkpoint 3: Time: %lu \n", Timestamp() );
+   printf( "Checkpoint 3: Time: %.4f \n", timestamp() );
    // Create Service threads which will block awaiting release for:
    //
 
@@ -263,7 +262,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 1\n" );
-      printf( "Checkpoint 4: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 4: Time: %.4f \n", timestamp() );
    }
    // Service_2 = RT_MAX-2	@ 10 Hz
    //
@@ -275,7 +274,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 2\n" );
-      printf( "Checkpoint 5: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 5: Time: %.4f \n", timestamp() );
    }
 
    // Service_3 = RT_MAX-3	@ 5 Hz
@@ -288,7 +287,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 3\n" );
-      printf( "Checkpoint 6: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 6: Time: %.4f \n", timestamp() );
    }
 
    // Service_4 = RT_MAX-2	@ 10 Hz
@@ -301,7 +300,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 4\n" );
-      printf( "Checkpoint 7: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 7: Time: %.4f \n", timestamp() );
    }
 
    // Service_5 = RT_MAX-3	@ 5 Hz
@@ -314,7 +313,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 5\n" );
-      printf( "Checkpoint 8: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 8: Time: %lu \n", timestamp() );
    }
 
    // Service_6 = RT_MAX-2	@ 10 Hz
@@ -327,7 +326,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 6\n" );
-      printf( "Checkpoint 9: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 9: Time: %.4f \n", timestamp() );
    }
 
    // Service_7 = RT_MIN	1 Hz
@@ -340,7 +339,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for service 7\n" );
-      printf( "Checkpoint 10: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 10: Time: %.4f \n", timestamp() );
    }
 
    // Wait for service threads to initialize and await relese by sequencer.
@@ -365,7 +364,7 @@ void main( void )
    else
    {
       printf( "pthread_create successful for sequeencer service 0\n" );
-      printf( "Checkpoint 11: Time: %lu \n", Timestamp() );
+      printf( "Checkpoint 11: Time: %.4f \n", timestamp() );
    }
 
    for ( i = 0; i < NUM_THREADS; i++ )
@@ -479,7 +478,9 @@ void *Sequencer( void *threadp )
 
 void *Service_1( void *threadp )
 {
-   long unsigned int S1Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
    struct timeval current_time_val;
    double current_time;
    unsigned long long S1Cnt     = 0;
@@ -492,18 +493,26 @@ void *Service_1( void *threadp )
    while ( !abortS1 )
    {
       sem_wait( &semS1 );
+      start = timestamp();
       S1Cnt++;
-
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Frame Sampler release %llu @ sec=%d, msec=%d\n", S1Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 1 Execution time: %lu \n", Timestamp() - S1Start );
+   printf( "Service 1 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_2( void *threadp )
 {
-   long unsigned int S2Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
+
    struct timeval current_time_val;
    double current_time;
    unsigned long long S2Cnt     = 0;
@@ -516,18 +525,27 @@ void *Service_2( void *threadp )
    while ( !abortS2 )
    {
       sem_wait( &semS2 );
+      start = timestamp();
       S2Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Time-stamp with Image Analysis release %llu @ sec=%d, msec=%d\n", S2Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 2 Execution time: %lu \n", Timestamp() - S2Start );
+   printf( "Service 2 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_3( void *threadp )
 {
-   long unsigned int S3Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
+
    struct timeval current_time_val;
    double current_time;
    unsigned long long S3Cnt     = 0;
@@ -540,18 +558,27 @@ void *Service_3( void *threadp )
    while ( !abortS3 )
    {
       sem_wait( &semS3 );
+      start = timestamp();
       S3Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Difference Image Proc release %llu @ sec=%d, msec=%d\n", S3Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 3 Execution time: %lu \n", Timestamp() - S3Start );
+   printf( "Service 3 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_4( void *threadp )
 {
-   long unsigned int S4Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
+
    struct timeval current_time_val;
    double current_time;
    unsigned long long S4Cnt     = 0;
@@ -564,18 +591,27 @@ void *Service_4( void *threadp )
    while ( !abortS4 )
    {
       sem_wait( &semS4 );
+      start = timestamp();
       S4Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Time-stamp Image Save to File release %llu @ sec=%d, msec=%d\n", S4Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 4 Execution time: %lu \n", Timestamp() - S4Start );
+   printf( "Service 4 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_5( void *threadp )
 {
-   long unsigned int S5Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
+
    struct timeval current_time_val;
    double current_time;
    unsigned long long S5Cnt     = 0;
@@ -588,18 +624,27 @@ void *Service_5( void *threadp )
    while ( !abortS5 )
    {
       sem_wait( &semS5 );
+      start = timestamp();
       S5Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Processed Image Save to File release %llu @ sec=%d, msec=%d\n", S5Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 5 Execution time: %lu \n", Timestamp() - S5Start );
+   printf( "Service 5 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_6( void *threadp )
 {
-   long unsigned int S6Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
+
    struct timeval current_time_val;
    double current_time;
    unsigned long long S6Cnt     = 0;
@@ -612,45 +657,51 @@ void *Service_6( void *threadp )
    while ( !abortS6 )
    {
       sem_wait( &semS6 );
+      start = timestamp();
       S6Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Send Time-stamped Image to Remote release %llu @ sec=%d, msec=%d\n", S6Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 6 Execution time: %lu \n", Timestamp() - S6Start );
+   printf( "Service 6 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
 }
 
 void *Service_7( void *threadp )
 {
-   long unsigned int S7Start = Timestamp();
+   static double start = 0.0;
+   static double end   = 0.0;
+   static double wcet  = 0.0;
    struct timeval current_time_val;
    double current_time;
    unsigned long long S7Cnt     = 0;
    threadParams_t *threadParams = (threadParams_t *)threadp;
 
    gettimeofday( &current_time_val, (struct timezone *)0 );
-   syslog( LOG_CRIT, "Second Tick Debug thread @ sec=%d, msec=%d\n", (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
-   printf( "Second Tick Debug thread @ sec=%d, msec=%d\n", (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+   syslog( LOG_CRIT, "10 sec Tick Debug thread @ sec=%d, msec=%d\n", (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+   printf( "10 sec Tick Debug thread @ sec=%d, msec=%d\n", (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
 
    while ( !abortS7 )
    {
       sem_wait( &semS7 );
+      start = timestamp();
       S7Cnt++;
 
       gettimeofday( &current_time_val, (struct timezone *)0 );
-      syslog( LOG_CRIT, "1 Sec Tick Debug release %llu @ sec=%d, msec=%d\n", S7Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      syslog( LOG_CRIT, "10 Sec Tick Debug release %llu @ sec=%d, msec=%d\n", S7Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
+      end = timestamp();
+      if ( ( end - start ) > wcet )
+      {
+         wcet = end - start;
+      }
    }
-   printf( "Service 7 Execution time: %lu \n", Timestamp() - S7Start );
+   printf( "Service 7 WCET: %.4f \n", wcet );
    pthread_exit( (void *)0 );
-}
-
-double getTimeMsec( void )
-{
-   struct timespec event_ts = {0, 0};
-
-   clock_gettime( CLOCK_MONOTONIC, &event_ts );
-   return ( ( event_ts.tv_sec ) * 1000.0 ) + ( ( event_ts.tv_nsec ) / 1000000.0 );
 }
 
 void print_scheduler( void )
