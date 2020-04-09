@@ -4,33 +4,26 @@ CC=gcc
 
 CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
-LIBS=
-
-HFILES=
-CFILES= seqgen.c seqgen2x.c
-
-SRCS= ${HFILES} ${CFILES}
+LL_NAMES= pthread \
+			 rt
+LDFLAGS= $(addprefix -l,$(LL_NAMES))
 
 
 $(shell mkdir -p ./bin &> /dev/null)
 $(shell mkdir -p ./build &> /dev/null)
 
+.PHONY : all
 all: ./bin/seqgen ./bin/seqgen2x
 
-clean:
-	rm -rf ./bin ./build
-
 ./bin/% : ./build/%.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lpthread -lrt
-
-#./bin/seqgen2: ./build/seqgen2.o
-#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lpthread -lrt
-#
-#./bin/seqgen: ./build/seqgen.o
-#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lpthread -lrt
-#
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)  
 
 ./build/%.o : %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 
-depend:
+
+.PHONY : clean
+clean:
+	rm -rf ./bin ./build
+
+
