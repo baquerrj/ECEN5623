@@ -1,8 +1,9 @@
 /* ========================================================================== */
 /*                                                                            */
+/*   seqgen2x.c                                                               */
 // Sam Siewert, December 2017
 //
-// Sequencer Generic
+// Sequencer Generic @ 2x Rate for 10Hz Capture
 //
 // The purpose of this code is to provide an example for how to best
 // sequence a set of periodic services for problems similar to and including
@@ -25,33 +26,33 @@
 // clock images (unique second hand / seconds) per image, you might use the 
 // following rates for each service:
 //
-// Sequencer - 30 Hz 
+// Sequencer - 60 Hz 
 //                   [gives semaphores to all other services]
-// Service_1 - 3 Hz  , every 10th Sequencer loop
+// Service_1 - 30 Hz, every other Sequencer loop
 //                   [buffers 3 images per second]
-// Service_2 - 1 Hz  , every 30th Sequencer loop 
+// Service_2 - 10 Hz, every 6th Sequencer loop 
 //                   [time-stamp middle sample image with cvPutText or header]
-// Service_3 - 0.5 Hz, every 60th Sequencer loop
+// Service_3 - 5 Hz , every 12th Sequencer loop
 //                   [difference current and previous time stamped images]
-// Service_4 - 1 Hz, every 30th Sequencer loop
+// Service_4 - 10 Hz, every 6th Sequencer loop
 //                   [save time stamped image with cvSaveImage or write()]
-// Service_5 - 0.5 Hz, every 60th Sequencer loop
+// Service_5 - 5 Hz , every 12th Sequencer loop
 //                   [save difference image with cvSaveImage or write()]
-// Service_6 - 1 Hz, every 30th Sequencer loop
+// Service_6 - 10 Hz, every 6th Sequencer loop
 //                   [write current time-stamped image to TCP socket server]
-// Service_7 - 0.1 Hz, every 300th Sequencer loop
+// Service_7 - 1 Hz , every 60th Sequencer loop
 //                   [syslog the time for debug]
 //
 // With the above, priorities by RM policy would be:
 //
-// Sequencer = RT_MAX	@ 30 Hz
-// Servcie_1 = RT_MAX-1	@ 3 Hz
-// Service_2 = RT_MAX-2	@ 1 Hz
-// Service_3 = RT_MAX-3	@ 0.5 Hz
-// Service_4 = RT_MAX-2	@ 1 Hz
-// Service_5 = RT_MAX-3	@ 0.5 Hz
-// Service_6 = RT_MAX-2	@ 1 Hz
-// Service_7 = RT_MIN	0.1 Hz
+// Sequencer = RT_MAX	@ 60 Hz
+// Servcie_1 = RT_MAX-1	@ 30 Hz
+// Service_2 = RT_MAX-2	@ 10 Hz
+// Service_3 = RT_MAX-3	@ 5  Hz
+// Service_4 = RT_MAX-2	@ 10 Hz
+// Service_5 = RT_MAX-3	@ 5  Hz
+// Service_6 = RT_MAX-2	@ 10 Hz
+// Service_7 = RT_MIN	@ 1  Hz
 //
 // Here are a few hardware/platform configuration settings on your Jetson
 // that you should also check before running this code:
@@ -84,9 +85,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <unistd.h>
-
+#include <stdint.h>
 #include <pthread.h>
 #include <sched.h>
 #include <time.h>
@@ -115,7 +115,6 @@ typedef struct
     int threadIdx;
     unsigned long long sequencePeriods;
 } threadParams_t;
-
 
 long unsigned int Timestamp()
 {
@@ -156,11 +155,11 @@ void main(void)
     pid_t mainpid;
     cpu_set_t allcpuset;
 
-    printf("Starting Sequencer Demo\n");
+    printf("Starting High Rate Sequencer Demo\n");
 	printf("Checkpoint 1: Start time: %lu \n", Timestamp());
     gettimeofday(&start_time_val, (struct timezone *)0);
     gettimeofday(&current_time_val, (struct timezone *)0);
-    syslog(LOG_CRIT, "Sequencer @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+    syslog(LOG_CRIT, "START High Rate Sequencer @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
 
    printf("System has %d processors configured and %d available.\n", get_nprocs_conf(), get_nprocs());
 
@@ -228,7 +227,7 @@ void main(void)
     // Create Service threads which will block awaiting release for:
     //
 
-    // Servcie_1 = RT_MAX-1	@ 3 Hz
+    // Servcie_1 = RT_MAX-1	@ 30 Hz
     //
     rt_param[1].sched_priority=rt_max_prio-1;
     pthread_attr_setschedparam(&rt_sched_attr[1], &rt_param[1]);
@@ -245,83 +244,85 @@ void main(void)
 		printf("pthread_create successful for service 1\n");
 		printf("Checkpoint 4: Time: %lu \n", Timestamp());
 	}
-
-    // Service_2 = RT_MAX-2	@ 1 Hz
+    // Service_2 = RT_MAX-2	@ 10 Hz
     //
     rt_param[2].sched_priority=rt_max_prio-2;
     pthread_attr_setschedparam(&rt_sched_attr[2], &rt_param[2]);
     rc=pthread_create(&threads[2], &rt_sched_attr[2], Service_2, (void *)&(threadParams[2]));
     if(rc < 0)
         perror("pthread_create for service 2");
-	else
-	{
-		printf("pthread_create successful for service 2\n");
+    else
+	{ 
+        printf("pthread_create successful for service 2\n");
 		printf("Checkpoint 5: Time: %lu \n", Timestamp());
 	}
 
-    // Service_3 = RT_MAX-3	@ 0.5 Hz
+    // Service_3 = RT_MAX-3	@ 5 Hz
     //
     rt_param[3].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[3], &rt_param[3]);
     rc=pthread_create(&threads[3], &rt_sched_attr[3], Service_3, (void *)&(threadParams[3]));
     if(rc < 0)
         perror("pthread_create for service 3");
-	else
-	{
-		printf("pthread_create successful for service 3\n");
+    else
+	{ 
+        printf("pthread_create successful for service 3\n");
 		printf("Checkpoint 6: Time: %lu \n", Timestamp());
 	}
-    // Service_4 = RT_MAX-2	@ 1 Hz
+
+    // Service_4 = RT_MAX-2	@ 10 Hz
     //
-    rt_param[4].sched_priority=rt_max_prio-2;
+    rt_param[4].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[4], &rt_param[4]);
     rc=pthread_create(&threads[4], &rt_sched_attr[4], Service_4, (void *)&(threadParams[4]));
     if(rc < 0)
         perror("pthread_create for service 4");
-	else
-	{
-		printf("pthread_create successful for service 4\n");
+    else
+	{ 
+        printf("pthread_create successful for service 4\n");
 		printf("Checkpoint 7: Time: %lu \n", Timestamp());
 	}
-    // Service_5 = RT_MAX-3	@ 0.5 Hz
+
+    // Service_5 = RT_MAX-3	@ 5 Hz
     //
     rt_param[5].sched_priority=rt_max_prio-3;
     pthread_attr_setschedparam(&rt_sched_attr[5], &rt_param[5]);
     rc=pthread_create(&threads[5], &rt_sched_attr[5], Service_5, (void *)&(threadParams[5]));
     if(rc < 0)
         perror("pthread_create for service 5");
-	else
-	{
-		printf("pthread_create successful for service 5\n");
+    else
+	{ 
+        printf("pthread_create successful for service 5\n");
 		printf("Checkpoint 8: Time: %lu \n", Timestamp());
 	}
-    // Service_6 = RT_MAX-2	@ 1 Hz
+
+    // Service_6 = RT_MAX-2	@ 10 Hz
     //
     rt_param[6].sched_priority=rt_max_prio-2;
     pthread_attr_setschedparam(&rt_sched_attr[6], &rt_param[6]);
     rc=pthread_create(&threads[6], &rt_sched_attr[6], Service_6, (void *)&(threadParams[6]));
     if(rc < 0)
         perror("pthread_create for service 6");
-	else
-	{
-		printf("pthread_create successful for service 6\n");
+    else
+	{ 
+        printf("pthread_create successful for service 6\n");
 		printf("Checkpoint 9: Time: %lu \n", Timestamp());
 	}
 
-    // Service_7 = RT_MIN	0.1 Hz
+    // Service_7 = RT_MIN	1 Hz
     //
     rt_param[7].sched_priority=rt_min_prio;
     pthread_attr_setschedparam(&rt_sched_attr[7], &rt_param[7]);
     rc=pthread_create(&threads[7], &rt_sched_attr[7], Service_7, (void *)&(threadParams[7]));
     if(rc < 0)
         perror("pthread_create for service 7");
-	else
-	{
-		printf("pthread_create successful for service 7\n");
+    else
+	{ 
+        printf("pthread_create successful for service 7\n");
 		printf("Checkpoint 10: Time: %lu \n", Timestamp());
 	}
 
-    // Wait for service threads to initialize and await release by sequencer.
+    // Wait for service threads to initialize and await relese by sequencer.
     //
     // Note that the sleep is not necessary of RT service threads are created wtih 
     // correct POSIX SCHED_FIFO priorities compared to non-RT priority of this main
@@ -331,18 +332,18 @@ void main(void)
  
     // Create Sequencer thread, which like a cyclic executive, is highest prio
     printf("Start sequencer\n");
-    threadParams[0].sequencePeriods=900;
+    threadParams[0].sequencePeriods=1800;
 
-    // Sequencer = RT_MAX	@ 30 Hz
+    // Sequencer = RT_MAX	@ 60 Hz
     //
     rt_param[0].sched_priority=rt_max_prio;
     pthread_attr_setschedparam(&rt_sched_attr[0], &rt_param[0]);
     rc=pthread_create(&threads[0], &rt_sched_attr[0], Sequencer, (void *)&(threadParams[0]));
     if(rc < 0)
         perror("pthread_create for sequencer service 0");
-	else
+    else
 	{
-		printf("pthread_create successful for sequeencer service 0\n");
+        printf("pthread_create successful for sequeencer service 0\n");
 		printf("Checkpoint 11: Time: %lu \n", Timestamp());
 	}
 
@@ -356,7 +357,7 @@ void main(void)
 void *Sequencer(void *threadp)
 {
     struct timeval current_time_val;
-    struct timespec delay_time = {0,333333}; // delay for 33.33 msec, 30 Hz
+    struct timespec delay_time = {0,16666666}; // delay for 16.67 msec, 60 Hz
     struct timespec remaining_time;
     double current_time;
     double residual;
@@ -404,26 +405,26 @@ void *Sequencer(void *threadp)
 
         // Release each service at a sub-rate of the generic sequencer rate
 
-        // Servcie_1 = RT_MAX-1	@ 3 Hz
-        if((seqCnt % 10) == 0) sem_post(&semS1);
+        // Servcie_1 = RT_MAX-1	@ 30 Hz
+        if((seqCnt % 2) == 0) sem_post(&semS1);
 
-        // Service_2 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS2);
+        // Service_2 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS2);
 
-        // Service_3 = RT_MAX-3	@ 0.5 Hz
-        if((seqCnt % 60) == 0) sem_post(&semS3);
+        // Service_3 = RT_MAX-3	@ 5 Hz
+        if((seqCnt % 12) == 0) sem_post(&semS3);
 
-        // Service_4 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS4);
+        // Service_4 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS4);
 
-        // Service_5 = RT_MAX-3	@ 0.5 Hz
-        if((seqCnt % 60) == 0) sem_post(&semS5);
+        // Service_5 = RT_MAX-3	@ 5 Hz
+        if((seqCnt % 12) == 0) sem_post(&semS5);
 
-        // Service_6 = RT_MAX-2	@ 1 Hz
-        if((seqCnt % 30) == 0) sem_post(&semS6);
+        // Service_6 = RT_MAX-2	@ 10 Hz
+        if((seqCnt % 6) == 0) sem_post(&semS6);
 
-        // Service_7 = RT_MIN	0.1 Hz
-        if((seqCnt % 300) == 0) sem_post(&semS7);
+        // Service_7 = RT_MIN	1 Hz
+        if((seqCnt % 60) == 0) sem_post(&semS7);
 
         //gettimeofday(&current_time_val, (struct timezone *)0);
         //syslog(LOG_CRIT, "Sequencer release all sub-services @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
@@ -596,8 +597,8 @@ void *Service_7(void *threadp)
     threadParams_t *threadParams = (threadParams_t *)threadp;
 
     gettimeofday(&current_time_val, (struct timezone *)0);
-    syslog(LOG_CRIT, "10 sec Tick Debug thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
-    printf("10 sec Tick Debug thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+    syslog(LOG_CRIT, "Second Tick Debug thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+    printf("Second Tick Debug thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
 
     while(!abortS7)
     {
@@ -605,7 +606,7 @@ void *Service_7(void *threadp)
         S7Cnt++;
 
         gettimeofday(&current_time_val, (struct timezone *)0);
-        syslog(LOG_CRIT, "10 Sec Tick Debug release %llu @ sec=%d, msec=%d\n", S7Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+        syslog(LOG_CRIT, "1 Sec Tick Debug release %llu @ sec=%d, msec=%d\n", S7Cnt, (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
     }
 	printf("Service 7 Execution time: %lu \n", Timestamp() - starttime);
     pthread_exit((void *)0);
