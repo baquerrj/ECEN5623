@@ -106,7 +106,6 @@ int abortTest = FALSE;
 int abortS1 = FALSE, abortS2 = FALSE, abortS3 = FALSE, abortS4 = FALSE, abortS5 = FALSE, abortS6 = FALSE, abortS7 = FALSE;
 sem_t semS1, semS2, semS3, semS4, semS5, semS6, semS7;
 struct timeval start_time_val;
-long unsigned int starttime;
 typedef struct
 {
    int threadIdx;
@@ -115,9 +114,9 @@ typedef struct
 
 long unsigned int Timestamp()
 {
-   struct timespec time;
+   struct timespec time = {0, 0};
    long unsigned int nanosecond;
-   timespec_get( &time, NULL );
+   clock_gettime( CLOCK_MONOTONIC, &time );
    nanosecond = time.tv_nsec;
    return nanosecond;
 }
@@ -351,7 +350,7 @@ void main( void )
 
    // Create Sequencer thread, which like a cyclic executive, is highest prio
    printf( "Start sequencer\n" );
-   threadParams[ 0 ].sequencePeriods = 900;
+   threadParams[ 0 ].sequencePeriods = 9000;
 
    // Sequencer = RT_MAX	@ 30 Hz
    //
@@ -477,7 +476,7 @@ void *Sequencer( void *threadp )
 
 void *Service_1( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S1Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S1Cnt     = 0;
@@ -495,13 +494,13 @@ void *Service_1( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Frame Sampler release %llu @ sec=%d, msec=%d\n", S1Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 1 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 1 Execution time: %lu \n", Timestamp() - S1Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_2( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S2Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S2Cnt     = 0;
@@ -519,13 +518,15 @@ void *Service_2( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Time-stamp with Image Analysis release %llu @ sec=%d, msec=%d\n", S2Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 2 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "S2 End Time = %lu\n", Timestamp() );
+   printf( "S2 Start Time: %lu\n", S2Start );
+   printf( "Service 2 Execution time: %lu \n", Timestamp() - S2Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_3( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S3Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S3Cnt     = 0;
@@ -543,13 +544,13 @@ void *Service_3( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Difference Image Proc release %llu @ sec=%d, msec=%d\n", S3Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 3 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 3 Execution time: %lu \n", Timestamp() - S3Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_4( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S4Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S4Cnt     = 0;
@@ -567,13 +568,13 @@ void *Service_4( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Time-stamp Image Save to File release %llu @ sec=%d, msec=%d\n", S4Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 4 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 4 Execution time: %lu \n", Timestamp() - S4Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_5( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S5Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S5Cnt     = 0;
@@ -591,13 +592,13 @@ void *Service_5( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Processed Image Save to File release %llu @ sec=%d, msec=%d\n", S5Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 5 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 5 Execution time: %lu \n", Timestamp() - S5Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_6( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S6Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S6Cnt     = 0;
@@ -615,13 +616,13 @@ void *Service_6( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "Send Time-stamped Image to Remote release %llu @ sec=%d, msec=%d\n", S6Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 6 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 6 Execution time: %lu \n", Timestamp() - S6Start );
    pthread_exit( (void *)0 );
 }
 
 void *Service_7( void *threadp )
 {
-   starttime = Timestamp();
+   long unsigned int S7Start = Timestamp();
    struct timeval current_time_val;
    double current_time;
    unsigned long long S7Cnt     = 0;
@@ -639,7 +640,7 @@ void *Service_7( void *threadp )
       gettimeofday( &current_time_val, (struct timezone *)0 );
       syslog( LOG_CRIT, "10 Sec Tick Debug release %llu @ sec=%d, msec=%d\n", S7Cnt, (int)( current_time_val.tv_sec - start_time_val.tv_sec ), (int)current_time_val.tv_usec / USEC_PER_MSEC );
    }
-   printf( "Service 7 Execution time: %lu \n", Timestamp() - starttime );
+   printf( "Service 7 Execution time: %lu \n", Timestamp() - S7Start );
    pthread_exit( (void *)0 );
 }
 
