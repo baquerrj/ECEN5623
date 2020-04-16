@@ -1,5 +1,5 @@
-#ifndef _LOGGING_H_
-#define _LOGGING_H_
+#ifndef __LOGGING_H__
+#define __LOGGING_H__
 
 #include <mqueue.h>
 #include <string.h>
@@ -222,4 +222,4 @@ inline void ERROR( const std::string& message, const bool logToStdout = false )
 };
 
 }  // namespace logging
-#endif  // _LOGGING_H_
+#endif  // __LOGGING_H__

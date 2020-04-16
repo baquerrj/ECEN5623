@@ -1,4 +1,5 @@
 SRCS_$(d) :=	logging.cpp \
+					thread.cpp \
 					thread_utils.cpp
 
 UTILS_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
