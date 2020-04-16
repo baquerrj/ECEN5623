@@ -1,6 +1,7 @@
-SRCS_$(d) := logging.cpp
+SRCS_$(d) :=	logging.cpp \
+					thread_utils.cpp
 
-LOGGING_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
+UTILS_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 
 $(OBJ_$(d))/%.o : CF_TGT := -fPIC -I$(INC_$(d))
 $(OBJ_$(d))/%.o : DEPDIR := $(DEP_$(d))
