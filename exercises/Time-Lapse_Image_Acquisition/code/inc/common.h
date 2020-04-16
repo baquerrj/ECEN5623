@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -150,4 +150,4 @@ inline static void semWait( const threads_e thread )
    }
 }
 
-#endif  // COMMON_H
+#endif  // _COMMON_H_
