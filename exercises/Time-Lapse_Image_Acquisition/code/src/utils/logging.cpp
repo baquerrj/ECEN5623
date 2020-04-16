@@ -1,7 +1,7 @@
 
-#include "logging.h"
+#include <logging.h>
 
-#include "common.h"
+#include <common.h>
 
 std::string logging::Logger::timestamp( void )
 {

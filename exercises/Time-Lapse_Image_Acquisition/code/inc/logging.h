@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "common.h"
+#include <common.h>
 
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
