@@ -4,9 +4,9 @@
 #include <common.h>
 
 const ProcessParams loggerProcessParams = {
-    7,  // CPU3
+    CPU_MAIN,  // CPU3
     SCHED_FIFO,
-    0,  // lower priority
+    1,  // low priority
     0};
 
 const ThreadConfigData loggerThreadConfigData = {
@@ -66,8 +66,7 @@ logging::Logger::Logger( const logging::config_s& config ) :
 
    printf( "Created logfile %s\n", fileName.c_str() );
 
-   loggerThread = static_cast< CyclicThread* >( new CyclicThread( loggerThreadConfigData,
-   logging::Logger::cycle, this, true ) );
+   thread.reset( new CyclicThread( loggerThreadConfigData, logging::Logger::cycle, this, true ) );
 }
 
 logging::Logger::~Logger()
@@ -81,7 +80,6 @@ logging::Logger::~Logger()
 
    // Stop logging thread by setting logging::done to true
    logging::done = true;
-   delete loggerThread;
 }
 
 void logging::Logger::log( const logging::message_s* message )

@@ -21,8 +21,6 @@ const int NUMBER_OF_POLICIES   = 4;
 
 const std::string POLICY[ NUMBER_OF_POLICIES ]{
     UNSET_POLICY,
-    //"BATCH",  // not valid for pthread_attr_setschedpolicy()
-    //"IDLE",   // not valid for pthread_attr_setschedpolicy()
     "OTHER",
     "RR",
     "FIFO"};
@@ -41,8 +39,10 @@ const ProcessParams DEFAULT_PROCESS_PARAMS = {
 
 const ProcessParams VOID_PROCESS_PARAMS = {0, 0, 0, 0};
 
-int numCpus = NUM_CPUS;
-int cpuMain = CPU_MAIN;
+int numCpus     = NUM_CPUS;
+int cpuMain     = CPU_MAIN;
+int cpuLogger   = CPU_LOGGER;
+int cpuReceiver = CPU_RECEIVER;
 
 static bool name_is_valid( const std::string name );
 
@@ -87,9 +87,6 @@ void create_thread( const std::string threadName,
                     void *args,
                     const ProcessParams &processParams )
 {
-   // Create a thread using the passed parameters. If cpu is non-negative,
-   // the thread will be created with an affinity for the specified cpu.
-
    if ( threadName.length() > MAX_THREADNAME_LENGTH )
    {
       throw( std::string( "Thread name exceeds 15 characters" ) + " in thread " + threadName );
@@ -140,12 +137,9 @@ void modify_thread( const pthread_t &threadId,
 {
    if ( not threadId )
    {
-      //@TODO: Should we just log this and return instead of throwing?
       throw( std::string( "ERROR: Attempting to modify a non-existent thread" ) );
    }
 
-   //@TODO: Should we have an option for renaming instead of just grabbing
-   //       the current name?
    std::string threadName = get_thread_name( threadId );
 
    int cpu = processParams.cpuId;
@@ -170,8 +164,6 @@ void modify_thread( const pthread_t &threadId,
    if ( pthread_setschedparam( threadId, policy, &params ) )
    {
       logging::ERROR( std::string( "Invalid schedule policy and/or priority" ) + " in thread " + threadName + "." );
-      // This error won't keep us from proceeding but may impact performance.
-      // Log it but don't throw.
    }
 }
 
@@ -184,10 +176,6 @@ void configure_thread_attributes( const std::string &threadName,
 
    cpu_set_t *cpuSet = NULL;
    size_t cpuSetSize = 0;
-
-   //@TODO: Currently we'll only set schedule policy and priority if the
-   //       affinity has also been set. Is there any desire/need to set
-   //       them for a thread that doesn't have a specified affinity?
 
    if ( cpu >= 0 and cpu < NUM_CPUS )  // within valid cpu range for setting affinity
    {
@@ -236,8 +224,6 @@ void configure_thread_attributes( const std::string &threadName,
       if ( cpu >= NUM_CPUS )
       {
          logging::ERROR( std::string( "Invalid CPU # (affinity not set)" ) + " in thread " + threadName );
-         // This error won't keep us from proceeding but may impact performance.
-         // Log it but don't throw.
       }
       // else cpu < 0, indicating that affinity should not be set.
    }
@@ -252,8 +238,6 @@ void set_thread_cpu_affinity( const pthread_t &threadId,
    if ( cpu >= NUM_CPUS )
    {
       logging::ERROR( std::string( "Invalid CPU # (affinity not set)" ) + " in thread " + threadName );
-      // This error won't keep us from proceeding but may impact performance.
-      // Log it but don't throw.
       return;
    }
    if ( cpu < 0 )  // indicates that affinity should not be set

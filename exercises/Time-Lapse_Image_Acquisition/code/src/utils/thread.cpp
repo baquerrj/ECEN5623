@@ -13,6 +13,7 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
     execute( execute_ ),
     owner( owner_ )
 {
+   printf( "CyclicThread::CyclicThread() entered\n" );
    threadData    = configData;
    threadIsAlive = false;
 
@@ -20,6 +21,7 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
    {
       initiateThread();
    }
+   printf( "CyclicThread::CyclicThread() exiting\n" );
 }
 
 CyclicThread::CyclicThread( const ThreadConfigData &configData ) :
@@ -45,6 +47,7 @@ void CyclicThread::setFunctionAndOwner( void *( *execute_ )( void *context ),
 
 void CyclicThread::initiateThread()
 {
+   printf( "CyclicThread::initiateThread()\n" );
    create_thread( threadData.threadName,
                   thread,
                   CyclicThread::threadFunction,
