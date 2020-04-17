@@ -1,13 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// United Launch Alliance (ULA) Proprietary Information/Export Controlled Information
-////////////////////////////////////////////////////////////////////////////////
-
-/*******************************************************************
-
- Description: Provides managed thread classes.
-
- *******************************************************************/
-
 #include <logging.h>
 #include <pthread.h>
 #include <thread.h>
@@ -33,12 +23,12 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
 }
 
 CyclicThread::CyclicThread( const ThreadConfigData &configData ) :
-    // CyclicThread( configData, NULL, NULL, false )  // not supported until gcc 4.7
-    execute( NULL ),
-    owner( NULL )
+    CyclicThread( configData, NULL, NULL, false )  // not supported until gcc 4.7
+    //execute( NULL ),
+    //owner( NULL )
 {
-   threadData    = configData;
-   threadIsAlive = false;
+   //threadData    = configData;
+   //threadIsAlive = false;
 }
 
 CyclicThread::~CyclicThread()

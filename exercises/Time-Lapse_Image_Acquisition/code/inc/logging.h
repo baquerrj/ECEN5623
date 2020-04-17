@@ -1,6 +1,7 @@
 #ifndef __LOGGING_H__
 #define __LOGGING_H__
 
+#include <common.h>
 #include <mqueue.h>
 #include <string.h>
 #include <sys/types.h>
@@ -11,7 +12,14 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include <common.h>
+// forward declarations
+class CyclicThread;
+struct ThreadConfigData;
+struct ProcessParams;
+
+extern const ThreadConfigData loggerThreadConfigData;
+extern const ProcessParams loggerProcessParams;
+
 
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
@@ -138,6 +146,7 @@ protected:
    pthread_mutex_t lock;         //! Mutex protecting log file access
    mqd_t queue;                  //! POSIX message queue id
    pthread_t threadId;           //! Thread identifier
+   CyclicThread* loggerThread;
    struct timespec interval;     //! timespec used to calculate time interval between log calls
    struct timespec lastTime;     //! timespec used to calculate time interval between log calls
    struct timespec currentTime;  //! used to timestamp and calculate call intervals

@@ -1,7 +1,19 @@
 
 #include <logging.h>
-
+#include <thread.h>
 #include <common.h>
+
+const ProcessParams loggerProcessParams = {
+    7,  // CPU3
+    SCHED_FIFO,
+    0,  // lower priority
+    0};
+
+const ThreadConfigData loggerThreadConfigData = {
+    true,
+    "logger",
+    loggerProcessParams};
+
 
 std::string logging::Logger::timestamp( void )
 {
@@ -54,20 +66,8 @@ logging::Logger::Logger( const logging::config_s& config ) :
 
    printf( "Created logfile %s\n", fileName.c_str() );
 
-#ifdef USE_FIFO
-   int min_prio = sched_get_priority_min( SCHED_FIFO );
-
-   pthread_attr_t threadAttr;
-   struct sched_param schedParam;
-   pthread_attr_init( &threadAttr );
-   pthread_attr_setinheritsched( &threadAttr, PTHREAD_EXPLICIT_SCHED );
-   pthread_attr_setschedpolicy( &threadAttr, SCHED_FIFO );
-   schedParam.sched_priority = min_prio;
-   pthread_attr_setschedparam( &threadAttr, &schedParam );
-   pthread_create( &threadId, &threadAttr, logging::Logger::cycle, NULL );
-#else
-   pthread_create( &threadId, NULL, logging::Logger::cycle, NULL );
-#endif
+   loggerThread = static_cast< CyclicThread* >( new CyclicThread( loggerThreadConfigData,
+   logging::Logger::cycle, this, true ) );
 }
 
 logging::Logger::~Logger()
@@ -81,7 +81,7 @@ logging::Logger::~Logger()
 
    // Stop logging thread by setting logging::done to true
    logging::done = true;
-   pthread_join( threadId, NULL );
+   delete loggerThread;
 }
 
 void logging::Logger::log( const logging::message_s* message )
