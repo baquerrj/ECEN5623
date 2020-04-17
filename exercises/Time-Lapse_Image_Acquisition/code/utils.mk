@@ -1,6 +1,7 @@
 SRCS_$(d) :=	logging.cpp \
 					thread.cpp \
-					thread_utils.cpp
+					thread_utils.cpp \
+					sockets.cpp
 
 UTILS_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 

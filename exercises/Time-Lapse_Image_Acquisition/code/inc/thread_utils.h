@@ -8,10 +8,14 @@
 // Thread CPU affinities. (negative value = no affinity specified)
 const int NUM_CPUS = 4;  // number of CPU's on the target machine
 
-const int CPU_MAIN = 1;
+const int CPU_MAIN     = 1;
+const int CPU_LOGGER   = 2;
+const int CPU_RECEIVER = 3;
 
 extern int numCpus;
 extern int cpuMain;
+extern int cpuLogger;
+extern int cpuReceiver;
 extern const uint16_t MAX_THREADNAME_LENGTH;
 
 struct ProcessParams

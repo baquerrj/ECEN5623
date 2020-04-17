@@ -3,35 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <thread.h>
 #include <unistd.h>
-
-#include <thread.h>
-#include <thread_utils.h>
-
-static const ThreadConfigData threadConfigData = {
-    true,
-    "threadOne",
-    DEFAULT_PROCESS_PARAMS};
-
-void* thread_fn( void* args )
-{
-   logging::INFO( "THREADONE!" );
-}
+#include <sockets.h>
 
 int main( void )
 {
    pid_t mainThreadId       = getpid();
-   std::string fileName     = "capture" + std::to_string( mainThreadId ) + ".log";
+   std::string fileName     = "client" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
 
-   CyclicThread* thread = static_cast< CyclicThread* >( new CyclicThread( threadConfigData,
-                                                                          thread_fn, NULL, true ) );
+   logging::INFO( "CLIENT HERE!", true );
 
-   printf( "CLIENT HERE!\n" );
-
-   delete thread;
-
+   SocketReceiver* receiver = new SocketReceiver();
+   logging::INFO( std::string("SocketReceiver ") + receiver->getLocalAddress(), true );
    return 0;
 }
