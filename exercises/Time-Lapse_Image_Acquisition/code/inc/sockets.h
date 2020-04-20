@@ -6,6 +6,8 @@
 #include <exception>
 #include <stdexcept>
 
+namespace sockets
+{
 extern const char* LOCALHOST;
 extern const uint32_t DEFAULTPORT;
 
@@ -70,5 +72,7 @@ public:
 
    std::string buffer;
 };
+
+}; // namespace sockets
 
 #endif  // __SOCKETS_H__

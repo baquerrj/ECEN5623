@@ -7,17 +7,21 @@
 #include <thread.h>
 #include <unistd.h>
 
-int main( void )
+int main( int argc, char* argv[] )
 {
+   const char* host = getCmdOption( argv, argv + argc, "--host" );
+   if ( !host )
+   {
+      host = sockets::LOCALHOST;
+   }
+   logging::INFO( "CLIENT CONNECT TO " + std::string( host ), true );
    pid_t mainThreadId       = getpid();
    std::string fileName     = "client" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
 
-   logging::INFO( "CLIENT HERE!", true );
-
-   SocketClient* receiver = new SocketClient( "192.168.137.41", DEFAULTPORT );
-   logging::INFO( std::string( "SocketClient " ) + receiver->getLocalAddress(), true );
+   //SocketClient* receiver = new SocketClient( "192.168.137.41", DEFAULTPORT );
+   sockets::SocketClient* receiver = new sockets::SocketClient( host, sockets::DEFAULTPORT );
 
    receiver->connect();
 

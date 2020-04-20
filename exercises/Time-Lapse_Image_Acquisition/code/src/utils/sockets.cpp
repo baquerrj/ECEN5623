@@ -8,13 +8,13 @@
 #include <unistd.h>
 /* /sys includes */
 #include <arpa/inet.h>
-#include <sys/socket.h>
 #include <net/if.h>
+#include <sys/socket.h>
 
-const char *LOCALHOST      = "127.0.0.1";
-const uint32_t DEFAULTPORT = 8080;
+const char* sockets::LOCALHOST      = "127.0.0.1";
+const uint32_t sockets::DEFAULTPORT = 8080;
 
-SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
+sockets::SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
     localAddress( addr ),
     localPort( port )
 {
@@ -22,34 +22,34 @@ SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
    data     = new packet_t;
 }
 
-SocketBase::~SocketBase()
+sockets::SocketBase::~SocketBase()
 {
    delete data;
 }
 
-std::string SocketBase::getLocalAddress()
+std::string sockets::SocketBase::getLocalAddress()
 {
    return localAddress;
 }
 
-uint32_t SocketBase::getLocalPort()
+uint32_t sockets::SocketBase::getLocalPort()
 {
    return localPort;
 }
 
-void SocketBase::setLocalPort( uint32_t port )
+void sockets::SocketBase::setLocalPort( uint32_t port )
 {
    localPort = port;
 }
 
-void SocketBase::setLocalAddressAndPort( const std::string &addr,
-                                         const uint32_t port )
+void sockets::SocketBase::setLocalAddressAndPort( const std::string &addr,
+                                                  const uint32_t port )
 {
    localAddress = addr;
    localPort    = port;
 }
 
-SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
+sockets::SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
     SocketBase( addr, port )
 {
    mySocket = socket( AF_INET, SOCK_STREAM, 0 );
@@ -58,7 +58,7 @@ SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
       logging::ERROR( "Could not create socket!", true );
    }
    struct ifreq opt;
-   snprintf( opt.ifr_name, sizeof(opt.ifr_name), "etho0" );
+   snprintf( opt.ifr_name, sizeof( opt.ifr_name ), "etho0" );
    setsockopt( mySocket, SOL_SOCKET, SO_BINDTODEVICE | SO_REUSEADDR | SO_REUSEPORT, (void *)&opt, sizeof( opt ) );
 
    struct sockaddr_in serv_addr;
@@ -72,12 +72,12 @@ SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
    }
 }
 
-SocketServer::~SocketServer()
+sockets::SocketServer::~SocketServer()
 {
    ::close( mySocket );
 }
 
-void SocketServer::listen( uint8_t connections )
+void sockets::SocketServer::listen( uint8_t connections )
 {
    if ( 0 > ::listen( mySocket, connections ) )
    {
@@ -85,7 +85,7 @@ void SocketServer::listen( uint8_t connections )
    }
 }
 
-int SocketServer::accept( void )
+int sockets::SocketServer::accept( void )
 {
    struct sockaddr_in serv_addr;
    serv_addr.sin_family      = AF_INET;
@@ -100,7 +100,7 @@ int SocketServer::accept( void )
    return client;
 }
 
-int SocketServer::send( int client, const char *message )
+int sockets::SocketServer::send( int client, const char *message )
 {
    logging::INFO( "SocketServer::send()", true );
    snprintf( data->header, sizeof( data->header ), "%p:", this );
@@ -112,7 +112,7 @@ int SocketServer::send( int client, const char *message )
    }
 }
 
-int SocketServer::read( int client )
+int sockets::SocketServer::read( int client )
 {
    logging::INFO( "SocketServer::read()", true );
    if ( 0 > ::read( client, data, sizeof( *data ) ) )
@@ -127,7 +127,7 @@ int SocketServer::read( int client )
    }
 }
 
-SocketClient::SocketClient( const std::string &addr, const uint32_t port ) :
+sockets::SocketClient::SocketClient( const std::string &addr, const uint32_t port ) :
     SocketBase( addr, port )
 {
    mySocket = socket( AF_INET, SOCK_STREAM, 0 );
@@ -137,12 +137,12 @@ SocketClient::SocketClient( const std::string &addr, const uint32_t port ) :
    }
 }
 
-SocketClient::~SocketClient()
+sockets::SocketClient::~SocketClient()
 {
    close( mySocket );
 }
 
-int SocketClient::connect( void )
+int sockets::SocketClient::connect( void )
 {
    struct sockaddr_in serv_addr;
    memset( &serv_addr, '0', sizeof( serv_addr ) );
@@ -162,7 +162,7 @@ int SocketClient::connect( void )
    return 1;
 }
 
-int SocketClient::send( const char* message )
+int sockets::SocketClient::send( const char *message )
 {
    logging::INFO( "SocketClient::send()", true );
    snprintf( data->header, sizeof( data->header ), "%p: ", this );
@@ -174,12 +174,12 @@ int SocketClient::send( const char* message )
    }
 }
 
-int SocketClient::echo()
+int sockets::SocketClient::echo()
 {
-   send( buffer.c_str(  ) );
+   send( buffer.c_str() );
 }
 
-int SocketClient::read()
+int sockets::SocketClient::read()
 {
    logging::INFO( "SocketClient::read()", true );
    if ( 0 > ::read( mySocket, data, sizeof( *data ) ) )

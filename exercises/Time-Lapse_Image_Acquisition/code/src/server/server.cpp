@@ -7,14 +7,15 @@
 #include <thread.h>
 #include <unistd.h>
 
-static const ThreadConfigData threadConfigData = {
-    true,
-    "threadOne",
-    DEFAULT_PROCESS_PARAMS};
-
-
-int main( void )
+int main( int argc, char* argv[] )
 {
+   const char* host = getCmdOption( argv, argv + argc, "--host" );
+   if ( !host )
+   {
+      host = sockets::LOCALHOST;
+   }
+   logging::INFO( "SERVER ON " + std::string( host ), true );
+
    pid_t mainThreadId       = getpid();
    std::string fileName     = "server" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
@@ -24,7 +25,8 @@ int main( void )
 
    int client = -1;
 
-   SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
+   //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
+   sockets::SocketServer* server = new sockets::SocketServer( host, sockets::DEFAULTPORT );
 
    server->listen( 10 );
 
