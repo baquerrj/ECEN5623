@@ -36,14 +36,13 @@ static threads_e operator++( threads_e thread )
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
 
-static const uint32_t FRAMES_TO_EXECUTE = 200;
+static const uint32_t FRAMES_TO_EXECUTE = 10;
 
 extern bool isTimeToDie;
 extern pthread_mutex_t captureLock;
 extern pthread_mutex_t windowLock;
 extern std::string WindowSize;
 
-extern CvCapture* capture;
 
 /**
  * @brief calculates the difference between the start and stop times
