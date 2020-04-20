@@ -9,6 +9,7 @@
 /* /sys includes */
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <net/if.h>
 
 const char *LOCALHOST      = "127.0.0.1";
 const uint32_t DEFAULTPORT = 8080;
@@ -56,8 +57,9 @@ SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
    {
       logging::ERROR( "Could not create socket!", true );
    }
-   int opt = 1;
-   setsockopt( mySocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof( opt ) );
+   struct ifreq opt;
+   snprintf( opt.ifr_name, sizeof(opt.ifr_name), "etho0" );
+   setsockopt( mySocket, SOL_SOCKET, SO_BINDTODEVICE | SO_REUSEADDR | SO_REUSEPORT, (void *)&opt, sizeof( opt ) );
 
    struct sockaddr_in serv_addr;
    serv_addr.sin_family      = AF_INET;
@@ -146,7 +148,7 @@ int SocketClient::connect( void )
    memset( &serv_addr, '0', sizeof( serv_addr ) );
    serv_addr.sin_family = AF_INET;
    serv_addr.sin_port   = htons( localPort );
-   if ( 0 >= inet_pton( AF_INET, "127.0.0.1", &serv_addr.sin_addr ) )
+   if ( 0 >= inet_pton( AF_INET, localAddress.c_str(), &serv_addr.sin_addr ) )
    {
       logging::ERROR( "inet_pton failed!", true );
       perror( " " );

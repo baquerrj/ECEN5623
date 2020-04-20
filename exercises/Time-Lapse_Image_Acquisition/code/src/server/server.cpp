@@ -12,10 +12,6 @@ static const ThreadConfigData threadConfigData = {
     "threadOne",
     DEFAULT_PROCESS_PARAMS};
 
-static void* thread_fn( void* args )
-{
-   //logging::INFO( "THREADONE!" );
-}
 
 int main( void )
 {
@@ -24,14 +20,11 @@ int main( void )
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
 
-   //CyclicThread* thread = static_cast< CyclicThread* >( new CyclicThread( threadConfigData,
-   //                                                                      thread_fn, NULL, true ) );
-
    printf( "SERVER HERE!\n" );
 
    int client = -1;
 
-   SocketServer* server = new SocketServer( LOCALHOST, DEFAULTPORT );
+   SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
 
    server->listen( 10 );
 

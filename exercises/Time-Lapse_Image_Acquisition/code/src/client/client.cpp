@@ -16,7 +16,7 @@ int main( void )
 
    logging::INFO( "CLIENT HERE!", true );
 
-   SocketClient* receiver = new SocketClient( LOCALHOST, DEFAULTPORT );
+   SocketClient* receiver = new SocketClient( "192.168.137.41", DEFAULTPORT );
    logging::INFO( std::string( "SocketClient " ) + receiver->getLocalAddress(), true );
 
    receiver->connect();
