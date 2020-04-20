@@ -1,5 +1,5 @@
-#ifndef __FRAMECAPTURE_H__
-#define __FRAMECAPTURE_H__
+#ifndef __FRAMECOLLECTOR_H__
+#define __FRAMECOLLECTOR_H__
 
 #include <thread.h>
 #include <thread_utils.h>
@@ -22,12 +22,12 @@ static const ThreadConfigData captureThreadConfig = {
     "capture",
     captureProcessParams};
 
-class FrameCapture
+class FrameCollector
 {
 public:
-   FrameCapture( int device );
-   FrameCapture( const FrameCapture& fc );
-   ~FrameCapture();
+   FrameCollector( int device );
+   FrameCollector( const FrameCollector& fc );
+   ~FrameCollector();
 
    void terminate();
    static void* execute( void* args );
@@ -44,10 +44,10 @@ private:
    std::unique_ptr< CyclicThread > thread;
 };
 
-inline FrameCapture& getFrameCapture( int device = 0 )
+inline FrameCollector& getCollector( int device = 0 )
 {
-   static std::unique_ptr< FrameCapture > singleton( new FrameCapture( device ) );
+   static std::unique_ptr< FrameCollector > singleton( new FrameCollector( device ) );
    return *singleton;
 }
 
-#endif  // __FRAMECAPTURE_H__
+#endif  // __FRAMECOLLECTOR_H__

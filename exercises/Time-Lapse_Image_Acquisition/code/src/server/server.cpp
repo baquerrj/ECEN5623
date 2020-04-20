@@ -1,3 +1,4 @@
+#include <FrameCollector.h>
 #include <logging.h>
 #include <signal.h>
 #include <sockets.h>
@@ -6,12 +7,10 @@
 #include <sys/stat.h>
 #include <thread.h>
 #include <unistd.h>
-#include <frameCapture.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
 
 std::string WindowSize;
 
@@ -79,16 +78,14 @@ int main( int argc, char* argv[] )
 
    printf( "SERVER HERE!\n" );
 
-   FrameCapture* frameCapture = &getFrameCapture(0);
+   FrameCollector* fc = &getCollector( 0 );
 
-   while( frameCapture->frameCount < FRAMES_TO_EXECUTE )
-   {
-      logging::INFO( "FRAME # " + std::to_string( frameCapture->frameCount ), true );
-   }
-   frameCapture->terminate();
-   delete frameCapture;
-   //delete frameCapture;
-   int client           = -1;
+   while ( fc->frameCount < FRAMES_TO_EXECUTE );
+
+   fc->terminate();
+   delete fc;
+
+   int client = -1;
 
    //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
    sockets::SocketServer* server = new sockets::SocketServer( host, sockets::DEFAULTPORT );
