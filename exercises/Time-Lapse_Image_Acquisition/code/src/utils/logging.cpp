@@ -4,7 +4,7 @@
 #include <common.h>
 
 const ProcessParams loggerProcessParams = {
-    CPU_MAIN,  // CPU3
+    2,  // CPU2
     SCHED_FIFO,
     1,  // low priority
     0};
