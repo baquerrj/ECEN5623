@@ -13,17 +13,17 @@
 const char *LOCALHOST      = "127.0.0.1";
 const uint32_t DEFAULTPORT = 8080;
 
-SocketBase::SocketBase()
+SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
+    localAddress( addr ),
+    localPort( port )
 {
-   socket       = 100;
-   localAddress = LOCALHOST;    //std::string( "127.0.0.1" );
-   localPort    = DEFAULTPORT;  //"8080";
-   data         = new packet_t;
+   mySocket = 200;
+   data     = new packet_t;
 }
 
 SocketBase::~SocketBase()
 {
-   // do nothing
+   delete data;
 }
 
 std::string SocketBase::getLocalAddress()
@@ -48,24 +48,23 @@ void SocketBase::setLocalAddressAndPort( const std::string &addr,
    localPort    = port;
 }
 
-SocketServer::SocketServer( const std::string &addr, const uint32_t port )
+SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
+    SocketBase( addr, port )
 {
-   localAddress = addr;
-   localPort    = port;
-   socket       = socket( AF_INET, SOCK_STREAM, 0 );
-   if ( 0 > socket )
+   mySocket = socket( AF_INET, SOCK_STREAM, 0 );
+   if ( 0 > mySocket )
    {
       logging::ERROR( "Could not create socket!", true );
    }
    int opt = 1;
-   setsockopt( socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof( opt ) );
+   setsockopt( mySocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof( opt ) );
 
    struct sockaddr_in serv_addr;
    serv_addr.sin_family      = AF_INET;
    serv_addr.sin_addr.s_addr = INADDR_ANY;
    serv_addr.sin_port        = htons( localPort );
    int addrlen               = sizeof( serv_addr );
-   if ( 0 > bind( socket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
+   if ( 0 > bind( mySocket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
    {
       logging::ERROR( "Could not bind socket!", true );
    }
@@ -73,12 +72,12 @@ SocketServer::SocketServer( const std::string &addr, const uint32_t port )
 
 SocketServer::~SocketServer()
 {
-   ::close( socket );
+   ::close( mySocket );
 }
 
 void SocketServer::listen( uint8_t connections )
 {
-   if ( 0 > ::listen( socket, connections ) )
+   if ( 0 > ::listen( mySocket, connections ) )
    {
       logging::ERROR( "Could not set to listen for connections!", true );
    }
@@ -91,7 +90,7 @@ int SocketServer::accept( void )
    serv_addr.sin_addr.s_addr = INADDR_ANY;
    serv_addr.sin_port        = htons( localPort );
    int addrlen               = sizeof( serv_addr );
-   if ( 0 > ( client = ::accept( socket, (struct sockaddr *)&serv_addr, (socklen_t *)&addrlen ) ) )
+   if ( 0 > ( client = ::accept( mySocket, (struct sockaddr *)&serv_addr, (socklen_t *)&addrlen ) ) )
    {
       logging::ERROR( "Encountered error accepting new connection" );
       perror( " " );
@@ -99,11 +98,11 @@ int SocketServer::accept( void )
    return client;
 }
 
-int SocketServer::send( int client )
+int SocketServer::send( int client, const char *message )
 {
    logging::INFO( "SocketServer::send()", true );
-   sprintf( data->header, "foo" );
-   sprintf( data->body, "bar" );
+   snprintf( data->header, sizeof( data->header ), "%p:", this );
+   snprintf( data->body, sizeof( data->body ), "%s", message );
 
    if ( 0 > ::send( client, data, sizeof( *data ), 0 ) )
    {
@@ -126,12 +125,11 @@ int SocketServer::read( int client )
    }
 }
 
-SocketClient::SocketClient( const std::string &addr, const uint32_t port )
+SocketClient::SocketClient( const std::string &addr, const uint32_t port ) :
+    SocketBase( addr, port )
 {
-   localAddress = addr;
-   localPort    = port;
-   socket       = socket( AF_INET, SOCK_STREAM, 0 );
-   if ( 0 > socket )
+   mySocket = socket( AF_INET, SOCK_STREAM, 0 );
+   if ( 0 > mySocket )
    {
       logging::ERROR( "Could not create socket!", true );
    }
@@ -139,7 +137,7 @@ SocketClient::SocketClient( const std::string &addr, const uint32_t port )
 
 SocketClient::~SocketClient()
 {
-   close( socket );
+   close( mySocket );
 }
 
 int SocketClient::connect( void )
@@ -154,7 +152,7 @@ int SocketClient::connect( void )
       perror( " " );
       return -1;
    }
-   if ( 0 > ::connect( socket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
+   if ( 0 > ::connect( mySocket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
    {
       logging::ERROR( "Encountered error connecting to server!" );
       perror( " " );
@@ -162,15 +160,27 @@ int SocketClient::connect( void )
    return 1;
 }
 
-int SocketClient::send()
+int SocketClient::send( const char* message )
 {
    logging::INFO( "SocketClient::send()", true );
+   snprintf( data->header, sizeof( data->header ), "%p: ", this );
+   snprintf( data->body, sizeof( data->body ), "%s", message );
+
+   if ( 0 > ::send( mySocket, data, sizeof( *data ), 0 ) )
+   {
+      perror( "SocketClient::send() " );
+   }
+}
+
+int SocketClient::echo()
+{
+   send( buffer.c_str(  ) );
 }
 
 int SocketClient::read()
 {
    logging::INFO( "SocketClient::read()", true );
-   if ( 0 > ::read( socket, data, sizeof( *data ) ) )
+   if ( 0 > ::read( mySocket, data, sizeof( *data ) ) )
    {
       logging::ERROR( "Failured at SocketClient::read()", true );
       perror( " " );

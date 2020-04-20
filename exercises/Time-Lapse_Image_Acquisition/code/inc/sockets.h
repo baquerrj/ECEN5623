@@ -6,6 +6,9 @@
 #include <exception>
 #include <stdexcept>
 
+extern const char* LOCALHOST;
+extern const uint32_t DEFAULTPORT;
+
 struct packet_t
 {
    char header[ 10 ];
@@ -15,7 +18,15 @@ struct packet_t
 class SocketBase
 {
 public:
-   SocketBase();
+   SocketBase()
+   {
+      mySocket = 100;
+      localAddress = LOCALHOST;
+      localPort = DEFAULTPORT;
+      data = new packet_t;
+   }
+
+   SocketBase( const std::string &addr, const uint32_t port );
    SocketBase( const SocketBase &sock );
    virtual ~SocketBase();
 
@@ -26,7 +37,7 @@ public:
                                         const uint32_t port );
 
 public:
-   uint8_t socket;
+   uint8_t mySocket;
    uint32_t localPort;
    std::string localAddress;
 
@@ -40,7 +51,7 @@ public:
    ~SocketServer();
    int accept();
    void listen( uint8_t connections );
-   int send( int client );
+   int send( int client, const char* message );
    int read( int client );
 
    int client;
@@ -53,7 +64,8 @@ public:
    SocketClient( const std::string &addr, const uint32_t port );
    ~SocketClient();
    int connect();
-   int send();
+   int send( const char* message );
+   int echo();
    int read();
 
    std::string buffer;

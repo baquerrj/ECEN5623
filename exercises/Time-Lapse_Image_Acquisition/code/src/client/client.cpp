@@ -4,10 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <thread.h>
 #include <unistd.h>
-
-extern const char* LOCALHOST;
-extern const uint32_t DEFAULTPORT;
 
 int main( void )
 {
@@ -23,11 +21,13 @@ int main( void )
 
    receiver->connect();
 
-   while ( 1 )
+   int recvs = 0;
+   while ( recvs < 5 )
    {
-      receiver->read( 0 );
+      receiver->read();
+      receiver->echo();
+      recvs++;
    }
-   sleep( 30 );
    delete receiver;
    return 0;
 }
