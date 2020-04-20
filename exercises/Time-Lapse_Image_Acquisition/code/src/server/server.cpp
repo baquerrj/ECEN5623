@@ -1,5 +1,6 @@
 #include <logging.h>
 #include <signal.h>
+#include <sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -13,7 +14,7 @@ static const ThreadConfigData threadConfigData = {
 
 static void* thread_fn( void* args )
 {
-   logging::INFO( "THREADONE!" );
+   //logging::INFO( "THREADONE!" );
 }
 
 int main( void )
@@ -23,11 +24,25 @@ int main( void )
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
 
-   CyclicThread* thread = static_cast< CyclicThread* >( new CyclicThread( threadConfigData,
-                                                                          thread_fn, NULL, true ) );
+   //CyclicThread* thread = static_cast< CyclicThread* >( new CyclicThread( threadConfigData,
+    //                                                                      thread_fn, NULL, true ) );
 
    printf( "SERVER HERE!\n" );
 
-   delete thread;
+   int client = -1;
+   while ( 1 )
+   {
+      SocketServer* server = new SocketServer( "127.0.0.1", "8080" );
+
+      server->listen( 3 );
+
+      client = server->accept();
+      if ( -1 != client )
+      {
+         server->send( client );
+      }
+   }
+   //delete thread;
+
    return 0;
 }

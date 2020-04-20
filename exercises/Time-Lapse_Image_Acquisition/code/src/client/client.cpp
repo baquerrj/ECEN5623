@@ -1,10 +1,10 @@
 #include <logging.h>
 #include <signal.h>
+#include <sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <sockets.h>
 
 int main( void )
 {
@@ -15,7 +15,16 @@ int main( void )
 
    logging::INFO( "CLIENT HERE!", true );
 
-   SocketReceiver* receiver = new SocketReceiver();
-   logging::INFO( std::string("SocketReceiver ") + receiver->getLocalAddress(), true );
+   SocketClient* receiver = new SocketClient( "127.0.0.1", "8080" );
+   logging::INFO( std::string( "SocketClient " ) + receiver->getLocalAddress(), true );
+
+   receiver->connect();
+
+   while ( 1 )
+   {
+      receiver->read( 0 );
+   }
+   sleep( 30 );
+   delete receiver;
    return 0;
 }

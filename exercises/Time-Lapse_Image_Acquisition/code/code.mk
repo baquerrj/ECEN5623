@@ -10,13 +10,13 @@ DEP_$(d) := $(d)/build
 OBJ_$(d) := $(d)/build
 
 HOST = $(shell hostname)
-ifeq ($(HOST), karachi)
-	SRC_$(d) := $(d)/src/client
-	include $(d)/client.mk
-else
-	SRC_$(d) := $(d)/src/server
-	include $(d)/server.mk
-endif
+#ifeq ($(HOST), karachi)
+SRC_$(d) := $(d)/src/client
+include $(d)/client.mk
+#else
+SRC_$(d) := $(d)/src/server
+include $(d)/server.mk
+#endif
 SRC_$(d) := $(d)/src/utils
 include $(d)/utils.mk
 
@@ -24,13 +24,13 @@ $(shell mkdir -p $(BIN_$(d)) >/dev/null)
 $(shell mkdir -p $(LIB_$(d)) >/dev/null)
 $(shell mkdir -p $(OBJ_$(d)) >/dev/null)
 
-ifeq ($(HOST), karachi)
-	BIN_TGTS_$(d) := $(BIN_$(d))/client
-	$(BIN_$(d))/client_OBJECTS := $(CLIENT_OBJS_$(d)) $(UTILS_OBJS_$(d))
-else
-	BIN_TGTS_$(d) := $(BIN_$(d))/server
-	$(BIN_$(d))/server_OBJECTS := $(SERVER_OBJS_$(d)) $(UTILS_OBJS_$(d))
-endif
+#ifeq ($(HOST), karachi)
+BIN_TGTS_$(d) := $(BIN_$(d))/client
+$(BIN_$(d))/client_OBJECTS := $(CLIENT_OBJS_$(d)) $(UTILS_OBJS_$(d))
+#else
+BIN_TGTS_$(d) += $(BIN_$(d))/server
+$(BIN_$(d))/server_OBJECTS := $(SERVER_OBJS_$(d)) $(UTILS_OBJS_$(d))
+#endif
 #LIB_TGTS_$(d) := $(LIB_$(d))/liblogging.so
 
 #$(LIB_$(d))/liblogging.so_OBJECTS := $(LOGGING_OBJS_$(d))
