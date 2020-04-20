@@ -116,7 +116,7 @@ void logging::Logger::log( const std::string& message, const LogLevel level, con
    log( output, logToStdout );
 }
 
-void logging::Logger::log( const std::string& message, const LogLevel level, threads_e ThreadID, bool execution_time, const bool logToStdout )
+void logging::Logger::log( const std::string& message, const LogLevel level, threads_e ThreadID, const bool logToStdout = false )
 {
    if ( level < logLevelCutoff )
    {
@@ -126,6 +126,7 @@ void logging::Logger::log( const std::string& message, const LogLevel level, thr
    output.reserve( message.length() + 64 );
    output.append( timestamp() );
    output.append( levels.find( level )->second );
+   output.append( threadNames[ ThreadID ] );
    output.append( message );
    // Only calculate tack on DT to message if this is a trace
    if ( level == LogLevel::TRACE )
@@ -178,7 +179,7 @@ void* logging::Logger::cycle( void* args )
          {
             case logging::LogLevel::TRACE:
             {
-               logging::TRACE( message.msg, message.ThreadID, message.cal_execution );
+               logging::TRACE( message.msg, message.ThreadID );
                break;
             }
             case logging::LogLevel::DEBUG:

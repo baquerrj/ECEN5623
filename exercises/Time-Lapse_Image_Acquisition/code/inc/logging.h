@@ -41,7 +41,6 @@ struct message_s
 {
    LogLevel level;
    threads_e ThreadID;
-   bool cal_execution;
    char msg[ 64 ];
 };
 
@@ -101,7 +100,7 @@ public:
     * @param logToStdout
     */
 
-   virtual void log( const std::string& message, const LogLevel level, threads_e ThreadID, bool execution_time, const bool logToStdout );
+   virtual void log( const std::string& message, const LogLevel level, threads_e ThreadID, const bool logToStdout );
 
    /*! @brief Logs messages without logging level check
     *
@@ -202,15 +201,15 @@ inline void log( const std::string& message, const bool logToStdout = false )
    getLogger().log( message, logToStdout );
 }
 
-inline void log( const std::string& message, const LogLevel level, const threads_e ThreadID, const bool execution_time, const bool logToStdout )
+inline void log( const std::string& message, const LogLevel level, const threads_e ThreadID, const bool logToStdout = false )
 {
-   getLogger().log( message, level, ThreadID, execution_time, false );
+   getLogger().log( message, level, ThreadID, logToStdout );
 }
 
 //these standout when reading code
-inline void TRACE( const std::string& message, threads_e ThreadID, bool execution, const bool logToStdout = false )
+inline void TRACE( const std::string& message, threads_e ThreadID, const bool logToStdout = false )
 {
-   getLogger().log( message, LogLevel::TRACE, ThreadID, execution, logToStdout );
+   getLogger().log( message, LogLevel::TRACE, ThreadID, logToStdout );
 };
 inline void DEBUG( const std::string& message, const bool logToStdout = false )
 {

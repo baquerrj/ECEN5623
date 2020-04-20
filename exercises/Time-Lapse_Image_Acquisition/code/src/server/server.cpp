@@ -14,12 +14,12 @@ int main( int argc, char* argv[] )
    {
       host = sockets::LOCALHOST;
    }
-   logging::INFO( "SERVER ON " + std::string( host ), true );
 
    pid_t mainThreadId       = getpid();
    std::string fileName     = "server" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
+   logging::INFO( "SERVER ON " + std::string( host ), true );
 
    printf( "SERVER HERE!\n" );
 
@@ -28,10 +28,17 @@ int main( int argc, char* argv[] )
    //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
    sockets::SocketServer* server = new sockets::SocketServer( host, sockets::DEFAULTPORT );
 
+   logging::message_s* serverMessage = new logging::message_s;
+   serverMessage->ThreadID           = THREAD_SERVER;
+   serverMessage->level              = logging::LogLevel::TRACE;
+   sprintf( serverMessage->msg, "test server" );
+
+   logging::log( serverMessage );
    server->listen( 10 );
 
    while ( 0 > client )
    {
+      logging::log( serverMessage );
       client = server->accept();
    }
 
@@ -44,7 +51,11 @@ int main( int argc, char* argv[] )
 
    for ( int i = 0; i < 5; i++ )
    {
+      logging::log( serverMessage );
+
       server->send( client, patterns[ i ] );
+      logging::log( serverMessage );
+
       server->read( client );
    }
 
