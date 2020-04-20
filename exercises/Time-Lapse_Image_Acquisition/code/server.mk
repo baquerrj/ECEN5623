@@ -1,4 +1,5 @@
-SRCS_$(d) := server.cpp
+SRCS_$(d) :=	server.cpp \
+					frameCapture.cpp
 
 SERVER_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 
