@@ -36,9 +36,8 @@ public:
 
 private:
    std::string windowName;
-   CvCapture* capture;
-   IplImage* frame;
-   cv::Mat* matFrame;
+   cv::VideoCapture* capture;
+   cv::Mat frame;
 
    uint16_t height;
    uint16_t width;

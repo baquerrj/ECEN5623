@@ -86,6 +86,7 @@ int main( int argc, char* argv[] )
       logging::INFO( "FRAME # " + std::to_string( frameCapture->frameCount ), true );
    }
    frameCapture->terminate();
+   delete frameCapture;
    //delete frameCapture;
    int client           = -1;
 
