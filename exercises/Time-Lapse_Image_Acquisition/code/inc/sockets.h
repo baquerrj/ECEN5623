@@ -20,14 +20,14 @@ public:
    virtual ~SocketBase();
 
    virtual std::string getLocalAddress();
-   virtual std::string getLocalPort();
-   virtual void setLocalPort( std::string port );
+   virtual uint32_t getLocalPort();
+   virtual void setLocalPort( uint32_t port );
    virtual void setLocalAddressAndPort( const std::string &addr,
-                                        const std::string port );
+                                        const uint32_t port );
 
 public:
-   uint8_t sockFd;
-   std::string localPort;
+   uint8_t socket;
+   uint32_t localPort;
    std::string localAddress;
 
    packet_t *data;
@@ -36,7 +36,7 @@ public:
 class SocketServer : public SocketBase
 {
 public:
-   SocketServer( const std::string &addr, const std::string &port );
+   SocketServer( const std::string &addr, const uint32_t port );
    ~SocketServer();
    int accept();
    void listen( uint8_t connections );
@@ -50,13 +50,12 @@ public:
 class SocketClient : public SocketBase
 {
 public:
-   SocketClient( const std::string &addr, const std::string &port );
+   SocketClient( const std::string &addr, const uint32_t port );
    ~SocketClient();
    int connect();
-   int send( int server );
-   int read( int server );
+   int send();
+   int read();
 
-   int server;
    std::string buffer;
 };
 

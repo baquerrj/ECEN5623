@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+extern const char* LOCALHOST;
+extern const uint32_t DEFAULTPORT;
+
 int main( void )
 {
    pid_t mainThreadId       = getpid();
@@ -15,7 +18,7 @@ int main( void )
 
    logging::INFO( "CLIENT HERE!", true );
 
-   SocketClient* receiver = new SocketClient( "127.0.0.1", "8080" );
+   SocketClient* receiver = new SocketClient( LOCALHOST, DEFAULTPORT );
    logging::INFO( std::string( "SocketClient " ) + receiver->getLocalAddress(), true );
 
    receiver->connect();

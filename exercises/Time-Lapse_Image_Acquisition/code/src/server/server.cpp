@@ -7,6 +7,9 @@
 #include <thread.h>
 #include <unistd.h>
 
+extern const char* LOCALHOST;
+extern const uint32_t DEFAULTPORT;
+
 static const ThreadConfigData threadConfigData = {
     true,
     "threadOne",
@@ -32,7 +35,7 @@ int main( void )
    int client = -1;
    while ( 1 )
    {
-      SocketServer* server = new SocketServer( "127.0.0.1", "8080" );
+      SocketServer* server = new SocketServer( LOCALHOST, 8080 );
 
       server->listen( 3 );
 
