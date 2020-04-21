@@ -4,7 +4,7 @@
 
 FrameCollector::FrameCollector( int device = 0 )
 {
-   capture = new cv::VideoCapture();
+   capture.reset( new cv::VideoCapture() );
    capture->open( device );
    height = VRES;
    width  = HRES;
@@ -25,6 +25,8 @@ FrameCollector::~FrameCollector()
 
 void FrameCollector::terminate()
 {
+   capture->release();
+   cv::destroyWindow( windowName );
 }
 
 void* FrameCollector::execute( void* args )

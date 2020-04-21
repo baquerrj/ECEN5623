@@ -39,10 +39,6 @@ static const uint32_t VRES = 480;
 static const uint32_t FRAMES_TO_EXECUTE = 10;
 
 extern bool isTimeToDie;
-extern pthread_mutex_t captureLock;
-extern pthread_mutex_t windowLock;
-extern std::string WindowSize;
-
 
 /**
  * @brief calculates the difference between the start and stop times

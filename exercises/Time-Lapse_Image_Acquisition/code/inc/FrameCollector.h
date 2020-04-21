@@ -12,9 +12,9 @@
 static std::string snapshotname = "snapshot_xxx.ppm";
 
 static const ProcessParams captureProcessParams = {
-    CPU_MAIN,  // CPU1
+    cpuMain,  // CPU1
     SCHED_FIFO,
-    2,  // low priority
+    99,  // highest priority
     0};
 
 static const ThreadConfigData captureThreadConfig = {
@@ -36,7 +36,7 @@ public:
 
 private:
    std::string windowName;
-   cv::VideoCapture* capture;
+   std::unique_ptr< cv::VideoCapture > capture;
    cv::Mat frame;
 
    uint16_t height;

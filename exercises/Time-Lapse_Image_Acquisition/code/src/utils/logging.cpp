@@ -3,13 +3,13 @@
 #include <thread.h>
 #include <common.h>
 
-const ProcessParams loggerProcessParams = {
-    2,  // CPU2
+static const ProcessParams loggerProcessParams = {
+    cpuLogger,  // CPU2
     SCHED_FIFO,
     1,  // low priority
     0};
 
-const ThreadConfigData loggerThreadConfigData = {
+static const ThreadConfigData loggerThreadConfigData = {
     true,
     "logger",
     loggerProcessParams};

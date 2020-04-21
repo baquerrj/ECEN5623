@@ -12,12 +12,9 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <thread_utils.h>
+
 // forward declarations
 class CyclicThread;
-
-
-extern const ThreadConfigData loggerThreadConfigData;
-extern const ProcessParams loggerProcessParams;
 
 
 //! @brief Namespace defining logging classes, types, etc.
