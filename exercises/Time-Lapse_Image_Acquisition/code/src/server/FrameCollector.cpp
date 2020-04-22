@@ -19,7 +19,7 @@ FrameCollector::~FrameCollector()
 {
    logging::DEBUG( "FrameCollector::~FrameCollector() entered", true );
    capture->release();
-   cvDestroyWindow( windowName.c_str() );
+   cv::destroyWindow( windowName );
    logging::DEBUG( "FrameCollector::~FrameCollector() exiting", true );
 }
 
@@ -46,7 +46,7 @@ void* FrameCollector::execute( void* args )
       cv::imshow( fc->windowName, fc->frame );
 
       sprintf( &snapshotname.front(), "snapshot_%d.ppm", fc->frameCount );
-      cv::imwrite( snapshotname.c_str(), fc->frame );
+      cv::imwrite( snapshotname, fc->frame );
       fc->frameCount++;
       cv::waitKey( 1 );
    }

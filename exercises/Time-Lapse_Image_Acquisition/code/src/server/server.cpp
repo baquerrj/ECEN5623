@@ -38,7 +38,7 @@ int main( int argc, char* argv[] )
    int client = -1;
 
    //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
-   sockets::SocketServer* server = new sockets::SocketServer( host, sockets::DEFAULTPORT );
+   sockets::SocketServer* server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
 
    logging::message_s* serverMessage = new logging::message_s;
    serverMessage->ThreadID           = THREAD_SERVER;
