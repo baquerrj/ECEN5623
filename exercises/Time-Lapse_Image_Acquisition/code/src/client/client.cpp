@@ -7,6 +7,8 @@
 #include <thread.h>
 #include <unistd.h>
 
+int force_format = 1;
+
 int main( int argc, char* argv[] )
 {
    const char* host = getCmdOption( argv, argv + argc, "--host" );

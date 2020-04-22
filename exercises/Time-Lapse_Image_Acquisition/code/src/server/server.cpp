@@ -1,4 +1,5 @@
-#include <FrameCollector.h>
+//#include <FrameCollector.h>
+#include <V4l2.h>
 #include <logging.h>
 #include <signal.h>
 #include <sockets.h>
@@ -6,11 +7,10 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <thread.h>
+#include <time.h>
 #include <unistd.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+int force_format = 1;
 
 int main( int argc, char* argv[] )
 {
@@ -28,13 +28,37 @@ int main( int argc, char* argv[] )
 
    printf( "SERVER HERE!\n" );
 
-   FrameCollector* fc = &getCollector( 0 );
+   // FrameCollector* fc = &getCollector( 0 );
 
-   while ( fc->frameCount < FRAMES_TO_EXECUTE );
+   // while ( fc->frameCount < FRAMES_TO_EXECUTE );
 
-   fc->terminate();
-   delete fc;
+   // fc->terminate();
+   // delete fc;
 
+   V4l2* v4l2 = new V4l2( "/dev/video0" );
+
+   unsigned int count = 0;
+   struct timespec read_delay;
+   struct timespec time_error;
+
+   read_delay.tv_sec  = 0;
+   read_delay.tv_nsec = 30000;
+
+   while ( count < FRAMES_TO_EXECUTE )
+   {
+      if ( v4l2->readFrame() )
+      {
+         if ( nanosleep( &read_delay, &time_error ) != 0 )
+            perror( "nanosleep" );
+         else
+            printf( "time_error.tv_sec=%ld, time_error.tv_nsec=%ld\n", time_error.tv_sec, time_error.tv_nsec );
+
+         count++;
+      }
+   }
+
+   v4l2->stopCapture();
+   delete v4l2;
    int client = -1;
 
    //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
