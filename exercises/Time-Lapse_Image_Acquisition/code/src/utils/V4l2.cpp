@@ -15,6 +15,8 @@
 #define HRES_STR "640"
 #define VRES_STR "480"
 
+#include <logging.h>
+
 unsigned int framecnt = 0;
 unsigned char bigbuffer[ ( 1280 * 960 ) ];
 extern int force_format;
@@ -28,9 +30,9 @@ char ppm_dumpname[] = "test00000000.ppm";
 static void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time );
 static void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
 
-V4l2::V4l2( const char* deviceName )
+V4l2::V4l2( const std::string& deviceName )
 {
-   device = deviceName;
+   device = deviceName.c_str();
    //buffers = new buffer_s;
    openDevice();
    initDevice();
@@ -40,14 +42,18 @@ V4l2::V4l2( const char* deviceName )
 V4l2::~V4l2()
 {
    if ( -1 == close( fd ) )
-      errno_exit( "close" );
+   {
+      logging::ERROR( getErrnoString( "close" ) );
+   }
 
    fd = -1;
    int i;
 
    for ( i = 0; i < V4l2::BUFFER_COUNT; ++i )
       if ( -1 == munmap( buffers[ i ].start, buffers[ i ].length ) )
-         errno_exit( "munmap" );
+      {
+         logging::ERROR( getErrnoString( "munmap" ) );
+      }
 
    //delete buffers;
 }
@@ -67,11 +73,15 @@ void V4l2::startCapture()
       buf.index  = i;
 
       if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
-         errno_exit( "VIDIOC_QBUF" );
+      {
+         logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+      }
    }
    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
    if ( -1 == xioctl( fd, VIDIOC_STREAMON, &type ) )
-      errno_exit( "VIDIOC_STREAMON" );
+   {
+      logging::ERROR( getErrnoString( "VIDIOC_STREAMON" ) );
+   }
    return;
 }
 void V4l2::stopCapture()
@@ -80,7 +90,9 @@ void V4l2::stopCapture()
 
    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
    if ( -1 == xioctl( fd, VIDIOC_STREAMOFF, &type ) )
-      errno_exit( "VIDIOC_STREAMOFF" );
+   {
+      logging::ERROR( getErrnoString( "VIDIOC_STREAMOFF" ) );
+   }
    return;
 }
 
@@ -103,14 +115,13 @@ void V4l2::openDevice()
 
    if ( -1 == stat( device, &st ) )
    {
-      fprintf( stderr, "Cannot identify '%s': %d, %s\n",
-               device, errno, strerror( errno ) );
+      logging::ERROR( getErrnoString( "Cannot identify " + std::string( device ) ), true );
       exit( EXIT_FAILURE );
    }
 
    if ( !S_ISCHR( st.st_mode ) )
    {
-      fprintf( stderr, "%s is no device\n", device );
+      logging::ERROR( std::string( device ) + "is no device\n", true );
       exit( EXIT_FAILURE );
    }
 
@@ -118,8 +129,7 @@ void V4l2::openDevice()
 
    if ( -1 == fd )
    {
-      fprintf( stderr, "Cannot open '%s': %d, %s\n",
-               device, errno, strerror( errno ) );
+      logging::ERROR( "Cannot open " + std::string( device ), true );
       exit( EXIT_FAILURE );
    }
    return;
@@ -136,27 +146,26 @@ void V4l2::initDevice()
    {
       if ( EINVAL == errno )
       {
-         fprintf( stderr, "%s is no V4L2 device\n",
-                  device );
+         logging::ERROR( std::string( device ) + " is no V4L2 device", true );
          exit( EXIT_FAILURE );
       }
       else
       {
-         errno_exit( "VIDIOC_QUERYCAP" );
+         {
+            logging::ERROR( getErrnoString( "VIDIOC_QUERYCAP" ) );
+         }
       }
    }
 
    if ( !( cap.capabilities & V4L2_CAP_VIDEO_CAPTURE ) )
    {
-      fprintf( stderr, "%s is no video capture device\n",
-               device );
+      logging::ERROR( std::string( device ) + " is no video capture device", true );
       exit( EXIT_FAILURE );
    }
 
    if ( !( cap.capabilities & V4L2_CAP_STREAMING ) )
    {
-      fprintf( stderr, "%s does not support streaming i/o\n",
-               device );
+      logging::ERROR( std::string( device ) + " does not support streaming i/o", true );
       exit( EXIT_FAILURE );
    }
 
@@ -206,7 +215,9 @@ void V4l2::initDevice()
       fmt.fmt.pix.field = V4L2_FIELD_NONE;
 
       if ( -1 == xioctl( fd, VIDIOC_S_FMT, &fmt ) )
-         errno_exit( "VIDIOC_S_FMT" );
+      {
+         logging::ERROR( getErrnoString( "VIDIOC_S_FMT" ) );
+      }
 
       /* Note VIDIOC_S_FMT may change width and height. */
    }
@@ -215,7 +226,9 @@ void V4l2::initDevice()
       printf( "ASSUMING FORMAT\n" );
       /* Preserve original settings as set by v4l2-ctl for example */
       if ( -1 == xioctl( fd, VIDIOC_G_FMT, &fmt ) )
-         errno_exit( "VIDIOC_G_FMT" );
+      {
+         logging::ERROR( getErrnoString( "VIDIOC_G_FMT" ) );
+      }
    }
 
    /* Buggy driver paranoia. */
@@ -233,7 +246,9 @@ void V4l2::initDevice()
 void V4l2::closeDevice()
 {
    if ( -1 == close( fd ) )
-      errno_exit( "close" );
+   {
+      logging::ERROR( getErrnoString( "close" ) );
+   }
 
    fd = -1;
    return;
@@ -253,21 +268,20 @@ void V4l2::initMmap()
    {
       if ( EINVAL == errno )
       {
-         fprintf( stderr,
-                  "%s does not support "
-                  "memory mapping\n",
-                  device );
+         logging::ERROR( std::string( device ) + " does not support memory mapping", true );
          exit( EXIT_FAILURE );
       }
       else
       {
-         errno_exit( "VIDIOC_REQBUFS" );
+         {
+            logging::ERROR( getErrnoString( "VIDIOC_REQBUFS" ) );
+         }
       }
    }
 
    if ( req.count < 2 )
    {
-      fprintf( stderr, "Insufficient buffer memory on %s\n", device );
+      logging::ERROR( "Insufficient buffer memory on %s\n", device );
       exit( EXIT_FAILURE );
    }
 
@@ -275,7 +289,7 @@ void V4l2::initMmap()
 
    if ( !buffers )
    {
-      fprintf( stderr, "Out of memory\n" );
+      logging::ERROR( "Out of memory\n" );
       exit( EXIT_FAILURE );
    }
 
@@ -289,7 +303,9 @@ void V4l2::initMmap()
       buf.index  = i;
 
       if ( -1 == xioctl( fd, VIDIOC_QUERYBUF, &buf ) )
-         errno_exit( "VIDIOC_QUERYBUF" );
+      {
+         logging::ERROR( getErrnoString( "VIDIOC_QUERYBUF" ) );
+      }
 
       buffers[ i ].length = buf.length;
       buffers[ i ].start =
@@ -300,7 +316,9 @@ void V4l2::initMmap()
                 fd, buf.m.offset );
 
       if ( MAP_FAILED == buffers[ i ].start )
-         errno_exit( "mmap" );
+      {
+         logging::ERROR( getErrnoString( "mmap" ) );
+      }
    }
    return;
 }
@@ -328,8 +346,9 @@ int V4l2::readFrame( void )
             return 0;
 
          default:
-            printf( "mmap failure\n" );
-            errno_exit( "VIDIOC_DQBUF" );
+         {
+            logging::ERROR( getErrnoString( "mmap VIDIOC_DQBUF" ) );
+         }
       }
    }
 
@@ -338,7 +357,9 @@ int V4l2::readFrame( void )
    processImage( buffers[ buf.index ].start, buf.bytesused );
 
    if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
-      errno_exit( "VIDIOC_QBUF" );
+   {
+      logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+   }
    return 1;
 }
 

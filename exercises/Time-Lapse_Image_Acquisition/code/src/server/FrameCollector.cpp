@@ -1,32 +1,26 @@
 #include <FrameCollector.h>
 #include <common.h>
 #include <logging.h>
+#include <V4l2.h>
 
 FrameCollector::FrameCollector( int device = 0 )
 {
-   capture.reset( new cv::VideoCapture() );
-   capture->open( device );
+
+   capture.reset( new V4l2( "/dev/video" + std::to_string( device ) ) );
+   // capture->open( device );
    height = VRES;
    width  = HRES;
-   // cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
-   // cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height );
-   windowName = "FRAME_CAPTURE";
-   cv::namedWindow( windowName, CV_WINDOW_AUTOSIZE );
+   // windowName = "FRAME_CAPTURE";
+   // cv::namedWindow( windowName, CV_WINDOW_AUTOSIZE );
    thread.reset( new CyclicThread( captureThreadConfig, FrameCollector::execute, this, true ) );
 }
 
 FrameCollector::~FrameCollector()
 {
-   logging::DEBUG( "FrameCollector::~FrameCollector() entered", true );
-   capture->release();
-   cv::destroyWindow( windowName );
-   logging::DEBUG( "FrameCollector::~FrameCollector() exiting", true );
 }
 
 void FrameCollector::terminate()
 {
-   capture->release();
-   cv::destroyWindow( windowName );
 }
 
 void* FrameCollector::execute( void* args )
@@ -35,19 +29,19 @@ void* FrameCollector::execute( void* args )
 
    if ( fc->frameCount < FRAMES_TO_EXECUTE )
    {
-      if ( fc->capture->isOpened() )
-      {
-         fc->capture->read( fc->frame );
-      }
-      if ( fc->frame.empty() )
-      {
-         return NULL;
-      }
-      cv::imshow( fc->windowName, fc->frame );
+      // if ( fc->capture->isOpened() )
+      // {
+         // fc->capture->read( fc->frame );
+      // }
+      // if ( fc->frame.empty() )
+      // {
+         // return NULL;
+      // }
+      // cv::imshow( fc->windowName, fc->frame );
 
-      sprintf( &snapshotname.front(), "snapshot_%d.ppm", fc->frameCount );
-      cv::imwrite( snapshotname, fc->frame );
+      // sprintf( &snapshotname.front(), "snapshot_%d.ppm", fc->frameCount );
+      // cv::imwrite( snapshotname, fc->frame );
       fc->frameCount++;
-      cv::waitKey( 1 );
+      // cv::waitKey( 1 );
    }
 }

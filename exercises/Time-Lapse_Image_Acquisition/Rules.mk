@@ -17,12 +17,11 @@ include $(dir)/code.mk
 
 .PHONY : targets
 targets :  $(TGT_LIB) $(TGT_BIN) $(TGT_SBIN) $(TGT_ETC)
-	@mkdir -p ./bin
-	ln -s code/bin/client bin/client
-	ln -s code/bin/server bin/server
+	ln -sf code/bin ./bin
 
 .PHONY : clean
 clean : clean_code
+	rm ./bin
 
 .PHONY : clean_obj
 clean_obj : clean_obj_clean

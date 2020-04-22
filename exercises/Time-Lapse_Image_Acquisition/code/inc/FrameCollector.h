@@ -5,11 +5,8 @@
 #include <thread_utils.h>
 
 #include <memory>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
-static std::string snapshotname = "snapshot_xxx.ppm";
+class V4l2;
 
 static const ProcessParams captureProcessParams = {
     cpuMain,  // CPU1
@@ -35,9 +32,7 @@ public:
    uint32_t frameCount;
 
 private:
-   std::string windowName;
-   std::unique_ptr< cv::VideoCapture > capture;
-   cv::Mat frame;
+   std::unique_ptr< V4l2 > capture;
 
    uint16_t height;
    uint16_t width;
