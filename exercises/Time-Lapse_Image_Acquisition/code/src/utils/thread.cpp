@@ -25,12 +25,8 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
 }
 
 CyclicThread::CyclicThread( const ThreadConfigData &configData ) :
-    CyclicThread( configData, NULL, NULL, false )  // not supported until gcc 4.7
-    //execute( NULL ),
-    //owner( NULL )
+    CyclicThread( configData, NULL, NULL, false )
 {
-   //threadData    = configData;
-   //threadIsAlive = false;
 }
 
 CyclicThread::~CyclicThread()
@@ -48,12 +44,12 @@ void CyclicThread::setFunctionAndOwner( void *( *execute_ )( void *context ),
 void CyclicThread::initiateThread()
 {
    printf( "CyclicThread::initiateThread()\n" );
+   threadIsAlive = true;
    create_thread( threadData.threadName,
                   thread,
                   CyclicThread::threadFunction,
                   this,
                   threadData.processParams );
-   threadIsAlive = true;
 }
 
 void CyclicThread::terminate()
@@ -63,12 +59,12 @@ void CyclicThread::terminate()
 
 void *CyclicThread::cycle()
 {
-   while ( true )
+   while ( threadIsAlive )
    {
       execute( owner );
    }
    logging::INFO( std::string( "thread shutting down: " + threadData.threadName ) );
-   pthread_exit( NULL );
+   pthread_join( thread, NULL );
    return NULL;
 }
 

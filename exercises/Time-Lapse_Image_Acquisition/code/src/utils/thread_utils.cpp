@@ -291,8 +291,8 @@ void cancel_and_join_thread( pthread_t &thread, bool &threadIsAlive )
 {
    if ( threadIsAlive )
    {
-      pthread_cancel( thread );
-      pthread_join( thread, NULL );
+      // pthread_cancel( thread );
+      // pthread_join( thread, NULL );
       threadIsAlive = false;
    }
 }
