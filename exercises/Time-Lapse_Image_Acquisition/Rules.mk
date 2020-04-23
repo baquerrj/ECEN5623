@@ -21,7 +21,6 @@ targets :  $(TGT_LIB) $(TGT_BIN) $(TGT_SBIN) $(TGT_ETC)
 
 .PHONY : clean
 clean : clean_code
-	rm ./bin
 
 .PHONY : clean_obj
 clean_obj : clean_obj_clean
@@ -29,4 +28,6 @@ clean_obj : clean_obj_clean
 .PHONY : update
 update :
 	ssh -tt jetsonnano  "mkdir -p ~/Time-Lapse_Image_Acquisition"
-	scp -r *  jetsonnano:~/Time-Lapse_Image_Acquisition/
+	scp -r code/  jetsonnano:~/Time-Lapse_Image_Acquisition/
+	scp Makefile  jetsonnano:~/Time-Lapse_Image_Acquisition/
+	scp Rules.mk  jetsonnano:~/Time-Lapse_Image_Acquisition/
