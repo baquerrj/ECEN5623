@@ -7,10 +7,6 @@ FrameCollector::FrameCollector( int device = 0 )
 {
 
    capture.reset( new V4l2( "/dev/video" + std::to_string( device ) ) );
-   height = VRES;
-   width  = HRES;
-   // windowName = "FRAME_CAPTURE";
-   // cv::namedWindow( windowName, CV_WINDOW_AUTOSIZE );
    thread.reset( new CyclicThread( captureThreadConfig, FrameCollector::execute, this, true ) );
 }
 

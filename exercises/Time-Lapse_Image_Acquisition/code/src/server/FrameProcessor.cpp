@@ -3,6 +3,7 @@
 #include <linux/videodev2.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <fstream>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -69,29 +70,21 @@ int FrameProcessor::processImage( const void* p, int size )
 
 void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struct timespec* time )
 {
-   int written, i, total, dumpfd;
+   std::string ppmName( "test_xxxxxxxx.ppm" );
+   sprintf( &ppmName.front(), "test_%08d.ppm", tag );
+   std::ofstream file;
+   file.open( ppmName, std::ofstream::out | std::ofstream::binary );
 
-   snprintf( &ppm_dumpname[ 4 ], 9, "%08d", tag );
-   strncat( &ppm_dumpname[ 12 ], ".ppm", 5 );
-   dumpfd = open( ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666 );
+   std::string ppmHeader( "P6\n#" +
+                          std::to_string( (int)time->tv_sec ) + " sec " +
+                          std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
+                          "640 480\n255\n" );
 
-   snprintf( &ppm_header[ 4 ], 11, "%010d", (int)time->tv_sec );
-   strncat( &ppm_header[ 14 ], " sec ", 5 );
-   snprintf( &ppm_header[ 19 ], 11, "%010d", (int)( ( time->tv_nsec ) / 1000000 ) );
-   strncat( &ppm_header[ 29 ], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19 );
-   written = write( dumpfd, ppm_header, sizeof( ppm_header ) );
-
-   total = 0;
-
-   do
-   {
-      written = write( dumpfd, p, size );
-      total += written;
-   } while ( total < size );
-
-   printf( "wrote %d bytes\n", total );
-
-   close( dumpfd );
+   logging::DEBUG( ppmHeader, true );
+   file  << ppmHeader;
+   file.write( reinterpret_cast< const char *> (p), size );
+   file.close();
+   printf( "Wrote %d bytes\n", size );
 }
 
 void FrameProcessor::yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )
