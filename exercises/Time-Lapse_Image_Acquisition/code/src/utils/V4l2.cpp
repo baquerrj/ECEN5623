@@ -24,8 +24,8 @@ struct v4l2_format fmt;  //Format is used by a number of functions, so made as a
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
 
-char ppm_header[]   = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-char ppm_dumpname[] = "test00000000.ppm";
+static char ppm_header[]   = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
+static char ppm_dumpname[] = "test00000000.ppm";
 
 static void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time );
 static void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
@@ -84,6 +84,7 @@ void V4l2::startCapture()
    }
    return;
 }
+
 void V4l2::stopCapture()
 {
    enum v4l2_buf_type type;

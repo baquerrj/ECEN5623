@@ -9,6 +9,7 @@
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
+#include <FrameCollector.h>
 
 int force_format = 1;
 
@@ -28,13 +29,14 @@ int main( int argc, char* argv[] )
 
    printf( "SERVER HERE!\n" );
 
-   // FrameCollector* fc = &getCollector( 0 );
+#if 0
+   FrameCollector* fc = &getCollector( 0 );
 
-   // while ( fc->frameCount < FRAMES_TO_EXECUTE );
+   while ( fc->frameCount < FRAMES_TO_EXECUTE );
 
-   // fc->terminate();
-   // delete fc;
-
+   fc->terminate();
+   //delete fc;
+#else
    V4l2* v4l2 = new V4l2( "/dev/video0" );
 
    unsigned int count = 0;
@@ -59,6 +61,7 @@ int main( int argc, char* argv[] )
 
    v4l2->stopCapture();
    delete v4l2;
+#endif
    int client = -1;
 
    //SocketServer* server = new SocketServer( "192.168.137.41", DEFAULTPORT );
