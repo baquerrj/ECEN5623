@@ -8,6 +8,8 @@ default : targets
 dir := code
 include $(dir)/code.mk
 
+BIN := ./bin/
+$(shell mkdir -p $(BIN) / &> /dev/null)
 # General directory independent rules
 %.o : %.cpp
 	$(COMP)
@@ -17,10 +19,11 @@ include $(dir)/code.mk
 
 .PHONY : targets
 targets :  $(TGT_LIB) $(TGT_BIN) $(TGT_SBIN) $(TGT_ETC)
-	ln -sf code/bin ./bin
+	@ln -f -t $(BIN) -s $(TGT_BIN)
 
 .PHONY : clean
 clean : clean_code
+	rm -rf $(BIN)
 
 .PHONY : clean_obj
 clean_obj : clean_obj_clean

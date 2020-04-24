@@ -20,9 +20,9 @@ include $(d)/server.mk
 SRC_$(d) := $(d)/src/utils
 include $(d)/utils.mk
 
-$(shell mkdir -p $(BIN_$(d)) >/dev/null)
-$(shell mkdir -p $(LIB_$(d)) >/dev/null)
-$(shell mkdir -p $(OBJ_$(d)) >/dev/null)
+$(shell mkdir -p $(BIN_$(d)) &> /dev/null)
+$(shell mkdir -p $(LIB_$(d)) &> /dev/null)
+$(shell mkdir -p $(OBJ_$(d)) &> /dev/null)
 
 #ifeq ($(HOST), karachi)
 BIN_TGTS_$(d) := $(BIN_$(d))/client
