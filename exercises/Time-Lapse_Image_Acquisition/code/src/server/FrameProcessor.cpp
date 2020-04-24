@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <fstream>
+#include <logging.h>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
