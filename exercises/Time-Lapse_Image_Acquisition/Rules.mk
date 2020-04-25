@@ -19,11 +19,13 @@ $(shell mkdir -p $(BIN) / &> /dev/null)
 
 .PHONY : targets
 targets :  $(TGT_LIB) $(TGT_BIN) $(TGT_SBIN) $(TGT_ETC)
-	@ln -f -t $(BIN) -s $(TGT_BIN)
+	@ln -f -t $(BIN) -s ../code/bin/server
+	@ln -f -t $(BIN) -s ../code/bin/client
 
 .PHONY : clean
 clean : clean_code
 	rm -rf $(BIN)
+	rm -f *log *ppm
 
 .PHONY : clean_obj
 clean_obj : clean_obj_clean
