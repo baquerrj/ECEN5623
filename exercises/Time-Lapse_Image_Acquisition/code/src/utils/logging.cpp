@@ -1,7 +1,7 @@
 
+#include <common.h>
 #include <logging.h>
 #include <thread.h>
-#include <common.h>
 
 static const ProcessParams loggerProcessParams = {
     cpuLogger,  // CPU2
@@ -13,7 +13,6 @@ static const ThreadConfigData loggerThreadConfigData = {
     true,
     "logger",
     loggerProcessParams};
-
 
 std::string logging::Logger::timestamp( void )
 {
@@ -30,7 +29,8 @@ logging::Logger::Logger( const logging::config_s& config ) :
     logLevelCutoff( config.cutoff ),
     fileName( config.file )
 {
-   logging::done = false;
+   itsMyTimeToDie   = false;
+   logThreadIsAlive = false;
    mq_unlink( logging::LOGGER_QUEUE_NAME );
    struct mq_attr attr;
    attr.mq_flags   = 0;
@@ -66,11 +66,31 @@ logging::Logger::Logger( const logging::config_s& config ) :
 
    printf( "Created logfile %s\n", fileName.c_str() );
 
-   thread.reset( new CyclicThread( loggerThreadConfigData, logging::Logger::cycle, this, true ) );
+   if ( pthread_mutex_init( &logMutex, NULL ) )
+   {
+      throw( std::string( "pthread_mutex_init failed in log " ) );
+   }
+   if ( pthread_cond_init( &logCondVar, NULL ) )
+   {
+      throw( std::string( "pthread_cond_init failed in log " ) );
+   }
+
+   // thread = new CyclicThread( loggerThreadConfigData, logging::Logger::execute, this, true );
+   create_thread( loggerThreadConfigData.threadName, threadId, Logger::execute, this, loggerProcessParams );
+   logThreadIsAlive = true;
 }
 
 logging::Logger::~Logger()
 {
+   if ( logThreadIsAlive )
+   {
+      itsMyTimeToDie = true;
+      pthread_mutex_lock( &logMutex );
+      pthread_cond_signal( &logCondVar );
+      pthread_mutex_unlock( &logMutex );
+      join_thread( threadId, logThreadIsAlive );
+   }
+
    // Close the message queue
    mq_unlink( logging::LOGGER_QUEUE_NAME );
 
@@ -78,18 +98,23 @@ logging::Logger::~Logger()
    pthread_mutex_destroy( &lock );
    file.close();
 
-   // Stop logging thread by setting logging::done to true
-   logging::done = true;
+   pthread_mutex_destroy( &logMutex );
+   pthread_cond_destroy( &logCondVar );
+   //   if ( thread )
+   //   {
+   //      delete thread;
+   //      thread = NULL;
+   //   }
 }
 
 void logging::Logger::log( const logging::message_s* message )
 {
    if ( -1 == mq_send( queue, (const char*)message, sizeof( logging::message_s ), 0 ) )
    {
-      int errnum = errno;
-      logging::ERROR( std::string( strerror( errnum ) ), true );
+      logging::ERROR( getErrnoString( "Could not push to queue" ), true );
       throw std::runtime_error( "Could not en-queue message!\n" );
    }
+   pthread_cond_signal( &logCondVar );
 }
 
 void logging::Logger::log( const std::string& message, const LogLevel level, const bool logToStdout )
@@ -155,17 +180,28 @@ void logging::Logger::log( const std::string& message, const bool logToStdout )
    }
 }
 
-void* logging::Logger::cycle( void* args )
+void* logging::Logger::execute( void* context )
+{
+   ( (logging::Logger*)context )->logFromMessageQueue();
+   return NULL;
+}
+
+void logging::Logger::logFromMessageQueue( void )
 {
    logging::message_s message = {};
    unsigned int prio          = 0;
    struct timespec timeout    = {0};
-   while ( !logging::done )
+
+   while ( true )
    {
+      pthread_mutex_lock( &logMutex );
+      pthread_cond_wait( &logCondVar, &logMutex );
+      pthread_mutex_unlock( &logMutex );
+
       clock_gettime( CLOCK_REALTIME, &timeout );
-      timeout.tv_sec += 2;
+      timeout.tv_nsec += 200;
       memset( &message, 0, sizeof( message ) );
-      if ( 0 > mq_timedreceive( getLoggerMsgQueueId(), (char*)&message, sizeof( message ), &prio, &timeout ) )
+      if ( 0 > mq_timedreceive( queue, (char*)&message, sizeof( message ), &prio, &timeout ) )
       {
          int errnum = errno;
          if ( ETIMEDOUT != errnum )
@@ -209,6 +245,9 @@ void* logging::Logger::cycle( void* args )
             }
          }
       }
+      if ( itsMyTimeToDie )
+      {
+         break;
+      }
    }
-   return NULL;
 }

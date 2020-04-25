@@ -5,17 +5,16 @@
 #include <mqueue.h>
 #include <string.h>
 #include <sys/types.h>
+#include <thread_utils.h>
 
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-#include <thread_utils.h>
 
 // forward declarations
 class CyclicThread;
-
 
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
@@ -64,8 +63,6 @@ struct config_s
    std::string file;
 };
 
-static bool done;
-
 //! Our Logger class
 class Logger
 {
@@ -106,19 +103,14 @@ public:
     */
    virtual void log( const std::string& message, const bool logToStdout );
 
-   /*! @brief Get Logger's pthread_t threadId
-    *
-    * @param void
-    * @returns Logger::threadId
-    */
-   virtual pthread_t getThreadId( void );
-
    /*! @brief Get Logger's mqd_t POSIX message queue id
     *
     * @param void
     * @returns Logger::queue
     */
    virtual mqd_t getMsgQueueId( void );
+
+   std::string getErrnoString( const std::string& s );
 
 private:
    /*! @brief Calculates timestamp
@@ -132,16 +124,22 @@ private:
     * Logger cycles waiting for messages to show up in its queue
     * and services them as appropriate
     *
-    * @param args
+    * @param context
     * @returns void pointer
     */
-   static void* cycle( void* args );
+   static void* execute( void* context );
+
+   void logFromMessageQueue( void );
 
 protected:
-   pthread_mutex_t lock;         //! Mutex protecting log file access
-   mqd_t queue;                  //! POSIX message queue id
-   pthread_t threadId;           //! Thread identifier
-   std::unique_ptr< CyclicThread > thread;
+   pthread_mutex_t lock;  //! Mutex protecting log file access
+   mqd_t queue;           //! POSIX message queue id
+   pthread_t threadId;
+   pthread_mutex_t logMutex;
+   pthread_cond_t logCondVar;
+
+
+   CyclicThread* thread;
    struct timespec interval;     //! timespec used to calculate time interval between log calls
    struct timespec lastTime;     //! timespec used to calculate time interval between log calls
    struct timespec currentTime;  //! used to timestamp and calculate call intervals
@@ -150,12 +148,10 @@ protected:
 
    std::string fileName;  //! Name of log file Logger writes to
    std::ofstream file;    //! Log file handle
-};
 
-inline pthread_t Logger::getThreadId( void )
-{
-   return threadId;
-}
+   bool itsMyTimeToDie;
+   bool logThreadIsAlive;
+};
 
 inline mqd_t Logger::getMsgQueueId( void )
 {
@@ -171,11 +167,6 @@ inline Logger& getLogger( const config_s& config = {LogLevel::INFO, "capture.log
 inline void configure( const config_s& config )
 {
    getLogger( config );
-}
-
-inline pthread_t getLoggerThreadId( void )
-{
-   return getLogger().getThreadId();
 }
 
 inline mqd_t getLoggerMsgQueueId( void )
@@ -224,6 +215,13 @@ inline void ERROR( const std::string& message, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::ERROR, logToStdout );
 };
+
+inline std::string Logger::getErrnoString( const std::string& s )
+{
+   int errnum = errno;
+   std::string buffer( std::string( s ) + " ERRNO[" + std::to_string( errnum ) + "]: " + strerror( errnum ) );
+   return buffer;
+}
 
 }  // namespace logging
 #endif  // __LOGGING_H__
