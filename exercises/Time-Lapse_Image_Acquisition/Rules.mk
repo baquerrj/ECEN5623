@@ -31,7 +31,7 @@ clean : clean_code
 clean_obj : clean_obj_clean
 
 .PHONY : update
-update :
+update : targets
 	ssh -tt jetsonnano  "mkdir -p ~/Time-Lapse_Image_Acquisition"
 	scp -r code/  jetsonnano:~/Time-Lapse_Image_Acquisition/
 	scp Makefile  jetsonnano:~/Time-Lapse_Image_Acquisition/
