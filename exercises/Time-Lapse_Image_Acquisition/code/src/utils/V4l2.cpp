@@ -30,9 +30,10 @@ static char ppm_dumpname[] = "test00000000.ppm";
 static void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time );
 static void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
 
-V4l2::V4l2( const std::string& deviceName )
+V4l2::V4l2( const std::string& deviceName, const V4l2::ioMethod_e method )
 {
-   device = deviceName.c_str();
+   device   = deviceName.c_str();
+   ioMethod = method;
    //buffers = new buffer_s;
    openDevice();
    initDevice();
@@ -41,15 +42,30 @@ V4l2::V4l2( const std::string& deviceName )
 
 V4l2::~V4l2()
 {
-   int i;
-
-   for ( i = 0; i < V4l2::BUFFER_COUNT; ++i )
+   switch ( ioMethod )
    {
-      if ( -1 == munmap( buffers[ i ].start, buffers[ i ].length ) )
+      case V4l2::IO_METHOD_MMAP:
       {
-         logging::ERROR( getErrnoString( "munmap" ) );
+         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         {
+            if ( -1 == munmap( buffers[ i ].start, buffers[ i ].length ) )
+            {
+               logging::ERROR( getErrnoString( "munmap" ) );
+            }
+         }
+         break;
       }
+      case V4l2::IO_METHOD_USERPTR:
+      {
+         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         {
+            free( buffers[ i ].start );
+         }
+      }
+      default:
+         break;
    }
+
    if ( -1 == close( fd ) )
    {
       logging::ERROR( getErrnoString( "close" ) );
@@ -64,25 +80,57 @@ void V4l2::startCapture()
 {
    enum v4l2_buf_type type;
 
-   for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+   switch ( ioMethod )
    {
-      printf( "allocated buffer %d\n", i );
-      struct v4l2_buffer buf;
-
-      CLEAR( buf );
-      buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      buf.memory = V4L2_MEMORY_MMAP;
-      buf.index  = i;
-
-      if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
+      case V4l2::IO_METHOD_MMAP:
       {
-         logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         {
+            printf( "allocated buffer %d\n", i );
+            struct v4l2_buffer buf;
+
+            CLEAR( buf );
+            buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            buf.memory = V4L2_MEMORY_MMAP;
+            buf.index  = i;
+
+            if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
+            {
+               logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+            }
+         }
+         type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+         if ( -1 == xioctl( fd, VIDIOC_STREAMON, &type ) )
+         {
+            logging::ERROR( getErrnoString( "VIDIOC_STREAMON" ) );
+         }
+         break;
       }
-   }
-   type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-   if ( -1 == xioctl( fd, VIDIOC_STREAMON, &type ) )
-   {
-      logging::ERROR( getErrnoString( "VIDIOC_STREAMON" ) );
+      case V4l2::IO_METHOD_USERPTR:
+      {
+         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         {
+            struct v4l2_buffer buf;
+
+            CLEAR( buf );
+            buf.type      = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            buf.memory    = V4L2_MEMORY_USERPTR;
+            buf.index     = i;
+            buf.m.userptr = (unsigned long)buffers[ i ].start;
+            buf.length    = buffers[ i ].length;
+
+            if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
+            {
+               logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+            }
+         }
+         type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+         if ( -1 == xioctl( fd, VIDIOC_STREAMON, &type ) )
+         {
+            logging::ERROR( getErrnoString( "VIDIOC_STREAMON" ) );
+         }
+         break;
+      }
    }
    return;
 }
@@ -242,7 +290,15 @@ void V4l2::initDevice()
    if ( fmt.fmt.pix.sizeimage < min )
       fmt.fmt.pix.sizeimage = min;
 
-   initMmap();
+   if ( ioMethod == V4l2::IO_METHOD_MMAP )
+   {
+      initMmap();
+   }
+   else if ( ioMethod == V4l2::IO_METHOD_USERPTR )
+   {
+      initUserPtr( fmt.fmt.pix.sizeimage );
+   }
+
    return;
 }
 
@@ -326,41 +382,130 @@ void V4l2::initMmap()
    return;
 }
 
+void V4l2::initUserPtr( unsigned int buffer_size )
+{
+   struct v4l2_requestbuffers req;
+
+   CLEAR( req );
+
+   req.count  = V4l2::BUFFER_COUNT;
+   req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+   req.memory = V4L2_MEMORY_USERPTR;
+
+   if ( -1 == xioctl( fd, VIDIOC_REQBUFS, &req ) )
+   {
+      if ( EINVAL == errno )
+      {
+         logging::ERROR( std::string( device ) +
+                         " does not support user pointer i/o" );
+         exit( EXIT_FAILURE );
+      }
+      else
+      {
+         errno_exit( "VIDIOC_REQBUFS" );
+      }
+   }
+
+   buffers = static_cast< V4l2::buffer_s* >( calloc( req.count, sizeof( *buffers ) ) );
+
+   if ( !buffers )
+   {
+      logging::ERROR( "Out of memory" );
+      exit( EXIT_FAILURE );
+   }
+
+   for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+   {
+      buffers[ i ].length = buffer_size;
+      buffers[ i ].start  = malloc( buffer_size );
+
+      if ( !buffers[ i ].start )
+      {
+         logging::ERROR( "Out of memory" );
+         exit( EXIT_FAILURE );
+      }
+   }
+}
+
 int V4l2::readFrame( void )
 {
    struct v4l2_buffer buf;
    unsigned int i;
    CLEAR( buf );
 
-   buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-   buf.memory = V4L2_MEMORY_MMAP;
-
-   if ( -1 == xioctl( fd, VIDIOC_DQBUF, &buf ) )
+   switch ( ioMethod )
    {
-      switch ( errno )
+      case V4l2::IO_METHOD_MMAP:
       {
-         case EAGAIN:
-            return 0;
-
-         case EIO:
-            /* Could ignore EIO, but drivers should only set for serious errors, although some set for
-               non-fatal errors too. */
-            return 0;
-
-         default:
+         buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+         buf.memory = V4L2_MEMORY_MMAP;
+         if ( -1 == xioctl( fd, VIDIOC_DQBUF, &buf ) )
          {
-            logging::ERROR( getErrnoString( "mmap VIDIOC_DQBUF" ) );
+            switch ( errno )
+            {
+               case EAGAIN:
+                  return 0;
+
+               case EIO:
+                  /* Could ignore EIO, but drivers should only set for serious errors, although some set for
+                     non-fatal errors too. */
+                  return 0;
+
+               default:
+               {
+                  logging::ERROR( getErrnoString( "mmap VIDIOC_DQBUF" ) );
+               }
+            }
          }
+         //   assert( buf.index < n_buffers );
+
+         processImage( buffers[ buf.index ].start, buf.bytesused );
+
+         if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
+         {
+            logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+         }
+         break;
       }
-   }
+      case V4l2::IO_METHOD_USERPTR:
+      {
+         buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+         buf.memory = V4L2_MEMORY_USERPTR;
+         if ( -1 == xioctl( fd, VIDIOC_DQBUF, &buf ) )
+         {
+            switch ( errno )
+            {
+               case EAGAIN:
+                  return 0;
 
-   //   assert( buf.index < n_buffers );
+               case EIO:
+                  /* Could ignore EIO, see spec. */
 
-   processImage( buffers[ buf.index ].start, buf.bytesused );
+                  /* fall through */
 
-   if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
-   {
-      logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
+               default:
+                  logging::ERROR( getErrnoString( "userptr1 VIDIOC_QBUF" ) );
+            }
+         }
+
+         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         {
+            if ( buf.m.userptr == (unsigned long)buffers[ i ].start && buf.length == buffers[ i ].length )
+            {
+               break;
+            }
+         }
+
+         // assert( i < n_buffers );
+
+         processImage( (void*)buf.m.userptr, buf.bytesused );
+
+         if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
+         {
+            logging::ERROR( getErrnoString( "userptr2 VIDIOC_QBUF" ) );
+         }
+         break;
+      }
    }
    return 1;
 }

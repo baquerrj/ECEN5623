@@ -5,7 +5,7 @@
 
 FrameCollector::FrameCollector( int device = 0 )
 {
-   capture = new V4l2( "/dev/video" + std::to_string( device ) );
+   capture = new V4l2( "/dev/video" + std::to_string( device ), V4l2::IO_METHOD_USERPTR );
    thread =  new CyclicThread( collectorThreadConfig, FrameCollector::execute, this, true );
    frameCount = 0;
 }

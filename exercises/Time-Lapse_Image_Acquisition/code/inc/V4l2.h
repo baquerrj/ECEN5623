@@ -11,7 +11,20 @@
 class V4l2
 {
 public:
-   V4l2( const std::string& deviceName );
+   enum ioMethod_e
+   {
+      IO_METHOD_MMAP,
+      IO_METHOD_USERPTR
+   };
+
+   struct buffer_s
+   {
+      void* start;
+      size_t length;
+   };
+
+public:
+   V4l2( const std::string& deviceName, const V4l2::ioMethod_e method );
    ~V4l2();
 
    void startCapture();
@@ -26,12 +39,6 @@ public:
 
    std::string getErrnoString( const std::string s );
 
-   struct buffer_s
-   {
-      void* start;
-      size_t length;
-   };
-
    static const uint32_t BUFFER_COUNT = 6;
 
 protected:
@@ -43,12 +50,14 @@ protected:
    void closeDevice();
    void initRead();
    void initMmap();
+   void initUserPtr(unsigned int buffer_size);
 
 private:
    const char* device;
    // file descriptor for device
    int fd;
 
+   ioMethod_e ioMethod;
    // buffer_s buffers[ BUFFER_COUNT ];
    buffer_s* buffers;
 };
