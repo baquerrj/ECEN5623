@@ -3,6 +3,7 @@
 
 #include <thread.h>
 #include <thread_utils.h>
+#include <semaphore.h>
 
 #include <memory>
 
@@ -11,7 +12,7 @@ class V4l2;
 static const ProcessParams collectorParams = {
     cpuMain,  // CPU1
     SCHED_FIFO,
-    99,  // highest priority
+    98,  // highest priority
     0};
 
 static const ThreadConfigData collectorThreadConfig = {
@@ -31,11 +32,18 @@ public:
    static void* execute( void* context );
 
    uint32_t getFrameCount( void );
+   sem_t* getSemaphore( void );
 private:
+   sem_t sem;
    V4l2* capture;
    CyclicThread* thread;
    uint32_t frameCount;
 };
+
+inline sem_t* FrameCollector::getSemaphore( void )
+{
+   return &sem;
+}
 
 inline uint32_t FrameCollector::getFrameCount( void )
 {

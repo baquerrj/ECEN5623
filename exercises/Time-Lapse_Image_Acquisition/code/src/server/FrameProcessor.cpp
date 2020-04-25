@@ -20,7 +20,13 @@ extern struct v4l2_format fmt;  //Format is used by a number of functions, so ma
 
 FrameProcessor::FrameProcessor()
 {
+   if ( 0 > sem_init( &sem, 0, 0 ) )
+   {
+      perror ("FC sem_init failed");
+      exit(EXIT_FAILURE);
+   }
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
+
 }
 
 FrameProcessor::~FrameProcessor()
@@ -34,6 +40,7 @@ FrameProcessor::~FrameProcessor()
 
 int FrameProcessor::readFrame()
 {
+   sem_wait( &sem );
    return 1;
 }
 

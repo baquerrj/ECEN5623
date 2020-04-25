@@ -1,25 +1,29 @@
-//#include <FrameCollector.h>
-#include <FrameCollector.h>
-#include <V4l2.h>
+
 #include <logging.h>
 #include <signal.h>
 #include <sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <syslog.h>
+#include <Sequencer.h>
+#include <FrameProcessor.h>
+#include <FrameCollector.h>
+#include <V4l2.h>
 int force_format = 1;
 
-const char* host;
+
+// sem_t semS1, semS2;
+
+const char *host;
 
 static void doSocket( void )
 {
    int client = -1;
 
-   sockets::SocketServer* server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
+   sockets::SocketServer *server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
 
    server->listen( 1 );
 
@@ -28,7 +32,7 @@ static void doSocket( void )
       client = server->accept();
    }
 
-   const char* patterns[] = {
+   const char *patterns[] = {
        "Hello World",
        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
        "12345671231243",
@@ -45,7 +49,7 @@ static void doSocket( void )
    delete server;
 }
 
-int main( int argc, char* argv[] )
+int main( int argc, char *argv[] )
 {
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
@@ -63,18 +67,24 @@ int main( int argc, char* argv[] )
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
-   printf( "SERVER HERE!\n" );
+
+   // if ( sem_init( &semS1, 0, 0 ) )
+   // {
+   //    printf( "Failed to initialize S1 semaphore\n" );
+   //    exit( -1 );
+   // }
+   // if ( sem_init( &semS2, 0, 0 ) )
+   // {
+   //    printf( "Failed to initialize S1 semaphore\n" );
+   //    exit( -1 );
+   // }
 
    FrameCollector* fc = new FrameCollector( 0 );
-   sleep(2);
-   printf ("done collection\n");
-   fc->terminate();
-   printf( "terminated\n");
-   delete fc;
+   FrameProcessor* fp = new FrameProcessor(  );
+   Sequencer* sequencer = new Sequencer( 1, fc->getSemaphore(), fp->getSemaphore() );
+   pthread_t sequencerThreadId = sequencer->getThreadId();
 
+   pthread_join( sequencerThreadId, NULL );
 
-   doSocket();
-
-   printf( "returning...\n");
    return 0;
 }
