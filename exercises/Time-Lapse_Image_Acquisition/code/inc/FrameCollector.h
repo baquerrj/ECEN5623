@@ -8,16 +8,16 @@
 
 class V4l2;
 
-static const ProcessParams captureProcessParams = {
+static const ProcessParams collectorParams = {
     cpuMain,  // CPU1
     SCHED_FIFO,
     99,  // highest priority
     0};
 
-static const ThreadConfigData captureThreadConfig = {
+static const ThreadConfigData collectorThreadConfig = {
     true,
-    "capture",
-    captureProcessParams};
+    "COLLECTOR",
+    collectorParams};
 
 class FrameCollector
 {
@@ -27,17 +27,20 @@ public:
    ~FrameCollector();
 
    void terminate();
-   static void* execute( void* args );
+   void collectFrame( void );
+   static void* execute( void* context );
 
-   uint32_t frameCount;
-
+   uint32_t getFrameCount( void );
 private:
-   std::unique_ptr< V4l2 > capture;
-
-   uint16_t height;
-   uint16_t width;
-   std::unique_ptr< CyclicThread > thread;
+   V4l2* capture;
+   CyclicThread* thread;
+   uint32_t frameCount;
 };
+
+inline uint32_t FrameCollector::getFrameCount( void )
+{
+   return frameCount;
+}
 
 inline FrameCollector& getCollector( int device = 0 )
 {

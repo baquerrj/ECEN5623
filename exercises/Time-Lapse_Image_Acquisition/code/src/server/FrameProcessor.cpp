@@ -1,10 +1,11 @@
 #include <FrameProcessor.h>
 #include <V4l2.h>
-#include <linux/videodev2.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <fstream>
+#include <linux/videodev2.h>
 #include <logging.h>
+#include <unistd.h>
+#include <thread.h>
+#include <fstream>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -19,15 +20,27 @@ extern struct v4l2_format fmt;  //Format is used by a number of functions, so ma
 
 FrameProcessor::FrameProcessor()
 {
+   thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
 }
 
 FrameProcessor::~FrameProcessor()
 {
+   if ( thread )
+   {
+      delete thread;
+      thread = NULL;
+   }
 }
 
 int FrameProcessor::readFrame()
 {
    return 1;
+}
+
+void* FrameProcessor::execute( void* context )
+{
+   ( (FrameProcessor*)context )->readFrame();
+   return NULL;
 }
 
 int FrameProcessor::processImage( const void* p, int size )
@@ -82,8 +95,8 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
                           "640 480\n255\n" );
 
    logging::DEBUG( ppmHeader, true );
-   file  << ppmHeader;
-   file.write( reinterpret_cast< const char *> (p), size );
+   file << ppmHeader;
+   file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
    printf( "Wrote %d bytes\n", size );
 }
