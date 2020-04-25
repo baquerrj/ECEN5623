@@ -39,7 +39,7 @@ public:
 
    std::string getErrnoString( const std::string s );
 
-   static const uint32_t BUFFER_COUNT = 6;
+   static const uint32_t BUFFER_COUNT = 4;
 
 protected:
    // open video device

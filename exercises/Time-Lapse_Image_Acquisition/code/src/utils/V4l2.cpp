@@ -488,17 +488,21 @@ int V4l2::readFrame( void )
             }
          }
 
+         int idx = 0;
          for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             if ( buf.m.userptr == (unsigned long)buffers[ i ].start && buf.length == buffers[ i ].length )
             {
+               idx = i;
+               printf ("idx = %d\n", idx );
                break;
             }
          }
 
          // assert( i < n_buffers );
 
-         processImage( (void*)buf.m.userptr, buf.bytesused );
+         // processImage( (void*)buf.m.userptr, buf.bytesused );
+         processImage( buffers[ idx ].start, buffers[ idx ].length );
 
          if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
          {
