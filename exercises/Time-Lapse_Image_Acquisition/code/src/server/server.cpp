@@ -15,7 +15,8 @@
 int force_format = 1;
 
 
-// sem_t semS1, semS2;
+sem_t* semS1;
+sem_t* semS2;
 
 const char *host;
 
@@ -68,23 +69,31 @@ int main( int argc, char *argv[] )
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
 
-   // if ( sem_init( &semS1, 0, 0 ) )
-   // {
-   //    printf( "Failed to initialize S1 semaphore\n" );
-   //    exit( -1 );
-   // }
-   // if ( sem_init( &semS2, 0, 0 ) )
-   // {
-   //    printf( "Failed to initialize S1 semaphore\n" );
-   //    exit( -1 );
-   // }
+   semS1 = sem_open( SEMS1_NAME, O_CREAT | O_EXCL, 0644, 0 );
+   if ( semS1 == SEM_FAILED )
+   {
+      perror( "Failed to initialize S1 semaphore\n" );
+      exit( -1 );
+   }
+
+   semS2 = sem_open( SEMS2_NAME, O_CREAT | O_EXCL, 0644, 0 );
+   if ( semS2 == SEM_FAILED  )
+   {
+      perror( "Failed to initialize S2 semaphore\n" );
+      exit( -1 );
+   }
 
    FrameCollector* fc = new FrameCollector( 0 );
    FrameProcessor* fp = new FrameProcessor(  );
-   Sequencer* sequencer = new Sequencer( 1, fc->getSemaphore(), fp->getSemaphore() );
+   Sequencer* sequencer = new Sequencer( 1 );
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
 
+   sem_close( semS1 );
+   sem_close( semS2 );
+
+   sem_unlink( SEMS1_NAME );
+   sem_unlink( SEMS2_NAME );
    return 0;
 }

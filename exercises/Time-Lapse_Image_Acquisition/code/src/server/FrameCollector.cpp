@@ -3,6 +3,8 @@
 #include <common.h>
 #include <logging.h>
 
+extern sem_t* semS1;
+
 FrameCollector::FrameCollector( int device = 0 )
 {
    if ( 0 > sem_init( &sem, 0, 0 ) )
@@ -45,7 +47,7 @@ void* FrameCollector::execute( void* context )
 
 void FrameCollector::collectFrame()
 {
-   sem_wait( &sem );
+   sem_wait( semS1 );
 
    unsigned int count = 0;
    struct timespec read_delay;

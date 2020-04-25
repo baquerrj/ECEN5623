@@ -18,6 +18,8 @@ char ppm_dumpname[] = "test00000000.ppm";
 
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
+extern sem_t* semS2;
+
 FrameProcessor::FrameProcessor()
 {
    if ( 0 > sem_init( &sem, 0, 0 ) )
@@ -40,7 +42,7 @@ FrameProcessor::~FrameProcessor()
 
 int FrameProcessor::readFrame()
 {
-   sem_wait( &sem );
+   sem_wait( semS2 );
    return 1;
 }
 

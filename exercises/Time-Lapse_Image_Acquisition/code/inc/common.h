@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <unordered_map>
 
+#define SEMS1_NAME "/SEMS1"
+#define SEMS2_NAME "/SEMS2"
+
 enum threads_e
 {
    THREAD_SERVER = 0,
