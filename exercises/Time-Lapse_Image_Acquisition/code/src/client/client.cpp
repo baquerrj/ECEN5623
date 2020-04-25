@@ -9,39 +9,74 @@
 
 int force_format = 1;
 
-int main( int argc, char* argv[] )
+const char* host;
+
+static void doSocket( void )
 {
-   const char* host = getCmdOption( argv, argv + argc, "--host" );
-   if ( !host )
-   {
-      host = sockets::LOCALHOST;
-   }
-   pid_t mainThreadId       = getpid();
-   std::string fileName     = "client" + std::to_string( mainThreadId ) + ".log";
-   logging::config_s config = {logging::LogLevel::TRACE, fileName};
-   logging::configure( config );
-   logging::INFO( "CLIENT CONNECT TO " + std::string( host ), true );
-
-   //SocketClient* receiver = new SocketClient( "192.168.137.41", DEFAULTPORT );
    sockets::SocketClient* receiver = new sockets::SocketClient( host, sockets::DEFAULTPORT );
-
-   logging::message_s* clientMessage = new logging::message_s;
-   clientMessage->ThreadID           = THREAD_CLIENT;
-   clientMessage->level              = logging::LogLevel::TRACE;
-   sprintf( clientMessage->msg, "test server" );
-   logging::log( clientMessage );
 
    receiver->connect();
 
    int recvs = 0;
    while ( recvs < 5 )
    {
-      logging::log( clientMessage );
+      //logging::log( clientMessage );
       receiver->read();
-      logging::log( clientMessage );
+      //logging::log( clientMessage );
       receiver->echo();
       recvs++;
    }
    delete receiver;
+}
+
+void execute( void )
+{
+   static int count = 0;
+   printf( "executing %d   ", count );
+   count++;
+}
+
+void* threadFunction( void* context )
+{
+   execute();
+   return NULL;
+}
+
+int main( int argc, char* argv[] )
+{
+   bool local = cmdOptionExists( argv, argv + argc, "--local" );
+   if ( local )
+   {
+      host = sockets::LOCALHOST;
+   }
+   else
+   {
+      host = "192.168.137.41";
+   }
+
+   pid_t mainThreadId       = getpid();
+   std::string fileName     = "client" + std::to_string( mainThreadId ) + ".log";
+   logging::config_s config = {logging::LogLevel::TRACE, fileName};
+   logging::configure( config );
+   logging::INFO( "CLIENT CONNECT TO " + std::string( host ), true );
+
+   // static const ProcessParams params = {
+   //     cpuMain,  // CPU1
+   //     SCHED_FIFO,
+   //     99,  // highest priority
+   //     0};
+
+   // static const ThreadConfigData threadconfig = {
+   //     true,
+   //     "DUMMY",
+   //     params};
+
+   // CyclicThread* thread = new CyclicThread( threadconfig, threadFunction, NULL, true );
+
+   // sleep(1);
+   // thread->terminate();
+   // delete thread;
+
+   doSocket();
    return 0;
 }
