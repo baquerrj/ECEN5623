@@ -344,8 +344,7 @@ int V4l2::readFrame( void )
 
          case EIO:
             /* Could ignore EIO, but drivers should only set for serious errors, although some set for
-                           non-fatal errors too.
-                         */
+               non-fatal errors too. */
             return 0;
 
          default:
@@ -425,28 +424,6 @@ void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time 
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
    printf( "Wrote %d bytes\n", size );
-
-   // snprintf( &ppm_dumpname[ 4 ], 9, "%08d", tag );
-   // strncat( &ppm_dumpname[ 12 ], ".ppm", 5 );
-   // dumpfd = open( ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666 );
-   //
-   // snprintf( &ppm_header[ 4 ], 11, "%010d", (int)time->tv_sec );
-   // strncat( &ppm_header[ 14 ], " sec ", 5 );
-   // snprintf( &ppm_header[ 19 ], 11, "%010d", (int)( ( time->tv_nsec ) / 1000000 ) );
-   // strncat( &ppm_header[ 29 ], " msec \n" HRES_STR " " VRES_STR "\n255\n", 19 );
-   // written = write( dumpfd, ppm_header, sizeof( ppm_header ) );
-   //
-   // total = 0;
-   //
-   // do
-   // {
-   // written = write( dumpfd, p, size );
-   // total += written;
-   // } while ( total < size );
-   //
-   // printf( "wrote %d bytes\n", total );
-
-   //   close( dumpfd );
 }
 
 void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )

@@ -13,7 +13,6 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
     execute( execute_ ),
     owner( owner_ )
 {
-   printf( "CyclicThread::CyclicThread() entered\n" );
    threadData    = configData;
    threadIsAlive = false;
 
@@ -21,7 +20,6 @@ CyclicThread::CyclicThread( const ThreadConfigData &configData,
    {
       initiateThread();
    }
-   printf( "CyclicThread::CyclicThread() exiting\n" );
 }
 
 CyclicThread::CyclicThread( const ThreadConfigData &configData ) :
@@ -43,7 +41,6 @@ void CyclicThread::setFunctionAndOwner( void *( *execute_ )( void *context ),
 
 void CyclicThread::initiateThread()
 {
-   printf( "CyclicThread::initiateThread()\n" );
    threadIsAlive = true;
    create_thread( threadData.threadName,
                   thread,
@@ -54,7 +51,9 @@ void CyclicThread::initiateThread()
 
 void CyclicThread::terminate()
 {
+   logging::INFO( "CyclicThread::terminate() entered", true );
    cancel_and_join_thread( thread, threadIsAlive );
+   logging::INFO( "CyclicThread::terminate() exiting", true );
 }
 
 void *CyclicThread::cycle()
@@ -63,8 +62,9 @@ void *CyclicThread::cycle()
    {
       execute( owner );
    }
-   logging::INFO( std::string( "thread shutting down: " + threadData.threadName ) );
-   pthread_join( thread, NULL );
+   logging::INFO( std::string( "thread shutting down: " + threadData.threadName ), true );
+   // pthread_join( thread, NULL );
+   pthread_exit( NULL );
    return NULL;
 }
 
