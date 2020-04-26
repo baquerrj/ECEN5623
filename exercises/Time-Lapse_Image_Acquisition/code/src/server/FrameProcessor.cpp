@@ -10,12 +10,6 @@
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
-extern int force_format;
-
-#define HRES_STR "640"
-#define VRES_STR "480"
-char ppm_header[]   = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-char ppm_dumpname[] = "test00000000.ppm";
 
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
@@ -29,7 +23,6 @@ FrameProcessor::FrameProcessor()
       exit(EXIT_FAILURE);
    }
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
-
 }
 
 FrameProcessor::~FrameProcessor()
