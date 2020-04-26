@@ -37,7 +37,7 @@ V4l2::~V4l2()
    {
       case V4l2::IO_METHOD_MMAP:
       {
-         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             if ( -1 == munmap( buffers[ i ].start, buffers[ i ].length ) )
             {
@@ -48,7 +48,7 @@ V4l2::~V4l2()
       }
       case V4l2::IO_METHOD_USERPTR:
       {
-         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             free( buffers[ i ].start );
          }
@@ -75,7 +75,7 @@ void V4l2::startCapture()
    {
       case V4l2::IO_METHOD_MMAP:
       {
-         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             printf( "allocated buffer %d\n", i );
             struct v4l2_buffer buf;
@@ -99,7 +99,7 @@ void V4l2::startCapture()
       }
       case V4l2::IO_METHOD_USERPTR:
       {
-         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             struct v4l2_buffer buf;
 
@@ -343,7 +343,7 @@ void V4l2::initMmap()
       exit( EXIT_FAILURE );
    }
 
-   for ( int i = 0; i < req.count; ++i )
+   for ( uint8_t i = 0; i < req.count; ++i )
    {
       struct v4l2_buffer buf;
       CLEAR( buf );
@@ -405,7 +405,7 @@ void V4l2::initUserPtr( unsigned int buffer_size )
       exit( EXIT_FAILURE );
    }
 
-   for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+   for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
    {
       buffers[ i ].length = buffer_size;
       buffers[ i ].start  = malloc( buffer_size );
@@ -421,7 +421,6 @@ void V4l2::initUserPtr( unsigned int buffer_size )
 V4l2::buffer_s* V4l2::readFrame( void )
 {
    struct v4l2_buffer buf;
-   unsigned int i;
    CLEAR( buf );
 
    switch ( ioMethod )
@@ -476,7 +475,7 @@ V4l2::buffer_s* V4l2::readFrame( void )
          }
 
          int idx = 0;
-         for ( int i = 0; i < V4l2::BUFFER_COUNT; ++i )
+         for ( uint8_t i = 0; i < V4l2::BUFFER_COUNT; ++i )
          {
             if ( buf.m.userptr == (unsigned long)buffers[ i ].start && buf.length == buffers[ i ].length )
             {
@@ -503,7 +502,7 @@ V4l2::buffer_s* V4l2::readFrame( void )
 
 void V4l2::processImage( const void* p, int size )
 {
-   int i, newi, newsize = 0;
+   int i, newi = 0;
    struct timespec frame_time;
    int y_temp, y2_temp, u_temp, v_temp;
    unsigned char* pptr = (unsigned char*)p;
@@ -542,8 +541,6 @@ void V4l2::processImage( const void* p, int size )
 
 void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time )
 {
-   int written, i, total, dumpfd;
-   int written2;
    std::string ppmName( "test_xxxxxxxx.ppm" );
    sprintf( &ppmName.front(), "test_%08d.ppm", tag );
    std::ofstream file;

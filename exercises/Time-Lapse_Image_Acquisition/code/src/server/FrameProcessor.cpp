@@ -59,7 +59,7 @@ void* FrameProcessor::execute( void* context )
 
 int FrameProcessor::processImage( const void* p, int size )
 {
-   int i, newi, newsize = 0;
+   int i, newi = 0;
    struct timespec frame_time;
    int y_temp, y2_temp, u_temp, v_temp;
    unsigned char* pptr = (unsigned char*)p;

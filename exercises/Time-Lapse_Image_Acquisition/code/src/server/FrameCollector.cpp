@@ -61,7 +61,6 @@ void FrameCollector::collectFrame()
 {
    sem_wait( semS1 );
 
-   unsigned int count = 0;
    struct timespec read_delay;
    struct timespec time_error;
 
