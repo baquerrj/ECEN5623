@@ -10,29 +10,6 @@
 #define SEMS1_NAME "/SEMS1"
 #define SEMS2_NAME "/SEMS2"
 
-enum threads_e
-{
-   THREAD_SERVER = 0,
-   THREAD_CLIENT = 1,
-   THREAD_MAX    = THREAD_CLIENT
-};
-
-static const char* threadNames[] = {
-    "SERVER",
-    "CLIENT"};
-
-static threads_e operator++( threads_e thread )
-{
-   switch ( thread )
-   {
-      case THREAD_SERVER:
-         return THREAD_CLIENT;
-      case THREAD_CLIENT:
-         return THREAD_SERVER;
-      default:
-         return THREAD_SERVER;
-   }
-}
 
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;

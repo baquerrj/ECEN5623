@@ -20,6 +20,7 @@ sem_t* semS2;
 
 const char *host;
 
+#if TEST_SOCKETS
 static void doSocket( void )
 {
    int client = -1;
@@ -49,6 +50,7 @@ static void doSocket( void )
 
    delete server;
 }
+#endif // TEST_SOCKETS
 
 int main( int argc, char *argv[] )
 {

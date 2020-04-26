@@ -19,7 +19,6 @@ class CyclicThread;
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
 {
-
 //! @brief Logging level
 enum class LogLevel : uint8_t
 {
@@ -34,7 +33,7 @@ enum class LogLevel : uint8_t
 struct message_s
 {
    LogLevel level;
-   threads_e ThreadID;
+   std::string name;
    char msg[ 64 ];
 };
 
@@ -92,7 +91,7 @@ public:
     * @param logToStdout
     */
 
-   virtual void log( const std::string& message, const LogLevel level, threads_e ThreadID, const bool logToStdout );
+   virtual void log( const std::string& message, const LogLevel level, const std::string& name, const bool logToStdout );
 
    /*! @brief Logs messages without logging level check
     *
@@ -111,6 +110,7 @@ public:
    std::string getErrnoString( const std::string& s );
 
    const char* LOGGER_QUEUE_NAME = "/Logger-queue";
+
 private:
    /*! @brief Calculates timestamp
     *
@@ -141,13 +141,12 @@ protected:
    pthread_mutex_t logMutex;
    pthread_cond_t logCondVar;
 
-
    CyclicThread* thread;
    struct timespec interval;     //! timespec used to calculate time interval between log calls
    struct timespec lastTime;     //! timespec used to calculate time interval between log calls
    struct timespec currentTime;  //! used to timestamp and calculate call intervals
 
-   std::ofstream file;    //! Log file handle
+   std::ofstream file;  //! Log file handle
 
    bool itsMyTimeToDie;
    bool logThreadIsAlive;
@@ -189,15 +188,15 @@ inline void log( const std::string& message, const bool logToStdout = false )
    getLogger().log( message, logToStdout );
 }
 
-inline void log( const std::string& message, const LogLevel level, const threads_e ThreadID, const bool logToStdout = false )
+inline void log( const std::string& message, const LogLevel level, const std::string& name, const bool logToStdout = false )
 {
-   getLogger().log( message, level, ThreadID, logToStdout );
+   getLogger().log( message, level, name, logToStdout );
 }
 
 //these standout when reading code
-inline void TRACE( const std::string& message, threads_e ThreadID, const bool logToStdout = false )
+inline void TRACE( const std::string& message, const std::string& name, const bool logToStdout = false )
 {
-   getLogger().log( message, LogLevel::TRACE, ThreadID, logToStdout );
+   getLogger().log( message, LogLevel::TRACE, name, logToStdout );
 }
 inline void DEBUG( const std::string& message, const bool logToStdout = false )
 {
@@ -223,5 +222,9 @@ inline std::string Logger::getErrnoString( const std::string& s )
    return buffer;
 }
 
+inline std::string getErrnoString( const std::string& s )
+{
+   return getLogger().getErrnoString( s );
+}
 }  // namespace logging
 #endif  // __LOGGING_H__

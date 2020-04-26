@@ -40,8 +40,8 @@ public:
 
 public:
    uint8_t mySocket;
-   uint32_t localPort;
    std::string localAddress;
+   uint32_t localPort;
 
    packet_t *data;
 };

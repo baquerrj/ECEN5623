@@ -108,8 +108,14 @@ int sockets::SocketServer::send( int client, const char *message )
 
    if ( 0 > ::send( client, data, sizeof( *data ), 0 ) )
    {
-      perror( "SocketServer::send() " );
+      logging::ERROR( logging::getErrnoString( "SocketServer::send()" ) );
+      return -1;
    }
+   else
+   {
+      return 0;
+   }
+
 }
 
 int sockets::SocketServer::read( int client )
@@ -117,13 +123,14 @@ int sockets::SocketServer::read( int client )
    logging::INFO( "SocketServer::read()", true );
    if ( 0 > ::read( client, data, sizeof( *data ) ) )
    {
-      logging::ERROR( "Failured at SocketClient::read()", true );
-      perror( " " );
+      logging::ERROR( logging::getErrnoString( "Failured at SocketClient::read()"), true );
+      return -1;
    }
    else
    {
       buffer = std::string( data->header ) + ":" + std::string( data->body );
       logging::INFO( "Received: " + buffer, true );
+      return 0;
    }
 }
 
@@ -171,12 +178,18 @@ int sockets::SocketClient::send( const char *message )
    if ( 0 > ::send( mySocket, data, sizeof( *data ), 0 ) )
    {
       perror( "SocketClient::send() " );
+      return -1;
+   }
+   else
+   {
+      return 0;
    }
 }
 
 int sockets::SocketClient::echo()
 {
-   send( buffer.c_str() );
+   int retVal = send( buffer.c_str() );
+   return retVal;
 }
 
 int sockets::SocketClient::read()
@@ -184,12 +197,14 @@ int sockets::SocketClient::read()
    logging::INFO( "SocketClient::read()", true );
    if ( 0 > ::read( mySocket, data, sizeof( *data ) ) )
    {
-      logging::ERROR( "Failured at SocketClient::read()", true );
-      perror( " " );
+      logging::ERROR( logging::getErrnoString( "Failured at SocketClient::read()" ),
+                      true );
+      return -1;
    }
    else
    {
       buffer = std::string( data->header ) + ":" + std::string( data->body );
       logging::INFO( "Received: " + buffer, true );
+      return 0;
    }
 }
