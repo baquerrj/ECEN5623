@@ -6,7 +6,7 @@
 #include <thread.h>
 #include <fstream>
 #include <logging.h>
-#include <CircularBuffer.h>
+#include <RingBuffer.h>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -14,7 +14,7 @@ extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
 extern sem_t* semS2;
-extern CircularBuffer< V4l2::buffer_s > frameBuffer;
+extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 static const ProcessParams processorParams = {
     cpuMain,  // CPU1

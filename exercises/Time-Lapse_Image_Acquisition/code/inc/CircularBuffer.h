@@ -5,7 +5,7 @@
 
 //! @brief Template Circular Buffer Class
 template < class T >
-class CircularBuffer
+class RingBuffer
 {
 
 //! @brief Private data members
@@ -17,7 +17,7 @@ private:
    T emptyItem;  //!< used to clear buffer
 public:
    //! Create a new Circular_Buffer.
-   CircularBuffer< T >( size_t maxSize ) :
+   RingBuffer< T >( size_t maxSize ) :
        buffer( std::unique_ptr< T[] >( new T[ maxSize ] ) ), maxSize( maxSize ){};
 
    //! @brief Add an item to this circular buffer

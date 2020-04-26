@@ -3,7 +3,7 @@ SRCS_$(d) :=	logging.cpp \
 					thread_utils.cpp \
 					sockets.cpp \
 					V4l2.h \
-					CircularBuffer.h
+					RingBuffer.h
 
 UTILS_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 

@@ -1,4 +1,4 @@
-#include <CircularBuffer.h>
+#include <RingBuffer.h>
 #include <FrameCollector.h>
 #include <V4l2.h>
 #include <common.h>
@@ -17,7 +17,7 @@ static const ThreadConfigData collectorThreadConfig = {
     "COLLECTOR",
     collectorParams};
 
-extern CircularBuffer< V4l2::buffer_s > frameBuffer;
+extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 FrameCollector::FrameCollector( int device = 0 )
 {

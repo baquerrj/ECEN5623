@@ -1,5 +1,5 @@
 
-#include <CircularBuffer.h>
+#include <RingBuffer.h>
 #include <FrameCollector.h>
 #include <FrameProcessor.h>
 #include <Sequencer.h>
@@ -21,7 +21,7 @@ sem_t* semS2;
 
 const char* host;
 
-CircularBuffer< V4l2::buffer_s > frameBuffer( 10 );
+RingBuffer< V4l2::buffer_s > frameBuffer( 10 );
 
 #if TEST_SOCKETS
 static void doSocket( void )
