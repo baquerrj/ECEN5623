@@ -1,9 +1,9 @@
-#ifndef __CIRCULAR_BUFFER_H__
-#define __CIRCULAR_BUFFER_H__
+#ifndef __RING_BUFFER_H__
+#define __RING_BUFFER_H__
 
 #include <memory>
 
-//! @brief Template Circular Buffer Class
+//! @brief Template Ring Buffer Class
 template < class T >
 class RingBuffer
 {
@@ -16,19 +16,19 @@ private:
    size_t maxSize;  //!< Maximum number of items ring can hold
    T emptyItem;  //!< used to clear buffer
 public:
-   //! Create a new Circular_Buffer.
+   //! Create a new Ring_Buffer.
    RingBuffer< T >( size_t maxSize ) :
        buffer( std::unique_ptr< T[] >( new T[ maxSize ] ) ), maxSize( maxSize ){};
 
-   //! @brief Add an item to this circular buffer
+   //! @brief Add an item to this ring buffer
    //! @param item
    void enqueue( T item );
 
-   //! Remove an item from this circular buffer and return it.
+   //! Remove an item from this ring buffer and return it.
    //! @return T
    T dequeue();
 
-   //! Return the item at the front of this circular buffer.
+   //! Return the item at the front of this ring buffer.
    //! @return T
    T front();
 
@@ -47,4 +47,4 @@ public:
    size_t size();
 };
 
-#endif  // __CIRCULAR_BUFFER_H__
+#endif  // __RING_BUFFER_H__
