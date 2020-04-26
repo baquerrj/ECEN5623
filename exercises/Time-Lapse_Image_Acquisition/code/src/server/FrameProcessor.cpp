@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <thread.h>
 #include <fstream>
+#include <logging.h>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -33,11 +34,13 @@ FrameProcessor::FrameProcessor()
 
 FrameProcessor::~FrameProcessor()
 {
+   logging::INFO( "FrameProcessor::~FrameProcessor() entered", true );
    if ( thread )
    {
       delete thread;
       thread = NULL;
    }
+   logging::INFO( "FrameProcessor::~FrameProcessor() exiting", true );
 }
 
 int FrameProcessor::readFrame()

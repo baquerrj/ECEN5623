@@ -30,6 +30,7 @@ FrameCollector::~FrameCollector()
       delete capture;
       capture = NULL;
    }
+   logging::INFO( "FrameCollector::~FrameCollector() exiting", true );
 }
 
 void FrameCollector::terminate()
