@@ -30,7 +30,7 @@ public:
    void startCapture();
    void stopCapture();
 
-   int readFrame();
+   buffer_s* readFrame();
    void processImage( const void* p, int size );
 
    static int xioctl( int fh, int request, void* arg );

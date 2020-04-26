@@ -59,8 +59,10 @@ void FrameCollector::collectFrame()
 
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      if ( capture->readFrame() )
+      V4l2::buffer_s* buffer = NULL;
+      if ( NULL != ( buffer = capture->readFrame() ) )
       {
+         capture->processImage( buffer->start, buffer->length );
          if ( nanosleep( &read_delay, &time_error ) != 0 )
          {
             perror( "nanosleep" );

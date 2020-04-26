@@ -12,8 +12,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#define HRES_STR "640"
-#define VRES_STR "480"
 
 #include <logging.h>
 
@@ -23,9 +21,6 @@ extern int force_format;
 struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
-
-static char ppm_header[]   = "P6\n#9999999999 sec 9999999999 msec \n" HRES_STR " " VRES_STR "\n255\n";
-static char ppm_dumpname[] = "test00000000.ppm";
 
 static void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time );
 static void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
@@ -427,7 +422,7 @@ void V4l2::initUserPtr( unsigned int buffer_size )
    }
 }
 
-int V4l2::readFrame( void )
+V4l2::buffer_s* V4l2::readFrame( void )
 {
    struct v4l2_buffer buf;
    unsigned int i;
@@ -444,12 +439,12 @@ int V4l2::readFrame( void )
             switch ( errno )
             {
                case EAGAIN:
-                  return 0;
+                  return NULL;
 
                case EIO:
                   /* Could ignore EIO, but drivers should only set for serious errors, although some set for
                      non-fatal errors too. */
-                  return 0;
+                  return NULL;
 
                default:
                {
@@ -476,13 +471,9 @@ int V4l2::readFrame( void )
             switch ( errno )
             {
                case EAGAIN:
-                  return 0;
-
+                  return NULL;
                case EIO:
                   /* Could ignore EIO, see spec. */
-
-                  /* fall through */
-
                default:
                   logging::ERROR( getErrnoString( "userptr1 VIDIOC_QBUF" ) );
             }
@@ -502,16 +493,16 @@ int V4l2::readFrame( void )
          // assert( i < n_buffers );
 
          // processImage( (void*)buf.m.userptr, buf.bytesused );
-         processImage( buffers[ idx ].start, buffers[ idx ].length );
+         // processImage( buffers[ idx ].start, buffers[ idx ].length );
 
          if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
          {
             logging::ERROR( getErrnoString( "userptr2 VIDIOC_QBUF" ) );
          }
-         break;
+         return &buffers[ idx ];
       }
    }
-   return 1;
+   return NULL;
 }
 
 void V4l2::processImage( const void* p, int size )
@@ -568,7 +559,6 @@ void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time 
                           "640 480\n255\n" );
 
    logging::DEBUG( ppmHeader, true );
-   // written2 = file.write( ppmHeader, ppmHeader.size());
    file << ppmHeader;
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
