@@ -2,15 +2,26 @@
 #include <V4l2.h>
 #include <common.h>
 #include <logging.h>
+#include <thread.h>
 
 extern sem_t* semS1;
+static const ProcessParams collectorParams = {
+    cpuMain,  // CPU1
+    SCHED_FIFO,
+    98,  // highest priority
+    0};
+
+static const ThreadConfigData collectorThreadConfig = {
+    true,
+    "COLLECTOR",
+    collectorParams};
 
 FrameCollector::FrameCollector( int device = 0 )
 {
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
-      perror ("FC sem_init failed");
-      exit(EXIT_FAILURE);
+      perror( "FC sem_init failed" );
+      exit( EXIT_FAILURE );
    }
    capture    = new V4l2( "/dev/video" + std::to_string( device ), V4l2::IO_METHOD_USERPTR );
    thread     = new CyclicThread( collectorThreadConfig, FrameCollector::execute, this, true );

@@ -69,14 +69,14 @@ int main( int argc, char *argv[] )
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
 
-   semS1 = sem_open( SEMS1_NAME, O_CREAT | O_EXCL, 0644, 0 );
+   semS1 = sem_open( SEMS1_NAME, O_CREAT, 0644, 0 );
    if ( semS1 == SEM_FAILED )
    {
       perror( "Failed to initialize S1 semaphore\n" );
       exit( -1 );
    }
 
-   semS2 = sem_open( SEMS2_NAME, O_CREAT | O_EXCL, 0644, 0 );
+   semS2 = sem_open( SEMS2_NAME, O_CREAT, 0644, 0 );
    if ( semS2 == SEM_FAILED  )
    {
       perror( "Failed to initialize S2 semaphore\n" );
@@ -89,6 +89,11 @@ int main( int argc, char *argv[] )
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
+
+   //fc->terminate();
+   //delete fc;
+   delete fp;
+   delete sequencer;
 
    sem_close( semS1 );
    sem_close( semS2 );

@@ -3,17 +3,13 @@
 #include <fcntl.h>
 #include <linux/videodev2.h>
 #include <logging.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <logging.h>
 
 unsigned int framecnt = 0;
 unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -397,7 +393,7 @@ void V4l2::initUserPtr( unsigned int buffer_size )
       }
       else
       {
-         errno_exit( "VIDIOC_REQBUFS" );
+         logging::ERROR( getErrnoString( "VIDIOC_REQBUFS" ) );
       }
    }
 
@@ -485,7 +481,7 @@ V4l2::buffer_s* V4l2::readFrame( void )
             if ( buf.m.userptr == (unsigned long)buffers[ i ].start && buf.length == buffers[ i ].length )
             {
                idx = i;
-               printf ("idx = %d\n", idx );
+               printf( "idx = %d\n", idx );
                break;
             }
          }

@@ -2,7 +2,6 @@
 #include <V4l2.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
-#include <logging.h>
 #include <unistd.h>
 #include <thread.h>
 #include <fstream>
@@ -14,6 +13,16 @@ extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
 extern sem_t* semS2;
+static const ProcessParams processorParams = {
+    cpuMain,  // CPU1
+    SCHED_FIFO,
+    98,  // highest priority
+    0};
+
+static const ThreadConfigData processorThreadConfig = {
+    true,
+    "PROCESSOR",
+    processorParams};
 
 FrameProcessor::FrameProcessor()
 {

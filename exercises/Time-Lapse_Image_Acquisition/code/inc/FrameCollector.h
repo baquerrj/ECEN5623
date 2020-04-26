@@ -1,24 +1,11 @@
 #ifndef __FRAMECOLLECTOR_H__
 #define __FRAMECOLLECTOR_H__
 
-#include <thread.h>
-#include <thread_utils.h>
 #include <semaphore.h>
-
 #include <memory>
 
+class CyclicThread;
 class V4l2;
-
-static const ProcessParams collectorParams = {
-    cpuMain,  // CPU1
-    SCHED_FIFO,
-    98,  // highest priority
-    0};
-
-static const ThreadConfigData collectorThreadConfig = {
-    true,
-    "COLLECTOR",
-    collectorParams};
 
 class FrameCollector
 {

@@ -3,9 +3,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <string>
 
 class V4l2
@@ -35,8 +33,6 @@ public:
 
    static int xioctl( int fh, int request, void* arg );
 
-   void errno_exit( const char* s );
-
    std::string getErrnoString( const std::string s );
 
    static const uint32_t BUFFER_COUNT = 4;
@@ -61,12 +57,6 @@ private:
    // buffer_s buffers[ BUFFER_COUNT ];
    buffer_s* buffers;
 };
-
-inline void V4l2::errno_exit( const char* s )
-{
-   fprintf( stderr, "%s error %d, %s\n", s, errno, strerror( errno ) );
-   exit( EXIT_FAILURE );
-}
 
 inline std::string V4l2::getErrnoString( const std::string s )
 {

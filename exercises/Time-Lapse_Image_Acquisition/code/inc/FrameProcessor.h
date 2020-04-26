@@ -1,23 +1,11 @@
 #ifndef __FRAME_PROCESSOR_H__
 #define __FRAME_PROCESSOR_H__
 
-#include <thread_utils.h>
 #include <time.h>
 #include <semaphore.h>
 #include <memory>
 
 class CyclicThread;
-
-static const ProcessParams processorParams = {
-    cpuMain,  // CPU1
-    SCHED_FIFO,
-    98,  // highest priority
-    0};
-
-static const ThreadConfigData processorThreadConfig = {
-    true,
-    "PROCESSOR",
-    processorParams};
 
 class FrameProcessor
 {
