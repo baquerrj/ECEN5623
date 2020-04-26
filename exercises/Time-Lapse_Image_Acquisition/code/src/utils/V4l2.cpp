@@ -448,14 +448,14 @@ V4l2::buffer_s* V4l2::readFrame( void )
             }
          }
          //   assert( buf.index < n_buffers );
-
-         processImage( buffers[ buf.index ].start, buf.bytesused );
+         buffers[ buf.index ].length = buf.bytesused;
+         // processImage( buffers[ buf.index ].start, buf.bytesused );
 
          if ( -1 == xioctl( fd, VIDIOC_QBUF, &buf ) )
          {
             logging::ERROR( getErrnoString( "VIDIOC_QBUF" ) );
          }
-         break;
+         return &buffers[ buf.index ];
       }
       case V4l2::IO_METHOD_USERPTR:
       {
@@ -502,6 +502,7 @@ V4l2::buffer_s* V4l2::readFrame( void )
 
 void V4l2::processImage( const void* p, int size )
 {
+#ifdef NO_FRAME_PROCESSOR
    int i, newi = 0;
    struct timespec frame_time;
    int y_temp, y2_temp, u_temp, v_temp;
@@ -536,11 +537,13 @@ void V4l2::processImage( const void* p, int size )
 
       dump_ppm( bigbuffer, ( ( size * 6 ) / 4 ), framecnt, &frame_time );
    }
+#endif
    return;
 }
 
 void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time )
 {
+#ifdef NO_FRAME_PROCESSOR
    std::string ppmName( "test_xxxxxxxx.ppm" );
    sprintf( &ppmName.front(), "test_%08d.ppm", tag );
    std::ofstream file;
@@ -556,10 +559,12 @@ void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time 
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
    printf( "Wrote %d bytes\n", size );
+#endif
 }
 
 void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )
 {
+#ifdef NO_FRAME_PROCESSOR
    int r1, g1, b1;
 
    // replaces floating point coefficients
@@ -588,4 +593,5 @@ void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned 
    *r = r1;
    *g = g1;
    *b = b1;
+#endif
 }

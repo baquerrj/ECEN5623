@@ -1,3 +1,4 @@
+#include <CircularBuffer.h>
 #include <FrameCollector.h>
 #include <V4l2.h>
 #include <common.h>
@@ -15,6 +16,8 @@ static const ThreadConfigData collectorThreadConfig = {
     true,
     "COLLECTOR",
     collectorParams};
+
+extern CircularBuffer< V4l2::buffer_s > frameBuffer;
 
 FrameCollector::FrameCollector( int device = 0 )
 {
@@ -72,7 +75,12 @@ void FrameCollector::collectFrame()
       V4l2::buffer_s* buffer = NULL;
       if ( NULL != ( buffer = capture->readFrame() ) )
       {
-         capture->processImage( buffer->start, buffer->length );
+         //capture->processImage( buffer->start, buffer->length );
+         if ( !frameBuffer.isFull() )
+         {
+            logging::INFO( "Added one image to buffer", true );
+            frameBuffer.enqueue( *buffer );
+         }
          if ( nanosleep( &read_delay, &time_error ) != 0 )
          {
             perror( "nanosleep" );

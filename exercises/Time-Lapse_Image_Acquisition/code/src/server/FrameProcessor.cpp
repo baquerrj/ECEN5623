@@ -6,6 +6,7 @@
 #include <thread.h>
 #include <fstream>
 #include <logging.h>
+#include <CircularBuffer.h>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -13,6 +14,8 @@ extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
 extern sem_t* semS2;
+extern CircularBuffer< V4l2::buffer_s > frameBuffer;
+
 static const ProcessParams processorParams = {
     cpuMain,  // CPU1
     SCHED_FIFO,
@@ -48,6 +51,11 @@ FrameProcessor::~FrameProcessor()
 int FrameProcessor::readFrame()
 {
    sem_wait( semS2 );
+   if ( !frameBuffer.isEmpty() )
+   {
+      V4l2::buffer_s img = frameBuffer.dequeue();
+      processImage( img.start, img.length );
+   }
    return 1;
 }
 
@@ -68,15 +76,13 @@ int FrameProcessor::processImage( const void* p, int size )
    clock_gettime( CLOCK_REALTIME, &frame_time );
 
    framecnt++;
-   printf( "frame %d: ", framecnt );
-
    // This just dumps the frame to a file now, but you could replace with whatever image
    // processing you wish.
    //
 
    if ( fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV )
    {
-      printf( "Dump YUYV converted to RGB size %d\n", size );
+      logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
 
       // Pixels are YU and YV alternating, so YUYV which is 4 bytes
       // We want RGB, so RGBRGB which is 6 bytes
@@ -108,11 +114,11 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
                           std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
                           "640 480\n255\n" );
 
-   logging::DEBUG( ppmHeader, true );
+   logging::DEBUG( "FP: " + ppmHeader, true );
    file << ppmHeader;
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
-   printf( "Wrote %d bytes\n", size );
+   printf( "FP: Wrote %d bytes\n", size );
 }
 
 void FrameProcessor::yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )

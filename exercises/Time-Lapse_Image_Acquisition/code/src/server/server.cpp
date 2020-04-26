@@ -1,31 +1,34 @@
 
+#include <CircularBuffer.h>
+#include <FrameCollector.h>
+#include <FrameProcessor.h>
+#include <Sequencer.h>
+#include <V4l2.h>
 #include <logging.h>
 #include <signal.h>
 #include <sockets.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
-#include <syslog.h>
-#include <Sequencer.h>
-#include <FrameProcessor.h>
-#include <FrameCollector.h>
-#include <V4l2.h>
-int force_format = 1;
 
+int force_format = 1;
 
 sem_t* semS1;
 sem_t* semS2;
 
-const char *host;
+const char* host;
+
+CircularBuffer< V4l2::buffer_s > frameBuffer( 10 );
 
 #if TEST_SOCKETS
 static void doSocket( void )
 {
    int client = -1;
 
-   sockets::SocketServer *server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
+   sockets::SocketServer* server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
 
    server->listen( 1 );
 
@@ -34,7 +37,7 @@ static void doSocket( void )
       client = server->accept();
    }
 
-   const char *patterns[] = {
+   const char* patterns[] = {
        "Hello World",
        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
        "12345671231243",
@@ -50,9 +53,9 @@ static void doSocket( void )
 
    delete server;
 }
-#endif // TEST_SOCKETS
+#endif  // TEST_SOCKETS
 
-int main( int argc, char *argv[] )
+int main( int argc, char* argv[] )
 {
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
@@ -70,7 +73,6 @@ int main( int argc, char *argv[] )
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
-
    semS1 = sem_open( SEMS1_NAME, O_CREAT, 0644, 0 );
    if ( semS1 == SEM_FAILED )
    {
@@ -79,15 +81,17 @@ int main( int argc, char *argv[] )
    }
 
    semS2 = sem_open( SEMS2_NAME, O_CREAT, 0644, 0 );
-   if ( semS2 == SEM_FAILED  )
+   if ( semS2 == SEM_FAILED )
    {
       perror( "Failed to initialize S2 semaphore\n" );
       exit( -1 );
    }
 
-   FrameCollector* fc = new FrameCollector( 0 );
-   FrameProcessor* fp = new FrameProcessor(  );
-   Sequencer* sequencer = new Sequencer( 1 );
+
+   printf( "size of buffer is %d\n", frameBuffer.size() );
+   FrameCollector* fc          = new FrameCollector( 0 );
+   FrameProcessor* fp          = new FrameProcessor();
+   Sequencer* sequencer        = new Sequencer( 1 );
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
