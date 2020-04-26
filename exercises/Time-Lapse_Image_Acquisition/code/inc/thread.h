@@ -36,6 +36,7 @@ public:
    virtual void initiateThread();
    virtual void terminate();
 
+   pthread_t getThreadId();
 protected:
    void *( *execute )( void *context );
    virtual void *cycle();
@@ -43,5 +44,10 @@ protected:
 
    void *owner;
 };
+
+inline pthread_t CyclicThread::getThreadId()
+{
+   return thread;
+}
 
 #endif  // __THREAD_H__
