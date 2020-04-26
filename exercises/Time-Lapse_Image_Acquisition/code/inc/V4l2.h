@@ -31,7 +31,7 @@ public:
    buffer_s* readFrame();
    void processImage( const void* p, int size );
 
-   static int xioctl( int fh, int request, void* arg );
+   static int8_t xioctl( int8_t fh, uint32_t request, void* arg );
 
    std::string getErrnoString( const std::string s );
 
@@ -51,7 +51,7 @@ protected:
 private:
    const char* device;
    // file descriptor for device
-   int fd;
+   int8_t fd;
 
    ioMethod_e ioMethod;
    // buffer_s buffers[ BUFFER_COUNT ];

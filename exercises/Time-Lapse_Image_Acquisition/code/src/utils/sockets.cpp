@@ -11,7 +11,7 @@
 #include <net/if.h>
 #include <sys/socket.h>
 
-const char* sockets::LOCALHOST      = "127.0.0.1";
+const char *sockets::LOCALHOST      = "127.0.0.1";
 const uint32_t sockets::DEFAULTPORT = 8080;
 
 sockets::SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
@@ -103,7 +103,7 @@ int sockets::SocketServer::accept( void )
 int sockets::SocketServer::send( int client, const char *message )
 {
    logging::INFO( "SocketServer::send()", true );
-   snprintf( data->header, sizeof( data->header ), "%p:", this );
+   snprintf( data->header, sizeof( data->header ), "%p:", (void *)this );
    snprintf( data->body, sizeof( data->body ), "%s", message );
 
    if ( 0 > ::send( client, data, sizeof( *data ), 0 ) )
@@ -165,7 +165,7 @@ int sockets::SocketClient::connect( void )
 int sockets::SocketClient::send( const char *message )
 {
    logging::INFO( "SocketClient::send()", true );
-   snprintf( data->header, sizeof( data->header ), "%p: ", this );
+   snprintf( data->header, sizeof( data->header ), "%p: ", (void *)this );
    snprintf( data->body, sizeof( data->body ), "%s", message );
 
    if ( 0 > ::send( mySocket, data, sizeof( *data ), 0 ) )

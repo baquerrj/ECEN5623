@@ -3,7 +3,7 @@ LL_NAMES = 	pthread \
 
 LL_FLAG = $(addprefix -l,$(LL_NAMES))
 
-CF_ALL   = -std=c++0x -O3 -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td -g
+CF_ALL   = -std=c++0x -O3 -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td -g -Wall -pedantic-errors -Wfatal-errors
 LF_ALL   =
 LL_ALL   = -Wl,-rpath,./code/lib
 

@@ -19,8 +19,6 @@ class CyclicThread;
 //! @brief Namespace defining logging classes, types, etc.
 namespace logging
 {
-//! @brief Name of message queue threads send messages to
-static const char* LOGGER_QUEUE_NAME = "/Logger-queue";
 
 //! @brief Logging level
 enum class LogLevel : uint8_t
@@ -112,6 +110,7 @@ public:
 
    std::string getErrnoString( const std::string& s );
 
+   const char* LOGGER_QUEUE_NAME = "/Logger-queue";
 private:
    /*! @brief Calculates timestamp
     *
@@ -132,6 +131,10 @@ private:
    void logFromMessageQueue( void );
 
 protected:
+   const std::unordered_map< LogLevel, std::string, enumHasher > levels;
+   LogLevel logLevelCutoff;
+   std::string fileName;  //! Name of log file Logger writes to
+
    pthread_mutex_t lock;  //! Mutex protecting log file access
    mqd_t queue;           //! POSIX message queue id
    pthread_t threadId;
@@ -143,10 +146,7 @@ protected:
    struct timespec interval;     //! timespec used to calculate time interval between log calls
    struct timespec lastTime;     //! timespec used to calculate time interval between log calls
    struct timespec currentTime;  //! used to timestamp and calculate call intervals
-   LogLevel logLevelCutoff;
-   const std::unordered_map< LogLevel, std::string, enumHasher > levels;
 
-   std::string fileName;  //! Name of log file Logger writes to
    std::ofstream file;    //! Log file handle
 
    bool itsMyTimeToDie;
@@ -198,23 +198,23 @@ inline void log( const std::string& message, const LogLevel level, const threads
 inline void TRACE( const std::string& message, threads_e ThreadID, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::TRACE, ThreadID, logToStdout );
-};
+}
 inline void DEBUG( const std::string& message, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::DEBUG, logToStdout );
-};
+}
 inline void INFO( const std::string& message, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::INFO, logToStdout );
-};
+}
 inline void WARN( const std::string& message, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::WARN, logToStdout );
-};
+}
 inline void ERROR( const std::string& message, const bool logToStdout = false )
 {
    getLogger().log( message, LogLevel::ERROR, logToStdout );
-};
+}
 
 inline std::string Logger::getErrnoString( const std::string& s )
 {

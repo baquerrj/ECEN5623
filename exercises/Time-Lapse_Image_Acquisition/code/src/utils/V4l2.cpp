@@ -138,9 +138,9 @@ void V4l2::stopCapture()
    return;
 }
 
-int V4l2::xioctl( int fh, int request, void* arg )
+int8_t V4l2::xioctl( int8_t fh, uint32_t request, void* arg )
 {
-   int r;
+   int8_t r;
 
    do
    {

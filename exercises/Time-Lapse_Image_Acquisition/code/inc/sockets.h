@@ -73,6 +73,6 @@ public:
    std::string buffer;
 };
 
-}; // namespace sockets
+} // namespace sockets
 
 #endif  // __SOCKETS_H__

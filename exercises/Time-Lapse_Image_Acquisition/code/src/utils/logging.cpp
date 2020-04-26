@@ -31,14 +31,14 @@ logging::Logger::Logger( const logging::config_s& config ) :
 {
    itsMyTimeToDie   = false;
    logThreadIsAlive = false;
-   mq_unlink( logging::LOGGER_QUEUE_NAME );
+   mq_unlink( LOGGER_QUEUE_NAME );
    struct mq_attr attr;
    attr.mq_flags   = 0;
    attr.mq_maxmsg  = 10;
    attr.mq_msgsize = sizeof( logging::message_s );
    attr.mq_curmsgs = 0;
 
-   queue = mq_open( logging::LOGGER_QUEUE_NAME, O_CREAT | O_RDWR, 0666, &attr );
+   queue = mq_open( LOGGER_QUEUE_NAME, O_CREAT | O_RDWR, 0666, &attr );
    if ( 0 > queue )
    {
       perror( "ERROR: mq_open: " );
@@ -92,7 +92,7 @@ logging::Logger::~Logger()
    }
 
    // Close the message queue
-   mq_unlink( logging::LOGGER_QUEUE_NAME );
+   mq_unlink( LOGGER_QUEUE_NAME );
 
    // Destroy file mutex and close the file
    pthread_mutex_destroy( &lock );
