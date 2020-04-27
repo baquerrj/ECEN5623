@@ -47,19 +47,19 @@ FrameProcessor::FrameProcessor() :
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
-      logging::ERROR( "Mem allocation failed for executionTimes for FP" );
+      logging::ERROR( "Mem allocation failed for executionTimes for FP", true );
    }
 
    startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( startTimes == NULL )
    {
-      logging::ERROR( "Mem allocation failed for startTimes for FP" );
+      logging::ERROR( "Mem allocation failed for startTimes for FP", true );
    }
 
    endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( endTimes == NULL )
    {
-      logging::ERROR( "Mem allocation failed for endTimes for FP" );
+      logging::ERROR( "Mem allocation failed for endTimes for FP", true );
    }
 
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );

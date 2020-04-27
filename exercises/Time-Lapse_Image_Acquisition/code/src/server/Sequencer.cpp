@@ -26,11 +26,6 @@ bool abortS1;
 bool abortS2;
 bool abortS3;
 bool abortS4;
-int freq_img_capture = 1;
-
-//double* executionTime;  //To store execution time for each iteration
-//double* startTime;      //To store start time for each iteration
-//double* endTime;        //To store end time for each iteration
 
 extern sem_t* semS1;
 extern sem_t* semS2;
@@ -46,23 +41,28 @@ Sequencer::Sequencer( uint8_t frequency ) :
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
-      printf( "Mem allocation failed for EXECUTION_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for executionTimes for SEQ", true );
    }
 
    startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( startTimes == NULL )
    {
-      printf( "Mem allocation failed for START_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for startTimes for SEQ", true );
    }
 
    endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( endTimes == NULL )
    {
-      printf( "Mem allocation failed for END_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for endTimes for SEQ", true );
    }
    // semS1 = *_semS1;
    // semS2 = *_semS2;
-   thread   = new CyclicThread( sequencerThreadConfig, Sequencer::execute, this, true );
+   thread = new CyclicThread( sequencerThreadConfig, Sequencer::execute, this, true );
+   if ( NULL == thread )
+   {
+      logging::ERROR( "Could not allocate memory for SEQ Thread", true );
+      exit( EXIT_FAILURE );
+   }
    threadId = thread->getThreadId();
 }
 

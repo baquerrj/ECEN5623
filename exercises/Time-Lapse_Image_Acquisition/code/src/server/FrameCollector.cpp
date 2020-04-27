@@ -140,7 +140,7 @@ void FrameCollector::collectFrame()
          {
             clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
             buffer->frameNumber = frameCount;
-            logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer", true );
+            logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer" );
             frameBuffer.enqueue( *buffer );
          }
          else
@@ -155,6 +155,11 @@ void FrameCollector::collectFrame()
          frameCount++;
       }
    }
+   else
+   {
+      logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
+   }
+
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 

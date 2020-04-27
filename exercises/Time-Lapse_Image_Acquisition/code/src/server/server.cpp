@@ -1,13 +1,13 @@
 
-#include <RingBuffer.h>
 #include <FrameCollector.h>
 #include <FrameProcessor.h>
+#include <RingBuffer.h>
 #include <Sequencer.h>
+#include <SocketBase.h>
+#include <SocketServer.h>
 #include <V4l2.h>
 #include <logging.h>
 #include <signal.h>
-#include <SocketServer.h>
-#include <SocketBase.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -67,10 +67,23 @@ int main( int argc, char* argv[] )
    {
       host = "192.168.137.41";
    }
+   uint8_t captureFrequency = 1;
+   if ( cmdOptionExists( argv, argv + argc, "-f" ) )
+   {
+      captureFrequency = std::atoi( getCmdOption( argv, argv + argc, "-f" ) );
+   }
 
-   pid_t mainThreadId       = getpid();
-   std::string fileName     = "server" + std::to_string( mainThreadId ) + ".log";
-   logging::config_s config = {logging::LogLevel::TRACE, fileName};
+   pid_t mainThreadId   = getpid();
+   std::string fileName = "server" + std::to_string( mainThreadId ) + ".log";
+   if ( cmdOptionExists( argv, argv + argc, "-v" ) )
+   {
+      logging::config_s config = {logging::LogLevel::TRACE, fileName};
+   }
+   else
+   {
+      logging::config_s config = {logging::LogLevel::INFO, fileName};
+   }
+
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
@@ -88,14 +101,16 @@ int main( int argc, char* argv[] )
       exit( -1 );
    }
 
-
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
-   Sequencer* sequencer        = new Sequencer( 10 );
+   Sequencer* sequencer        = new Sequencer( captureFrequency );
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
-
+   while ( !frameBuffer.isEmpty() )
+   {
+      sem_post( semS2 );
+   }
    //fc->terminate();
    //delete fc;
    delete fp;
