@@ -1,6 +1,6 @@
 #include <logging.h>
 #include <signal.h>
-#include <sockets.h>
+#include <SocketClient.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -13,7 +13,7 @@ const char* host;
 
 static void doSocket( void )
 {
-   sockets::SocketClient* receiver = new sockets::SocketClient( host, sockets::DEFAULTPORT );
+   SocketClient* receiver = new SocketClient( host, SocketBase::DEFAULTPORT );
 
    receiver->connect();
 
@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = sockets::LOCALHOST;
+      host = SocketBase::LOCALHOST;
    }
    else
    {

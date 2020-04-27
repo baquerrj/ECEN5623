@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include <string>
+#include <linux/videodev2.h>
 
 //! @brief V4L2 Driver Class
 class V4l2
