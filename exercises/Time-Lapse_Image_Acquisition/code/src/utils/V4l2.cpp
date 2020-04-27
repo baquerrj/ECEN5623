@@ -17,8 +17,10 @@ extern int force_format;
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
 
+#ifdef NO_FRAME_PROCESSOR
 static void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time );
 static void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
+#endif
 
 V4l2::V4l2( const std::string& deviceName, const V4l2::ioMethod_e method )
 {
@@ -540,9 +542,9 @@ void V4l2::processImage( const void* p, int size )
    return;
 }
 
+#ifdef NO_FRAME_PROCESSOR
 void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time )
 {
-#ifdef NO_FRAME_PROCESSOR
    std::string ppmName( "test_xxxxxxxx.ppm" );
    sprintf( &ppmName.front(), "test_%08d.ppm", tag );
    std::ofstream file;
@@ -558,12 +560,10 @@ void dump_ppm( const void* p, int size, unsigned int tag, struct timespec* time 
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
    printf( "Wrote %d bytes\n", size );
-#endif
 }
 
 void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )
 {
-#ifdef NO_FRAME_PROCESSOR
    int r1, g1, b1;
 
    // replaces floating point coefficients
@@ -592,5 +592,5 @@ void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned 
    *r = r1;
    *g = g1;
    *b = b1;
-#endif
 }
+#endif
