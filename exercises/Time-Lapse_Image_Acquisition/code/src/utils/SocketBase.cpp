@@ -11,7 +11,7 @@
 #include <net/if.h>
 #include <sys/socket.h>
 
-constexpr static std::string LOCALHOST = "127.0.0.1";
+const static char* LOCALHOST = "127.0.0.1";
 
 SocketBase::SocketBase( const std::string &addr, const uint32_t port ) :
     localAddress( addr ),

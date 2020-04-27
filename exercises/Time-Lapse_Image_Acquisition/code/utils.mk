@@ -4,7 +4,7 @@ SRCS_$(d) :=	logging.cpp \
 					SocketBase.cpp \
 					SocketServer.cpp \
 					SocketClient.cpp \
-					V4l2.h \
+					V4l2.cpp \
 					RingBuffer.cpp
 
 UTILS_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))

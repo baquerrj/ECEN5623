@@ -1,6 +1,7 @@
 #include <logging.h>
 #include <signal.h>
 #include <SocketClient.h>
+#include <SocketBase.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>

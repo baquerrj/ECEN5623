@@ -6,7 +6,8 @@
 #include <V4l2.h>
 #include <logging.h>
 #include <signal.h>
-#include <sockets.h>
+#include <SocketServer.h>
+#include <SocketBase.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -60,7 +61,7 @@ int main( int argc, char* argv[] )
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = sockets::LOCALHOST;
+      host = SocketBase::LOCALHOST;
    }
    else
    {
