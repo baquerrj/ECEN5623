@@ -19,28 +19,13 @@ static void doSocket( void )
    receiver->connect();
 
    int recvs = 0;
-   while ( recvs < 5 )
+   while ( recvs < FRAMES_TO_EXECUTE )
    {
-      //logging::log( clientMessage );
       receiver->read();
-      //logging::log( clientMessage );
       receiver->echo();
       recvs++;
    }
    delete receiver;
-}
-
-void execute( void )
-{
-   static int count = 0;
-   printf( "executing %d   ", count );
-   count++;
-}
-
-void* threadFunction( void* context )
-{
-   execute();
-   return NULL;
 }
 
 int main( int argc, char* argv[] )
@@ -60,23 +45,6 @@ int main( int argc, char* argv[] )
    logging::config_s config = {logging::LogLevel::TRACE, fileName};
    logging::configure( config );
    logging::INFO( "CLIENT CONNECT TO " + std::string( host ), true );
-
-   // static const ProcessParams params = {
-   //     cpuMain,  // CPU1
-   //     SCHED_FIFO,
-   //     99,  // highest priority
-   //     0};
-
-   // static const ThreadConfigData threadconfig = {
-   //     true,
-   //     "DUMMY",
-   //     params};
-
-   // CyclicThread* thread = new CyclicThread( threadconfig, threadFunction, NULL, true );
-
-   // sleep(1);
-   // thread->terminate();
-   // delete thread;
 
    doSocket();
    return 0;

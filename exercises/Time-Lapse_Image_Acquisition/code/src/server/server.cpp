@@ -1,6 +1,7 @@
 
 #include <FrameCollector.h>
 #include <FrameProcessor.h>
+#include <FrameSender.h>
 #include <RingBuffer.h>
 #include <Sequencer.h>
 #include <SocketBase.h>
@@ -19,6 +20,7 @@ int force_format = 1;
 
 sem_t* semS1;
 sem_t* semS2;
+sem_t* semS3;
 
 const char* host;
 
@@ -75,13 +77,11 @@ int main( int argc, char* argv[] )
 
    pid_t mainThreadId   = getpid();
    std::string fileName = "server" + std::to_string( mainThreadId ) + ".log";
+
+   logging::config_s config = {logging::LogLevel::INFO, fileName};
    if ( cmdOptionExists( argv, argv + argc, "-v" ) )
    {
       logging::config_s config = {logging::LogLevel::TRACE, fileName};
-   }
-   else
-   {
-      logging::config_s config = {logging::LogLevel::INFO, fileName};
    }
 
    logging::configure( config );
@@ -101,8 +101,16 @@ int main( int argc, char* argv[] )
       exit( -1 );
    }
 
+   semS3 = sem_open( SEMS3_NAME, O_CREAT, 0644, 0 );
+   if ( semS3 == SEM_FAILED )
+   {
+      perror( "Failed to initialize S3 semaphore\n" );
+      exit( -1 );
+   }
+
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
+   FrameSender* fs             = new FrameSender();
    Sequencer* sequencer        = new Sequencer( captureFrequency );
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
@@ -118,8 +126,10 @@ int main( int argc, char* argv[] )
 
    sem_close( semS1 );
    sem_close( semS2 );
+   sem_close( semS3 );
 
    sem_unlink( SEMS1_NAME );
    sem_unlink( SEMS2_NAME );
+   sem_unlink( SEMS3_NAME );
    return 0;
 }

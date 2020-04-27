@@ -29,6 +29,7 @@ bool abortS4;
 
 extern sem_t* semS1;
 extern sem_t* semS2;
+extern sem_t* semS3;
 
 Sequencer::Sequencer( uint8_t frequency ) :
     name( sequencerThreadConfig.threadName ),
@@ -161,20 +162,22 @@ void Sequencer::sequenceServices()
          sem_post( semS2 );
       }
       // Service_3 = RT_MAX-3	@ 1 Hz
-      //if((seqCnt % 1) == 0) sem_post(semS3);
-
+      if ( ( seqCnt % divisor ) == 0 )
+      {
+         syslog( LOG_INFO, "S3 Release at %llu\t Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         sem_post( semS3 );
+      }
       clock_gettime( CLOCK_REALTIME, &sequencer_end_time );
       endTimes[ seqCnt ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
 
       syslog( LOG_INFO, "SEQ Count: %llu\t Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
 
       seqCnt++;  //Increment the sequencer count
-
    } while ( !abortTest && ( seqCnt < ( FRAMES_TO_EXECUTE * 20 ) ) );
 
    sem_post( semS1 );
    sem_post( semS2 );
-   //sem_post(&semS3);
+   sem_post( semS3 );
    abortS1 = true;
    pthread_exit( (void*)0 );
 }
