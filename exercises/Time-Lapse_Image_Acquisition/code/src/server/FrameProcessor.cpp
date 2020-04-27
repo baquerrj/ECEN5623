@@ -104,7 +104,8 @@ int FrameProcessor::readFrame()
    if ( !frameBuffer.isEmpty() )
    {
       V4l2::buffer_s img = frameBuffer.dequeue();
-      processImage( img.start, img.length );
+      // processImage( img.start, img.length );
+      processImage( &img );
    }
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ S2Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
@@ -116,9 +117,8 @@ int FrameProcessor::readFrame()
            S2Cnt,
            executionTimes[ S2Cnt ] );
 
-
    logging::DEBUG( "S2 Count: " + std::to_string( S2Cnt ) +
-                  "\t C Time: " + std::to_string( executionTimes[ S2Cnt ] )+ " ms" );
+                   "\t C Time: " + std::to_string( executionTimes[ S2Cnt ] ) + " ms" );
    S2Cnt++;  //Increment the count of service S2
    return 1;
 }
@@ -160,6 +160,28 @@ int FrameProcessor::processImage( const void* p, int size )
    }
 
    dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), S2Cnt, &frame_time );
+   return 1;
+}
+
+int FrameProcessor::processImage( V4l2::buffer_s* img )
+{
+   int i, newi = 0;
+   struct timespec frame_time = img->timestamp;
+   int y_temp, y2_temp, u_temp, v_temp;
+   unsigned char* pptr = (unsigned char*)img->start;
+   int size            = img->length;
+
+   for ( i = 0, newi = 0; i < size; i = i + 4, newi = newi + 6 )
+   {
+      y_temp  = (int)pptr[ i ];
+      u_temp  = (int)pptr[ i + 1 ];
+      y2_temp = (int)pptr[ i + 2 ];
+      v_temp  = (int)pptr[ i + 3 ];
+      yuv2rgb( y_temp, u_temp, v_temp, &bigbuffer[ newi ], &bigbuffer[ newi + 1 ], &bigbuffer[ newi + 2 ] );
+      yuv2rgb( y2_temp, u_temp, v_temp, &bigbuffer[ newi + 3 ], &bigbuffer[ newi + 4 ], &bigbuffer[ newi + 5 ] );
+   }
+
+   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), img->frameNumber, &frame_time );
    return 1;
 }
 

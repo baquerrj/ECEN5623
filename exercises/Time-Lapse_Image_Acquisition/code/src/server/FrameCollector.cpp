@@ -20,9 +20,16 @@ static const ThreadConfigData collectorThreadConfig = {
 
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
-FrameCollector::FrameCollector( int device = 0 )
+FrameCollector::FrameCollector( int device = 0 ) :
+    name( collectorThreadConfig.threadName ),
+    wcet( 0.0 ),
+    aet( 0.0 ),
+    count( 0 ),
+    frameCount( 0 ),
+    diff_time( 0.0 ),
+    start( {0, 0} ),
+    end( {0, 0} )
 {
-   name = collectorThreadConfig.threadName;
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -46,14 +53,20 @@ FrameCollector::FrameCollector( int device = 0 )
       printf( "Mem allocation failed for END_TIME_SEQ\n" );
    }
 
-   start     = {0, 0};
-   end       = {0, 0};
-   diff_time = 0.0;
-   S1Cnt     = 0;
+   capture = new V4l2( "/dev/video" + std::to_string( device ), V4l2::IO_METHOD_USERPTR );
+   if ( NULL == capture )
+   {
+      logging::ERROR( "Could not allocate memory for V4l2 Object", true );
+      exit( EXIT_FAILURE );
+   }
+   thread = new CyclicThread( collectorThreadConfig, FrameCollector::execute, this, true );
+   if ( NULL == thread )
+   {
+      logging::ERROR( "Could not allocate memory for FC Thread", true );
+      exit( EXIT_FAILURE );
+   }
 
-   capture    = new V4l2( "/dev/video" + std::to_string( device ), V4l2::IO_METHOD_USERPTR );
-   thread     = new CyclicThread( collectorThreadConfig, FrameCollector::execute, this, true );
-   frameCount = 0;
+   isAlive = true;
 }
 
 FrameCollector::~FrameCollector()
@@ -104,12 +117,12 @@ void FrameCollector::collectFrame()
 {
    sem_wait( semS1 );
    clock_gettime( CLOCK_REALTIME, &start );
-   startTimes[ S1Cnt ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
+   startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
    // syslog( LOG_INFO, "S1 Count: %lld\t %s Start Time: %lf seconds",
-   //         S1Cnt,
+   //         count,
    //         name.c_str(),
-   //         startTimes[ S1Cnt ] );
+   //         startTimes[ count ] );
 
    struct timespec read_delay;
    struct timespec time_error;
@@ -125,7 +138,9 @@ void FrameCollector::collectFrame()
          //capture->processImage( buffer->start, buffer->length );
          if ( !frameBuffer.isFull() )
          {
-            logging::DEBUG( "S1 Count: " + std::to_string( S1Cnt ) + " added image to buffer", true );
+            clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
+            buffer->frameNumber = frameCount;
+            logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer", true );
             frameBuffer.enqueue( *buffer );
          }
          else
@@ -141,17 +156,17 @@ void FrameCollector::collectFrame()
       }
    }
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
-   endTimes[ S1Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
+   endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   executionTimes[ S1Cnt ] = delta_t( &end, &start );
+   executionTimes[ count ] = delta_t( &end, &start );
 
    syslog( LOG_INFO, "%s Count: %lld\t C Time: %lf ms",
            name.c_str(),
-           S1Cnt,
-           executionTimes[ S1Cnt ] );
+           count,
+           executionTimes[ count ] );
 
-   logging::DEBUG( "S1 Count: " + std::to_string( S1Cnt ) +
-                   "\t C Time: " + std::to_string( executionTimes[ S1Cnt ] ) + " ms" );
+   logging::DEBUG( "S1 Count: " + std::to_string( count ) +
+                   "\t C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
 
-   S1Cnt++;  //Increment the count of service S1u
+   count++;  //Increment the count of service S1u
 }

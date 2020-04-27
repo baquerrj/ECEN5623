@@ -1,12 +1,12 @@
 #ifndef __V4L2_H__
 #define __V4L2_H__
 #include <errno.h>
+#include <linux/videodev2.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <string>
-#include <linux/videodev2.h>
 
 //! @brief V4L2 Driver Class
 class V4l2
@@ -24,6 +24,8 @@ public:
    {
       void* start;
       size_t length;
+      uint32_t frameNumber;
+      struct timespec timestamp;
    };
    static const uint32_t BUFFER_COUNT = 4;
 
@@ -73,11 +75,11 @@ protected:
    void initUserPtr( unsigned int buffer_size );
 
 private:
-   const char* device;        //!< Device name (/dev/video0)
-   int8_t fd;                 //!< File descriptor for device
-   ioMethod_e ioMethod;       //!< Holds IO method for driver
-   buffer_s* buffers;         //!< Used to hold raw frame data
-   struct v4l2_format fmt;    //<! Stream data format
+   const char* device;      //!< Device name (/dev/video0)
+   int8_t fd;               //!< File descriptor for device
+   ioMethod_e ioMethod;     //!< Holds IO method for driver
+   buffer_s* buffers;       //!< Used to hold raw frame data
+   struct v4l2_format fmt;  //<! Stream data format
 };
 
 inline std::string V4l2::getErrnoString( const std::string s )

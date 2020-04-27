@@ -3,7 +3,7 @@
 
 #include <semaphore.h>
 #include <time.h>
-
+#include <V4l2.h>
 #include <memory>
 
 class CyclicThread;
@@ -16,6 +16,7 @@ public:
 
    int readFrame();
    int processImage( const void* p, int size );
+   int processImage( V4l2::buffer_s* img );
    void dumpImage( const void* p, int size, unsigned int tag, struct timespec* time );
 
    void terminate();
