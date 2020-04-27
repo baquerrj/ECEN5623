@@ -13,7 +13,7 @@
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
 
-static const uint32_t FRAMES_TO_EXECUTE = 20020;
+static const uint32_t FRAMES_TO_EXECUTE = 2020;
 
 /**
  * @brief calculates the difference between the start and stop times
