@@ -30,7 +30,9 @@ public:
 public:
    //! Creates a new V4l2 object
    V4l2( const std::string& deviceName, const V4l2::ioMethod_e method );
-   //! Default DTOR
+
+   //! Destructor for V4l2 object
+   //! Deallocate memory for buffers, undo memory-mapping and close device
    ~V4l2();
 
    //! Start capturing frames
@@ -43,10 +45,18 @@ public:
    //! @return pointer to captured frame data
    buffer_s* readFrame();
 
+   //! Process image
+   //! @todo remove this, FrameProcessor will process image
    void processImage( const void* p, int size );
 
+   //! Low-level wrapper to ioctl system call
+   //! @param fh: file descriptor
+   //! @param request: request type
+   //! @param arg: ioctl argument
    static int8_t xioctl( int8_t fh, uint32_t request, void* arg );
 
+   //! Returns formatted string containing errno description
+   //! @todo remove this and use logging::Logger::getErrnoString() instead
    std::string getErrnoString( const std::string s );
 
 protected:
@@ -56,18 +66,17 @@ protected:
    void initDevice();
    // close video device
    void closeDevice();
-   void initRead();
+   //! Set up device for memory-mapped IO method
    void initMmap();
+   //! Setup device for user pointer IO method
    void initUserPtr( unsigned int buffer_size );
 
 private:
-   const char* device;
-   // file descriptor for device
-   int8_t fd;
-
-   ioMethod_e ioMethod;
-   // buffer_s buffers[ BUFFER_COUNT ];
-   buffer_s* buffers;
+   const char* device;        //!< Device name (/dev/video0)
+   int8_t fd;                 //!< File descriptor for device
+   ioMethod_e ioMethod;       //!< Holds IO method for driver
+   buffer_s* buffers;         //!< Used to hold raw frame data
+   struct v4l2_format fmt;    //<! Stream data format
 };
 
 inline std::string V4l2::getErrnoString( const std::string s )

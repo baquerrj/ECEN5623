@@ -14,7 +14,6 @@
 unsigned int framecnt = 0;
 unsigned char bigbuffer[ ( 1280 * 960 ) ];
 extern int force_format;
-struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
 
