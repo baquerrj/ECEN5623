@@ -106,10 +106,10 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ S1Cnt ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   syslog( LOG_INFO, "S1 Count: %lld\t %s Start Time: %lf seconds",
-           S1Cnt,
-           name.c_str(),
-           startTimes[ S1Cnt ] );
+   // syslog( LOG_INFO, "S1 Count: %lld\t %s Start Time: %lf seconds",
+   //         S1Cnt,
+   //         name.c_str(),
+   //         startTimes[ S1Cnt ] );
 
    struct timespec read_delay;
    struct timespec time_error;
@@ -125,7 +125,7 @@ void FrameCollector::collectFrame()
          //capture->processImage( buffer->start, buffer->length );
          if ( !frameBuffer.isFull() )
          {
-            logging::INFO( "Added one image to buffer", true );
+            logging::DEBUG( "S1 Count: " + std::to_string( S1Cnt ) + " added image to buffer", true );
             frameBuffer.enqueue( *buffer );
          }
          else
@@ -143,10 +143,15 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ S1Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   syslog( LOG_INFO, "S1 Count: %lld\t %s End Time: %lf seconds",
-           S1Cnt,
+   executionTimes[ S1Cnt ] = delta_t( &end, &start );
+
+   syslog( LOG_INFO, "%s Count: %lld\t C Time: %lf ms",
            name.c_str(),
-           endTimes[ S1Cnt ] );
+           S1Cnt,
+           executionTimes[ S1Cnt ] );
+
+   logging::DEBUG( "S1 Count: " + std::to_string( S1Cnt ) +
+                   "\t C Time: " + std::to_string( executionTimes[ S1Cnt ] ) + " ms" );
 
    S1Cnt++;  //Increment the count of service S1u
 }

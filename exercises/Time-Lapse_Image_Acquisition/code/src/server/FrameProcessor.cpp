@@ -109,13 +109,16 @@ int FrameProcessor::readFrame()
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ S2Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   syslog( LOG_INFO, "S2 Count: %lld\t %s End Time: %lf seconds",
-           S2Cnt,
+   executionTimes[ S2Cnt ] = delta_t( &end, &start );
+
+   syslog( LOG_INFO, "%s Count: %lld\t C Time: %lf ms",
            name.c_str(),
-           endTimes[ S2Cnt ] );
+           S2Cnt,
+           executionTimes[ S2Cnt ] );
 
-   //Store end time in array
 
+   logging::DEBUG( "S2 Count: " + std::to_string( S2Cnt ) +
+                  "\t C Time: " + std::to_string( executionTimes[ S2Cnt ] )+ " ms" );
    S2Cnt++;  //Increment the count of service S2
    return 1;
 }

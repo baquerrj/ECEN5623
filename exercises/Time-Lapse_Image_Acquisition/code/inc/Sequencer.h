@@ -28,9 +28,9 @@ private:
    uint8_t captureFrequency;
    double wcet;            //Store worst case execution for image capturing
    double aet;             //Store average execution time
-   double* executionTime;  //To store execution time for each iteration
-   double* startTime;      //To store start time for each iteration
-   double* endTime;        //To store end time for each iteration
+   double* executionTimes;  //To store execution time for each iteration
+   double* startTimes;      //To store start time for each iteration
+   double* endTimes;        //To store end time for each iteration
 
    bool isAlive;
    pthread_t threadId;
