@@ -47,7 +47,7 @@ inline bool Sequencer::isThreadAlive()
    return isAlive;
 }
 
-inline Sequencer& getSequecner( uint8_t captureFrequency = 1 )
+inline Sequencer& getSequencer( uint8_t captureFrequency = 1 )
 {
    static std::unique_ptr< Sequencer > singleton( new Sequencer( captureFrequency ) );
    return *singleton;
