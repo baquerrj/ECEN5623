@@ -14,7 +14,7 @@ const char* host;
 
 static void doSocket( void )
 {
-   SocketClient* receiver = new SocketClient( host, SocketBase::DEFAULTPORT );
+   SocketClient* receiver = new SocketClient( host, sockets::DEFAULTPORT );
 
    receiver->connect();
 
@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = SocketBase::LOCALHOST;
+      host = sockets::LOCALHOST;
    }
    else
    {

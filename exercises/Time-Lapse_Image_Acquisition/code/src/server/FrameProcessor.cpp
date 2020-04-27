@@ -1,12 +1,13 @@
 #include <FrameProcessor.h>
+#include <RingBuffer.h>
 #include <V4l2.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
-#include <unistd.h>
-#include <thread.h>
-#include <fstream>
 #include <logging.h>
-#include <RingBuffer.h>
+#include <thread.h>
+#include <unistd.h>
+
+#include <fstream>
 
 extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
@@ -31,8 +32,8 @@ FrameProcessor::FrameProcessor()
 {
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
-      perror ("FC sem_init failed");
-      exit(EXIT_FAILURE);
+      perror( "FC sem_init failed" );
+      exit( EXIT_FAILURE );
    }
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
 }
@@ -80,25 +81,22 @@ int FrameProcessor::processImage( const void* p, int size )
    // processing you wish.
    //
 
-   if ( fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV )
+   logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
+
+   // Pixels are YU and YV alternating, so YUYV which is 4 bytes
+   // We want RGB, so RGBRGB which is 6 bytes
+   //
+   for ( i = 0, newi = 0; i < size; i = i + 4, newi = newi + 6 )
    {
-      logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
-
-      // Pixels are YU and YV alternating, so YUYV which is 4 bytes
-      // We want RGB, so RGBRGB which is 6 bytes
-      //
-      for ( i = 0, newi = 0; i < size; i = i + 4, newi = newi + 6 )
-      {
-         y_temp  = (int)pptr[ i ];
-         u_temp  = (int)pptr[ i + 1 ];
-         y2_temp = (int)pptr[ i + 2 ];
-         v_temp  = (int)pptr[ i + 3 ];
-         yuv2rgb( y_temp, u_temp, v_temp, &bigbuffer[ newi ], &bigbuffer[ newi + 1 ], &bigbuffer[ newi + 2 ] );
-         yuv2rgb( y2_temp, u_temp, v_temp, &bigbuffer[ newi + 3 ], &bigbuffer[ newi + 4 ], &bigbuffer[ newi + 5 ] );
-      }
-
-      dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), framecnt, &frame_time );
+      y_temp  = (int)pptr[ i ];
+      u_temp  = (int)pptr[ i + 1 ];
+      y2_temp = (int)pptr[ i + 2 ];
+      v_temp  = (int)pptr[ i + 3 ];
+      yuv2rgb( y_temp, u_temp, v_temp, &bigbuffer[ newi ], &bigbuffer[ newi + 1 ], &bigbuffer[ newi + 2 ] );
+      yuv2rgb( y2_temp, u_temp, v_temp, &bigbuffer[ newi + 3 ], &bigbuffer[ newi + 4 ], &bigbuffer[ newi + 5 ] );
    }
+
+   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), framecnt, &frame_time );
    return 1;
 }
 

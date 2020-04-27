@@ -61,7 +61,7 @@ int main( int argc, char* argv[] )
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = SocketBase::LOCALHOST;
+      host = sockets::LOCALHOST;
    }
    else
    {

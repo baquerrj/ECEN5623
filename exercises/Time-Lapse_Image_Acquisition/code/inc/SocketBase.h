@@ -6,6 +6,13 @@
 #include <exception>
 #include <stdexcept>
 
+namespace sockets
+{
+static const char *LOCALHOST      = "127.0.0.1";
+static const uint32_t DEFAULTPORT = 8080;
+}  // namespace sockets
+
+
 class SocketBase
 {
 public:
@@ -15,15 +22,12 @@ public:
       char body[ 50 ];
    };
 
-   static const char* LOCALHOST;
-   static const uint32_t DEFAULTPORT = 8080;
-
 public:
    SocketBase()
    {
       mySocket     = 100;
-      localAddress = LOCALHOST;
-      localPort    = DEFAULTPORT;
+      localAddress = sockets::LOCALHOST;
+      localPort    = sockets::DEFAULTPORT;
       data         = new packet_t;
    }
 
