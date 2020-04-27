@@ -113,21 +113,21 @@ void create_thread( const std::string threadName,
    uint16_t originalNice = getpriority( PRIO_PROCESS, 0 );
    setpriority( PRIO_PROCESS, 0, processParams.nice );
 
-   if ( int error = pthread_create( &threadId, &threadAttr, start_routine, args ) )
+   if ( pthread_create( &threadId, &threadAttr, start_routine, args ) )
    {
-      throw( std::string( "pthread_create failure" ) + " in thread " + threadName );
+      throw( std::string( "pthread_create failure [" ) + strerror( errno ) + "] in thread " + threadName );
    }
 
    setpriority( PRIO_PROCESS, 0, originalNice );
 
    if ( pthread_setname_np( threadId, threadName.c_str() ) )
    {
-      logging::ERROR( std::string( "pthread_setname_np failure" ) + " in thread " + threadName );
+      logging::ERROR( std::string( "pthread_setname_np failure [" ) + strerror( errno ) + "] in thread " + threadName );
    }
 
    if ( pthread_attr_destroy( &threadAttr ) )
    {
-      logging::ERROR( std::string( "pthread_attr_destroy failure" ) + " in thread " + threadName );
+      logging::ERROR( std::string( "pthread_attr_destroy failure [" ) + strerror( errno ) + "] in thread " + threadName );
    }
 }
 
