@@ -38,19 +38,19 @@ FrameCollector::FrameCollector( int device = 0 ) :
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
-      printf( "Mem allocation failed for EXECUTION_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for executionTimes for FC" );
    }
 
    startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( startTimes == NULL )
    {
-      printf( "Mem allocation failed for START_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for startTimes for FC" );
    }
 
    endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( endTimes == NULL )
    {
-      printf( "Mem allocation failed for END_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for endTimes for FC" );
    }
 
    capture = new V4l2( "/dev/video" + std::to_string( device ), V4l2::IO_METHOD_USERPTR );

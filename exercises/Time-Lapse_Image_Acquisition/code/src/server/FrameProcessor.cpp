@@ -28,10 +28,16 @@ static const ThreadConfigData processorThreadConfig = {
     "PROCESSOR",
     processorParams};
 
-FrameProcessor::FrameProcessor()
+FrameProcessor::FrameProcessor() :
+    name( processorThreadConfig.threadName ),
+    wcet( 0.0 ),
+    aet( 0.0 ),
+    count( 0 ),
+    frameCount( 0 ),
+    diff_time( 0.0 ),
+    start( {0, 0} ),
+    end( {0, 0} )
 {
-   name = processorThreadConfig.threadName;
-
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -41,27 +47,29 @@ FrameProcessor::FrameProcessor()
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
-      printf( "Mem allocation failed for EXECUTION_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for executionTimes for FP" );
    }
 
    startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( startTimes == NULL )
    {
-      printf( "Mem allocation failed for START_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for startTimes for FP" );
    }
 
    endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( endTimes == NULL )
    {
-      printf( "Mem allocation failed for END_TIME_SEQ\n" );
+      logging::ERROR( "Mem allocation failed for endTimes for FP" );
    }
 
-   start     = {0, 0};
-   end       = {0, 0};
-   diff_time = 0.0;
-   S2Cnt     = 0;
-
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
+   if ( NULL == thread )
+   {
+      logging::ERROR( "Could not allocate memory for FP Thread", true );
+      exit( EXIT_FAILURE );
+   }
+
+   isAlive = true;
 }
 
 FrameProcessor::~FrameProcessor()
@@ -94,12 +102,12 @@ int FrameProcessor::readFrame()
 {
    sem_wait( semS2 );
    clock_gettime( CLOCK_REALTIME, &start );
-   startTimes[ S2Cnt ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
+   startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
    syslog( LOG_INFO, "S2 Count: %lld\t %s Start Time: %lf seconds",
-           S2Cnt,
+           count,
            name.c_str(),
-           startTimes[ S2Cnt ] );
+           startTimes[ count ] );
 
    if ( !frameBuffer.isEmpty() )
    {
@@ -108,18 +116,18 @@ int FrameProcessor::readFrame()
       processImage( &img );
    }
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
-   endTimes[ S2Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
+   endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   executionTimes[ S2Cnt ] = delta_t( &end, &start );
+   executionTimes[ count ] = delta_t( &end, &start );
 
    syslog( LOG_INFO, "%s Count: %lld\t C Time: %lf ms",
            name.c_str(),
-           S2Cnt,
-           executionTimes[ S2Cnt ] );
+           count,
+           executionTimes[ count ] );
 
-   logging::DEBUG( "S2 Count: " + std::to_string( S2Cnt ) +
-                   "\t C Time: " + std::to_string( executionTimes[ S2Cnt ] ) + " ms" );
-   S2Cnt++;  //Increment the count of service S2
+   logging::DEBUG( "S2 Count: " + std::to_string( count ) +
+                   "\t C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
+   count++;  //Increment the count of service S2
    return 1;
 }
 
@@ -159,7 +167,7 @@ int FrameProcessor::processImage( const void* p, int size )
       yuv2rgb( y2_temp, u_temp, v_temp, &bigbuffer[ newi + 3 ], &bigbuffer[ newi + 4 ], &bigbuffer[ newi + 5 ] );
    }
 
-   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), S2Cnt, &frame_time );
+   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), count, &frame_time );
    return 1;
 }
 
