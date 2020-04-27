@@ -119,7 +119,7 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   // syslog( LOG_INFO, "S1 Count: %lld\t %s Start Time: %lf seconds",
+   // syslog( LOG_INFO, "S1 Count: %lld   %s Start Time: %lf seconds",
    //         count,
    //         name.c_str(),
    //         startTimes[ count ] );
@@ -165,13 +165,13 @@ void FrameCollector::collectFrame()
 
    executionTimes[ count ] = delta_t( &end, &start );
 
-   syslog( LOG_INFO, "%s Count: %lld\t C Time: %lf ms",
+   syslog( LOG_INFO, "%s Count: %lld   C Time: %lf ms",
            name.c_str(),
            count,
            executionTimes[ count ] );
 
    logging::DEBUG( "S1 Count: " + std::to_string( count ) +
-                   "\t C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
+                   "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
 
    count++;  //Increment the count of service S1u
 }

@@ -142,7 +142,7 @@ void Sequencer::sequenceServices()
 
       // startTimes[ seqCnt ] = start_time;
 
-      syslog( LOG_INFO, "SEQ Count: %llu\t Sequencer start Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer start Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
 
       if ( delay_cnt > 1 )
          printf( "Sequencer looping delay %d\n", delay_cnt );
@@ -151,26 +151,26 @@ void Sequencer::sequenceServices()
       // Servcie_1 = RT_MAX-1	@ 1 Hz
       if ( ( seqCnt % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S1 Release at %llu\t Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S1 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
          sem_post( semS1 );
       }
 
       // Service_2 = RT_MAX-2	@ 1 Hz
       if ( ( seqCnt % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S2 Release at %llu\t Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S2 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
          sem_post( semS2 );
       }
       // Service_3 = RT_MAX-3	@ 1 Hz
       if ( ( seqCnt % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S3 Release at %llu\t Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
          sem_post( semS3 );
       }
       clock_gettime( CLOCK_REALTIME, &sequencer_end_time );
       endTimes[ seqCnt ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
 
-      syslog( LOG_INFO, "SEQ Count: %llu\t Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
+      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
 
       seqCnt++;  //Increment the sequencer count
    } while ( !abortTest && ( seqCnt < ( FRAMES_TO_EXECUTE * 20 ) ) );

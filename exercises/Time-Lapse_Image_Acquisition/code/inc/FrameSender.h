@@ -38,6 +38,7 @@ private:
    double* endTimes;        //!< To store end time for each iteration
    SocketServer* server;
    int client;
+   char *sendBuffer;
 };
 
 #endif  //__FRAME_SENDER_H__
