@@ -1,8 +1,9 @@
 #ifndef __FRAME_PROCESSOR_H__
 #define __FRAME_PROCESSOR_H__
 
-#include <time.h>
 #include <semaphore.h>
+#include <time.h>
+
 #include <memory>
 
 class CyclicThread;
@@ -29,6 +30,18 @@ private:
    sem_t sem;
    std::string name;
    CyclicThread* thread;
+
+   double wcet;
+   double aet;
+   double* executionTimes;  //!< To store execution time for each iteration
+   double* startTimes;      //!< To store start time for each iteration
+   double* endTimes;        //!< To store end time for each iteration
+
+   struct timespec start;  //!< To measure start time of the service
+   struct timespec end;    //!< To measure end time of the service
+   double diff_time;               //!< To store execution time for each iteration
+
+   unsigned long long S2Cnt;
 };
 
 inline sem_t* FrameProcessor::getSemaphore( void )

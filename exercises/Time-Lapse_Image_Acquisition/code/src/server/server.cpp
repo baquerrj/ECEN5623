@@ -89,7 +89,6 @@ int main( int argc, char* argv[] )
    }
 
 
-   printf( "size of buffer is %d\n", frameBuffer.size() );
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
    Sequencer* sequencer        = new Sequencer( 1 );

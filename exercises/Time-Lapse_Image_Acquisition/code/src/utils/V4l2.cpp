@@ -481,7 +481,6 @@ V4l2::buffer_s* V4l2::readFrame( void )
             if ( buf.m.userptr == (unsigned long)buffers[ i ].start && buf.length == buffers[ i ].length )
             {
                idx = i;
-               printf( "idx = %d\n", idx );
                break;
             }
          }

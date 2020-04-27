@@ -4,12 +4,12 @@
 #include <fcntl.h>
 #include <linux/videodev2.h>
 #include <logging.h>
+#include <syslog.h>
 #include <thread.h>
 #include <unistd.h>
 
 #include <fstream>
 
-extern unsigned int framecnt;
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
@@ -30,11 +30,37 @@ static const ThreadConfigData processorThreadConfig = {
 
 FrameProcessor::FrameProcessor()
 {
+   name = processorThreadConfig.threadName;
+
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
       exit( EXIT_FAILURE );
    }
+
+   executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   if ( executionTimes == NULL )
+   {
+      printf( "Mem allocation failed for EXECUTION_TIME_SEQ\n" );
+   }
+
+   startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   if ( startTimes == NULL )
+   {
+      printf( "Mem allocation failed for START_TIME_SEQ\n" );
+   }
+
+   endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   if ( endTimes == NULL )
+   {
+      printf( "Mem allocation failed for END_TIME_SEQ\n" );
+   }
+
+   start     = {0, 0};
+   end       = {0, 0};
+   diff_time = 0.0;
+   S2Cnt     = 0;
+
    thread = new CyclicThread( processorThreadConfig, FrameProcessor::execute, this, true );
 }
 
@@ -46,17 +72,51 @@ FrameProcessor::~FrameProcessor()
       delete thread;
       thread = NULL;
    }
+   if ( executionTimes )
+   {
+      delete executionTimes;
+      executionTimes = NULL;
+   }
+   if ( startTimes )
+   {
+      delete startTimes;
+      startTimes = NULL;
+   }
+   if ( endTimes )
+   {
+      delete endTimes;
+      endTimes = NULL;
+   }
    logging::INFO( "FrameProcessor::~FrameProcessor() exiting", true );
 }
 
 int FrameProcessor::readFrame()
 {
    sem_wait( semS2 );
+   clock_gettime( CLOCK_REALTIME, &start );
+   startTimes[ S2Cnt ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
+
+   syslog( LOG_INFO, "S2 Count: %lld\t %s Start Time: %lf seconds",
+           S2Cnt,
+           name.c_str(),
+           startTimes[ S2Cnt ] );
+
    if ( !frameBuffer.isEmpty() )
    {
       V4l2::buffer_s img = frameBuffer.dequeue();
       processImage( img.start, img.length );
    }
+   clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
+   endTimes[ S2Cnt ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
+
+   syslog( LOG_INFO, "S2 Count: %lld\t %s End Time: %lf seconds",
+           S2Cnt,
+           name.c_str(),
+           endTimes[ S2Cnt ] );
+
+   //Store end time in array
+
+   S2Cnt++;  //Increment the count of service S2
    return 1;
 }
 
@@ -76,12 +136,12 @@ int FrameProcessor::processImage( const void* p, int size )
    // record when process was called
    clock_gettime( CLOCK_REALTIME, &frame_time );
 
-   framecnt++;
+   // framecnt++;
    // This just dumps the frame to a file now, but you could replace with whatever image
    // processing you wish.
    //
 
-   logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
+   // logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
 
    // Pixels are YU and YV alternating, so YUYV which is 4 bytes
    // We want RGB, so RGBRGB which is 6 bytes
@@ -96,7 +156,7 @@ int FrameProcessor::processImage( const void* p, int size )
       yuv2rgb( y2_temp, u_temp, v_temp, &bigbuffer[ newi + 3 ], &bigbuffer[ newi + 4 ], &bigbuffer[ newi + 5 ] );
    }
 
-   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), framecnt, &frame_time );
+   dumpImage( bigbuffer, ( ( size * 6 ) / 4 ), S2Cnt, &frame_time );
    return 1;
 }
 
@@ -112,11 +172,11 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
                           std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
                           "640 480\n255\n" );
 
-   logging::DEBUG( "FP: " + ppmHeader, true );
+   // logging::DEBUG( "FP: " + ppmHeader, true );
    file << ppmHeader;
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();
-   printf( "FP: Wrote %d bytes\n", size );
+   // printf( "FP: Wrote %d bytes\n", size );
 }
 
 void FrameProcessor::yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b )

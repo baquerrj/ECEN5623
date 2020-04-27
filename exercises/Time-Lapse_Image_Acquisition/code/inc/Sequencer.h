@@ -26,9 +26,9 @@ private:
    std::string name;
    double wcet;            //Store worst case execution for image capturing
    double aet;             //Store average execution time
-   double* execution_time_seq;  //To store execution time for each iteration
-   double* start_time_seq;      //To store start time for each iteration
-   double* end_time_seq;        //To store end time for each iteration
+   double* executionTime;  //To store execution time for each iteration
+   double* startTime;      //To store start time for each iteration
+   double* endTime;        //To store end time for each iteration
 
    bool isAlive;
    pthread_t threadId;
