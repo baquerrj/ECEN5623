@@ -10,13 +10,10 @@
 #define SEMS1_NAME "/SEMS1"
 #define SEMS2_NAME "/SEMS2"
 
-
 static const uint32_t HRES = 640;
 static const uint32_t VRES = 480;
 
 static const uint32_t FRAMES_TO_EXECUTE = 20020;
-
-extern bool isTimeToDie;
 
 /**
  * @brief calculates the difference between the start and stop times

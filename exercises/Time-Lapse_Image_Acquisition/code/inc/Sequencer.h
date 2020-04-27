@@ -1,17 +1,18 @@
 #ifndef __SEQUENCER_H__
 #define __SEQUENCER_H__
 
+#include <common.h>
 #include <semaphore.h>
+
 #include <memory>
 #include <string>
-#include <common.h>
 
 class CyclicThread;
 
 class Sequencer
 {
 public:
-   Sequencer( uint8_t captureFrequency );
+   Sequencer( uint8_t frequency );
    ~Sequencer();
 
    void sequenceServices();
@@ -24,6 +25,7 @@ public:
 
 private:
    std::string name;
+   uint8_t captureFrequency;
    double wcet;            //Store worst case execution for image capturing
    double aet;             //Store average execution time
    double* executionTime;  //To store execution time for each iteration

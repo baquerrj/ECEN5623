@@ -91,7 +91,7 @@ int main( int argc, char* argv[] )
 
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
-   Sequencer* sequencer        = new Sequencer( 1 );
+   Sequencer* sequencer        = new Sequencer( 10 );
    pthread_t sequencerThreadId = sequencer->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
