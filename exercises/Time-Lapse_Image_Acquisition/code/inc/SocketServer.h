@@ -15,6 +15,7 @@ public:
    int accept();
    void listen( uint8_t connections );
    int send( int client, const char* message );
+   int send( const char* message );
    int read( int client );
 
    int client;

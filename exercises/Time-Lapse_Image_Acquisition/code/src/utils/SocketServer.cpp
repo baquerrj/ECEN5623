@@ -65,10 +65,7 @@ int SocketServer::accept( void )
 int SocketServer::send( int client, const char *message )
 {
    logging::INFO( "SocketServer::send()", true );
-   snprintf( data->header, sizeof( data->header ), "%p:", (void *)this );
-   snprintf( data->body, sizeof( data->body ), "%s", message );
-
-   if ( 0 > ::send( client, data, sizeof( *data ), 0 ) )
+   if ( 0 > ::send( client, message, sizeof( *message ), 0 ) )
    {
       logging::ERROR( logging::getErrnoString( "SocketServer::send()" ) );
       return -1;
@@ -77,5 +74,17 @@ int SocketServer::send( int client, const char *message )
    {
       return 0;
    }
+}
 
+int SocketServer::send( const char *message )
+{
+   if ( 0 > send( client, message ) )
+   {
+      logging::ERROR( logging::getErrnoString( "SocketServer::send()" ) );
+      return -1;
+   }
+   else
+   {
+      return 0;
+   }
 }

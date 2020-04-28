@@ -1,7 +1,7 @@
+#include <SocketBase.h>
+#include <SocketClient.h>
 #include <logging.h>
 #include <signal.h>
-#include <SocketClient.h>
-#include <SocketBase.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -10,7 +10,10 @@
 
 int force_format = 1;
 
+#define IMAGE_SIZE ( 921800 )
+
 const char* host;
+std::string ppmName( "test_xxxxxxxx.ppm" );
 
 static void doSocket( void )
 {
@@ -18,12 +21,26 @@ static void doSocket( void )
 
    receiver->connect();
 
-   int recvs = 0;
-   while ( recvs < FRAMES_TO_EXECUTE )
+   char buffer[ IMAGE_SIZE ];
+   int tag = 0;
+   while ( tag < FRAMES_TO_EXECUTE )
    {
-      receiver->read();
-      receiver->echo();
-      recvs++;
+      int valread          = 0;
+      int total_image_size = 0;
+      sprintf( &ppmName.front(), "test_%08d.ppm", tag );
+      FILE* fp = fopen( ppmName.c_str(), "w" );
+      do
+      {
+         logging::INFO( "Receiving image...", true );
+         valread = receiver->receive( (char*)buffer );
+         logging::INFO( "Image " + std::to_string( tag ) + " Bytes Read " + std::to_string( valread ), true );
+         total_image_size += valread;
+
+         int write_size = fwrite( buffer, 1, valread, fp );
+      } while (total_image_size < IMAGE_SIZE );
+
+      fclose(fp);
+      tag++;
    }
    delete receiver;
 }

@@ -140,10 +140,16 @@ void FrameSender::sendPpm()
          fseek( fp, 0, SEEK_SET );
 
          int size = fread( sendBuffer, 1, sizeof( sendBuffer ), fp );
-         if ( 0 > send( client, (char*)&sendBuffer, size, 0 ) )
+         int rc = send( client, (char*)&sendBuffer, size, 0 );
+         if ( 0 > rc )
          {
             logging::WARN( logging::getErrnoString( "send failed" ), true );
          }
+         else
+         {
+            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", tag, rc );
+         }
+
          tag++;
       }
    }

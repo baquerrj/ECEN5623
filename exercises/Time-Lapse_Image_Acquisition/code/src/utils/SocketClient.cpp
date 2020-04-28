@@ -86,3 +86,9 @@ int SocketClient::read()
       return 0;
    }
 }
+
+int SocketClient::receive( char* buffer )
+{
+   int rc = recv( mySocket, buffer, 921800, 0);
+   return rc;
+}
