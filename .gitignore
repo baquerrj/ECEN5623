@@ -37,3 +37,7 @@
 *.out
 *.app
 **/bin/
+
+# Doxygen output
+**/html/
+**/latex/
