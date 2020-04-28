@@ -25,45 +25,14 @@ sem_t* semS3;
 const char* host;
 
 RingBuffer< V4l2::buffer_s > frameBuffer( 10 );
-
-#if TEST_SOCKETS
-static void doSocket( void )
-{
-   int client = -1;
-
-   sockets::SocketServer* server = new sockets::SocketServer( std::string( host ), sockets::DEFAULTPORT );
-
-   server->listen( 1 );
-
-   while ( 0 > client )
-   {
-      client = server->accept();
-   }
-
-   const char* patterns[] = {
-       "Hello World",
-       "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-       "12345671231243",
-       "Another message!",
-       "One more!"};
-
-   for ( int i = 0; i < 5; i++ )
-   {
-      server->send( client, patterns[ i ] );
-
-      server->read( client );
-   }
-
-   delete server;
-}
-#endif  // TEST_SOCKETS
+uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
 
 int main( int argc, char* argv[] )
 {
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = sockets::LOCALHOST;
+      host = LOCAL_HOST.c_str();
    }
    else
    {
@@ -74,6 +43,13 @@ int main( int argc, char* argv[] )
    {
       captureFrequency = std::atoi( getCmdOption( argv, argv + argc, "-f" ) );
    }
+
+   if ( cmdOptionExists( argv, argv + argc, "-n" ) )
+   {
+      FRAMES_TO_EXECUTE = std::atoi( getCmdOption( argv, argv + argc, "-n" ) );
+   }
+
+   printf( "FRAMES_TO_EXECUTE = %u\n", FRAMES_TO_EXECUTE );
 
    pid_t mainThreadId   = getpid();
    std::string fileName = "server" + std::to_string( mainThreadId ) + ".log";

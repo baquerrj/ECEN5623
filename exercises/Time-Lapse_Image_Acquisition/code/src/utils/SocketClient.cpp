@@ -1,94 +1,137 @@
+#include <errno.h>
+#include <stdlib.h> // atoi
+#include <string.h> // memset
+#include <stdio.h>  // sprintf
 #include <SocketClient.h>
-#include <logging.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
-/* /sys includes */
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <sys/socket.h>
 
-
-SocketClient::SocketClient( const std::string &addr, const uint32_t port ) :
-    SocketBase( addr, port )
+SocketClient::SocketClient( const SocketBase::socketType_e socketType )
+ : SocketBase( socketType )
 {
-   mySocket = socket( AF_INET, SOCK_STREAM, 0 );
-   if ( 0 > mySocket )
-   {
-      logging::ERROR( "Could not create socket!", true );
-   }
 }
 
 SocketClient::~SocketClient()
 {
-   close( mySocket );
 }
 
-int SocketClient::connect( void )
+bool SocketClient::connectSocket()
 {
-   struct sockaddr_in serv_addr;
-   memset( &serv_addr, '0', sizeof( serv_addr ) );
-   serv_addr.sin_family = AF_INET;
-   serv_addr.sin_port   = htons( localPort );
-   if ( 0 >= inet_pton( AF_INET, localAddress.c_str(), &serv_addr.sin_addr ) )
+   // connect() already has the necessary protections against invalid socket
+   // fd, already connected, etc.
+   int32_t retVal = connect( mySocketFd, myHostInfo.ai_addr, myHostInfo.ai_addrlen );
+   if( 0 != retVal )
    {
-      logging::ERROR( "inet_pton failed!", true );
-      perror( " " );
-      return -1;
+      if( EINPROGRESS == errno )
+      {
+         fd_set fdSet;
+         struct timeval timeout;
+         timeout.tv_sec = 5;
+         timeout.tv_usec = 0;
+
+         FD_ZERO( &fdSet );
+         FD_SET( mySocketFd, &fdSet );
+         // First argument is the highest FD value in the set, + 1.
+         // Since there's exactly one FD in there, mySocketFd, the value
+         // becomes mySocketFd + 1.
+         retVal = select( mySocketFd + 1, NULL, &fdSet, NULL, &timeout );
+         if( -1 == retVal )
+         {
+            // ERROR -- select failed.
+            myErrno = errno;
+         }
+         // select should return 1, meaning that all 1 of the file descriptors
+         // tripped.
+         else if( 1 == retVal )
+         {
+            retVal = 0;
+            // success
+         }
+         else
+         {
+            // error - took too long to resolve.
+            retVal = -1;
+         }
+      }
+      else
+      {
+         myErrno = errno;
+      }
    }
-   if ( 0 > ::connect( mySocket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
-   {
-      logging::ERROR( "Encountered error connecting to server!" );
-      perror( " " );
-   }
-   return 1;
+   return ( 0 == retVal );
 }
 
-int SocketClient::send( const char *message )
+bool SocketClient::lockUdpToRemoteSide( const std::string remoteHost, const int32_t remotePort )
 {
-   logging::INFO( "SocketClient::send()", true );
-   snprintf( data->header, sizeof( data->header ), "%p: ", (void *)this );
-   snprintf( data->body, sizeof( data->body ), "%s", message );
-
-   if ( 0 > ::send( mySocket, data, sizeof( *data ), 0 ) )
+   int32_t retVal = -1;
+   if( ( UDP_SOCKET == myHostInfo.ai_socktype ) && ( 0 < remoteHost.size() ) && ( 0 <= remotePort ) )
    {
-      perror( "SocketClient::send() " );
-      return -1;
+      struct addrinfo remoteInfo;
+      bool status = getAddressInformation( remoteInfo, remoteHost, remotePort );
+      if( true == status )
+      {
+         retVal = connect( mySocketFd, remoteInfo.ai_addr, remoteInfo.ai_addrlen );
+         if( 0 != retVal )
+         {
+            myErrno = retVal;
+         }
+      }
+      else
+      {
+         myErrno = retVal;
+      }
    }
+   return ( 0 == retVal );
+}
+
+bool SocketClient::setupSocket( const std::string remoteHost,
+                                const int32_t remotePort,
+                                const bool nonBlocking,
+                                const bool bindUdp )
+{
+   bool retVal = true;
+
+   if( UDP_SOCKET == myHostInfo.ai_socktype )
+   {
+      std::string tempHost = remoteHost;
+      if( 0 == tempHost.size() )
+      {
+         // locaHost isn't specified, so use 'localhost' as the address for
+         // binding.
+         tempHost = "localhost";
+      }
+
+      // tempHost is now correctly setup.
+      // Only bind if the local port is also specified.
+      if( DEFAULT_PORT < remotePort )
+      {
+         // Bind against specified host.
+         retVal &= SocketBase::setupSocket( tempHost, remotePort, nonBlocking );
+         if(( true == retVal ) && bindUdp )
+         {
+            retVal &= ( 0 == bindSocket() );
+         }
+      }
+      else
+      {
+         // A socket is needed, but don't care about what service/port it tries to associate with.
+         retVal &= SocketBase::setupSocket( tempHost, 0, nonBlocking );
+      }
+   }
+   // TCP socket -- no binding needed or desired, but connect is required.
    else
    {
-      return 0;
+      if( ( 0 < remoteHost.size() ) && ( DEFAULT_PORT < remotePort ) )
+      {
+         retVal &= SocketBase::setupSocket( remoteHost, remotePort, nonBlocking );
+         if( true == retVal )
+         {
+            retVal &= connectSocket();
+         }
+      }
+      else
+      {
+         // remoteHost isn't specified.  Return failure.
+         retVal = false;
+      }
    }
-}
-
-int SocketClient::echo()
-{
-   int retVal = send( buffer.c_str() );
    return retVal;
-}
-
-int SocketClient::read()
-{
-   logging::INFO( "SocketClient::read()", true );
-   if ( 0 > ::read( mySocket, data, sizeof( *data ) ) )
-   {
-      logging::ERROR( logging::getErrnoString( "Failured at SocketClient::read()" ),
-                      true );
-      return -1;
-   }
-   else
-   {
-      buffer = std::string( data->header ) + ":" + std::string( data->body );
-      logging::INFO( "Received: " + buffer, true );
-      return 0;
-   }
-}
-
-int SocketClient::receive( char* buffer )
-{
-   int rc = recv( mySocket, buffer, 921800, 0);
-   return rc;
 }

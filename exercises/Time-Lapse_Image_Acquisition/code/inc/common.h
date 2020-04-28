@@ -11,10 +11,14 @@
 #define SEMS2_NAME "/SEMS2"
 #define SEMS3_NAME "/SEMS3"
 
-static const uint32_t HRES = 640;
-static const uint32_t VRES = 480;
+static const uint32_t DEFAULT_PORT  = 8080;
+static const std::string LOCAL_HOST = "127.0.0.1";
+static const uint32_t HRES          = 640;
+static const uint32_t VRES          = 480;
 
-static const uint32_t FRAMES_TO_EXECUTE = 2000;
+static const uint32_t DEFAULT_FRAMES = 2000;
+
+extern uint32_t FRAMES_TO_EXECUTE;
 
 /**
  * @brief calculates the difference between the start and stop times

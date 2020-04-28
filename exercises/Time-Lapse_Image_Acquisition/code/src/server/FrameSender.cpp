@@ -1,11 +1,16 @@
 #include <FrameSender.h>
+#include <SocketClient.h>
 #include <SocketServer.h>
 #include <logging.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <syslog.h>
 #include <thread.h>
 #include <thread_utils.h>
+
+#define USEC_PER_MSEC ( 1000 )
+
 static const ProcessParams senderParams = {
     cpuReceiver,  // CPU1
     SCHED_FIFO,
@@ -27,6 +32,8 @@ const char* patterns[] = {
     "One more!"};
 
 std::string ppmName( "test_xxxxxxxx.ppm" );
+
+using std::to_string;
 
 FrameSender::FrameSender() :
     name( senderThreadConfig.threadName ),
@@ -56,14 +63,13 @@ FrameSender::FrameSender() :
       logging::ERROR( "Mem allocation failed for endTimes for FC" );
    }
 
-   server = new SocketServer( std::string( host ), sockets::DEFAULTPORT );
+   server = new SocketServer( SocketBase::TCP_SOCKET );
    if ( server == NULL )
    {
       logging::ERROR( "Could not allocate memory for server", true );
       exit( EXIT_FAILURE );
    }
-
-   sendBuffer = new char[ 921800 ]{};
+   server->setupSocket( std::string( host ),   DEFAULT_PORT, 3 );
 
    thread = new CyclicThread( senderThreadConfig, FrameSender::execute, this, true );
    if ( thread == NULL )
@@ -72,12 +78,12 @@ FrameSender::FrameSender() :
       exit( EXIT_FAILURE );
    }
 
-   client = -1;
-   server->listen( 1 );
-   while ( 0 > client )
+   client = new SocketClient();
+   while ( false == server->acceptSocket( *client ) )
    {
-      client = server->accept();
+      ;
    }
+   server->setSendFlags( MSG_DONTWAIT );
    logging::DEBUG( "Connection established", true );
    isAlive = true;
 }
@@ -105,7 +111,11 @@ FrameSender::~FrameSender()
       delete server;
       server = NULL;
    }
-   delete sendBuffer;
+   if ( client )
+   {
+      delete client;
+      client = NULL;
+   }
    if ( thread )
    {
       delete thread;
@@ -125,7 +135,7 @@ void FrameSender::sendPpm()
    sem_wait( semS3 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
-   static int tag      = 0;
+   static int tag      = 1;
    struct stat st;
 
    if ( tag < FRAMES_TO_EXECUTE )
@@ -134,13 +144,28 @@ void FrameSender::sendPpm()
 
       if ( -1 != stat( ppmName.c_str(), &st ) )
       {
-         FILE* fp = fopen( ppmName.c_str(), "r" );
-         fseek( fp, 0, SEEK_END );
-         int fileSize = ftell( fp );
-         fseek( fp, 0, SEEK_SET );
+         std::streampos fsize = 0;
+         std::ifstream file;
+         file.open( ppmName, std::ifstream::in | std::ifstream::binary );
+         if ( file )
+         {
+            file.seekg( 0, file.end );
+            fsize = file.tellg();
+            file.seekg( 0, file.beg );
+         }
 
-         int size = fread( sendBuffer, 1, sizeof( sendBuffer ), fp );
-         int rc = send( client, (char*)&sendBuffer, size, 0 );
+         file.read( sendBuffer, fsize );
+         if ( file )
+         {
+            logging::DEBUG( ppmName + " read into memory", true );
+         }
+         else
+         {
+            logging::WARN( "Could only read " + to_string(file.gcount() ), true );
+         }
+
+         logging::DEBUG( "Sending " + to_string( fsize ) + " bytes", true );
+         int rc = client->send( (void*)&sendBuffer, fsize );
          if ( 0 > rc )
          {
             logging::WARN( logging::getErrnoString( "send failed" ), true );
@@ -150,6 +175,9 @@ void FrameSender::sendPpm()
             syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", tag, rc );
          }
 
+         memset( &sendBuffer[ 0 ], 0, sizeof( sendBuffer ) );
+
+         file.close();
          tag++;
       }
    }

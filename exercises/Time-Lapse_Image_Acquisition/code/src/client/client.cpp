@@ -10,36 +10,39 @@
 
 int force_format = 1;
 
-#define IMAGE_SIZE ( 921800 )
+#define IMAGE_SIZE ( 921641 )
+#define USEC_PER_MSEC ( 1000 )
 
 const char* host;
 std::string ppmName( "test_xxxxxxxx.ppm" );
 
+bool abortSend = false;
+
+uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
+
 static void doSocket( void )
 {
-   SocketClient* receiver = new SocketClient( host, sockets::DEFAULTPORT );
-
-   receiver->connect();
+   SocketClient* receiver = new SocketClient( SocketBase::TCP_SOCKET );
+   receiver->setupSocket( std::string( host ), DEFAULT_PORT );
 
    char buffer[ IMAGE_SIZE ];
-   int tag = 0;
+   uint32_t tag = 0;
    while ( tag < FRAMES_TO_EXECUTE )
    {
-      int valread          = 0;
-      int total_image_size = 0;
+      int valread = 0;
       sprintf( &ppmName.front(), "test_%08d.ppm", tag );
-      FILE* fp = fopen( ppmName.c_str(), "w" );
-      do
-      {
-         logging::INFO( "Receiving image...", true );
-         valread = receiver->receive( (char*)buffer );
-         logging::INFO( "Image " + std::to_string( tag ) + " Bytes Read " + std::to_string( valread ), true );
-         total_image_size += valread;
+      std::ofstream file;
+      file.open( ppmName, std::ofstream::out );
+      logging::INFO( "Receiving image...", true );
 
-         int write_size = fwrite( buffer, 1, valread, fp );
-      } while (total_image_size < IMAGE_SIZE );
+      valread = receiver->recvsel( (void*)buffer, sizeof( buffer ), abortSend );
 
-      fclose(fp);
+      logging::INFO( "Image " + std::to_string( tag ) + " Bytes Read " + std::to_string( valread ), true );
+
+      file.write( buffer, sizeof( buffer ) );
+
+      memset( &buffer[ 0 ], 0, sizeof( buffer ) );
+      file.close();
       tag++;
    }
    delete receiver;
@@ -50,13 +53,18 @@ int main( int argc, char* argv[] )
    bool local = cmdOptionExists( argv, argv + argc, "--local" );
    if ( local )
    {
-      host = sockets::LOCALHOST;
+      host = LOCAL_HOST.c_str();
    }
    else
    {
       host = "192.168.137.41";
    }
+   if ( cmdOptionExists( argv, argv + argc, "-n" ) )
+   {
+      FRAMES_TO_EXECUTE = std::atoi( getCmdOption( argv, argv + argc, "-n" ) );
+   }
 
+   printf( "FRAMES_TO_EXECUTE = %u\n", FRAMES_TO_EXECUTE );
    pid_t mainThreadId       = getpid();
    std::string fileName     = "client" + std::to_string( mainThreadId ) + ".log";
    logging::config_s config = {logging::LogLevel::TRACE, fileName};

@@ -1,90 +1,101 @@
-#include <SocketServer.h>
-#include <logging.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
-/* /sys includes */
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <sys/socket.h>
+#include <stdlib.h> // atoi
+#include <SocketServer.h>
 
-SocketServer::SocketServer( const std::string &addr, const uint32_t port ) :
-    SocketBase( addr, port )
+#include <stdio.h> // printf
+
+SocketServer::SocketServer( const SocketBase::socketType_e socketType )
+ : SocketBase( socketType )
 {
-   mySocket = socket( AF_INET, SOCK_STREAM, 0 );
-   if ( 0 > mySocket )
-   {
-      logging::ERROR( "Could not create socket!", true );
-   }
-   struct ifreq opt;
-   snprintf( opt.ifr_name, sizeof( opt.ifr_name ), "etho0" );
-   setsockopt( mySocket, SOL_SOCKET, SO_BINDTODEVICE | SO_REUSEADDR | SO_REUSEPORT, (void *)&opt, sizeof( opt ) );
-
-   struct sockaddr_in serv_addr;
-   serv_addr.sin_family      = AF_INET;
-   serv_addr.sin_addr.s_addr = INADDR_ANY;
-   serv_addr.sin_port        = htons( localPort );
-   int addrlen               = sizeof( serv_addr );
-   if ( 0 > bind( mySocket, (struct sockaddr *)&serv_addr, sizeof( serv_addr ) ) )
-   {
-      logging::ERROR( "Could not bind socket!", true );
-   }
 }
 
 SocketServer::~SocketServer()
 {
-   ::close( mySocket );
 }
 
-void SocketServer::listen( uint8_t connections )
+int32_t SocketServer::listenSocket( int32_t backLog )
 {
-   if ( 0 > ::listen( mySocket, connections ) )
+   // listen() already has the necessary protections against invalid socket
+   // fd, already listening, etc.
+   int32_t retVal = listen( mySocketFd, backLog );
+   if( 0 != retVal )
    {
-      logging::ERROR( "Could not set to listen for connections!", true );
+      myErrno = errno;
    }
+   return retVal;
 }
 
-int SocketServer::accept( void )
+bool SocketServer::acceptSocket( SocketBase &client )
 {
-   struct sockaddr_in serv_addr;
-   serv_addr.sin_family      = AF_INET;
-   serv_addr.sin_addr.s_addr = INADDR_ANY;
-   serv_addr.sin_port        = htons( localPort );
-   int addrlen               = sizeof( serv_addr );
-   if ( 0 > ( client = ::accept( mySocket, (struct sockaddr *)&serv_addr, (socklen_t *)&addrlen ) ) )
+   printf( "SocketServer::acceptSocket() entered\n" );
+   bool retVal = true;
+   struct sockaddr remoteInfo;
+   int32_t clientFd = INITIAL_FD;
+   if( 0 <= mySocketFd )
    {
-      logging::ERROR( "Encountered error accepting new connection" );
-      perror( " " );
+      socklen_t nameLen = sizeof( struct sockaddr );
+      clientFd = accept( mySocketFd, &remoteInfo, &nameLen );
+      if( INITIAL_FD == clientFd )
+      {
+         myErrno = errno;
+         retVal = false;
+         printf( "ERROR: SocketServer::acceptSocket() %s\n", strerror( myErrno ) );
+      }
+      else
+      {
+         std::string remoteHost;
+         int32_t remotePort;
+         if( false == getNameInformation( remoteInfo, remoteHost, remotePort ) )
+         {
+            // If there's a failure, reset the remoteHost and remotePort to their invalid defaults.
+            remotePort = -1;
+            remoteHost = "";
+         }
+
+         retVal &= client.initializeClientData( clientFd, remoteHost, remotePort );
+      }
    }
-   return client;
+   return retVal;
 }
 
-int SocketServer::send( int client, const char *message )
+bool SocketServer::setupSocket( const std::string localHost, const int32_t localPort, const uint32_t backlog, const bool nonBlocking )
 {
-   logging::INFO( "SocketServer::send()", true );
-   if ( 0 > ::send( client, message, sizeof( *message ), 0 ) )
+   printf("SocketServer::setupSocket() entered\n" );
+   bool retVal = true;
+   myPort = localPort;
+   myBacklog = backlog;
+
+   std::string tempHost = localHost;
+   if( 0 == tempHost.size() )
    {
-      logging::ERROR( logging::getErrnoString( "SocketServer::send()" ) );
-      return -1;
+      tempHost = "localhost";
+   }
+
+   if( ( 0 <= localPort ) && ( 0 < backlog ) )
+   {
+      retVal = SocketBase::setupSocket( tempHost, localPort, nonBlocking );
+      if( true == retVal )
+      {
+         // Perform the bind and listen.
+         if( ( 0 != bindSocket() ) ||
+             ( 0 != listenSocket( myBacklog ) ) )
+         {
+            myErrno = errno;
+            printf( "binSocket or listenSocket failed: %s\n", strerror(myErrno));
+            retVal = false;
+         }
+      }
    }
    else
    {
-      return 0;
+      retVal = false;
    }
+   printf( "SocketServer::setupSocket() exiting\n" );
+   return retVal;
 }
 
-int SocketServer::send( const char *message )
+bool SocketServer::initializeClientData( const int32_t clientFd, const std::string &host, const int32_t &port )
 {
-   if ( 0 > send( client, message ) )
-   {
-      logging::ERROR( logging::getErrnoString( "SocketServer::send()" ) );
-      return -1;
-   }
-   else
-   {
-      return 0;
-   }
+   return false;
 }

@@ -30,13 +30,21 @@ clean : clean_code
 .PHONY : clean_obj
 clean_obj : clean_obj_clean
 
-.PHONY : update
-update : targets
+.PHONY : update_all
+update_all : targets
 	ssh -tt jetsonnano  "mkdir -p ~/Time-Lapse_Image_Acquisition"
 	scp -r code/  jetsonnano:~/Time-Lapse_Image_Acquisition/
 	scp Makefile  jetsonnano:~/Time-Lapse_Image_Acquisition/
 	scp Rules.mk  jetsonnano:~/Time-Lapse_Image_Acquisition/
 
+.PHONY : update_server
+update_server : targets
+	ssh -tt jetsonnano  "mkdir -p ~/Time-Lapse_Image_Acquisition"
+	scp code/inc/*  jetsonnano:~/Time-Lapse_Image_Acquisition/code/inc/.
+	scp code/src/server/*  jetsonnano:~/Time-Lapse_Image_Acquisition/code/src/server/.
+	scp Makefile Rules.mk jetsonnano:~/Time-Lapse_Image_Acquisition/
+	scp code/*.mk  jetsonnano:~/Time-Lapse_Image_Acquisition/code/.
+
 .PHONY : docs
-docs : 
+docs :
 	/usr/bin/doxygen docs/Doxyfile

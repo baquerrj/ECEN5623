@@ -8,6 +8,9 @@
 
 class CyclicThread;
 class SocketServer;
+class SocketClient;
+
+#define IMAGE_SIZE ( 921800 )
 
 class FrameSender
 {
@@ -37,8 +40,8 @@ private:
    double* startTimes;      //!< To store start time for each iteration
    double* endTimes;        //!< To store end time for each iteration
    SocketServer* server;
-   int client;
-   char *sendBuffer;
+   SocketClient* client;
+   char sendBuffer[ IMAGE_SIZE ];
 };
 
 #endif  //__FRAME_SENDER_H__
