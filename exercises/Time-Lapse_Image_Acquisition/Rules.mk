@@ -36,3 +36,7 @@ update : targets
 	scp -r code/  jetsonnano:~/Time-Lapse_Image_Acquisition/
 	scp Makefile  jetsonnano:~/Time-Lapse_Image_Acquisition/
 	scp Rules.mk  jetsonnano:~/Time-Lapse_Image_Acquisition/
+
+.PHONY : docs
+docs : 
+	/usr/bin/doxygen docs/Doxyfile
