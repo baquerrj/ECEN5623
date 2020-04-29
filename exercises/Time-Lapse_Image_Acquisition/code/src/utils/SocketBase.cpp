@@ -1,10 +1,4 @@
-// United Launch Alliance (ULA) Proprietary Information/Export Controlled Information//
-/********************************************************************************
-   ULA PROPRIETARY INFORMATION
-   Copyright (c) 2007 - 2007 United Launch Alliance, LLC.
-   Unpublished work.  All rights reserved.
-********************************************************************************/
-#include "SocketBase.h"
+#include <SocketBase.h>
 
 #include <string>
 #include <string.h> // memset & memcpy
