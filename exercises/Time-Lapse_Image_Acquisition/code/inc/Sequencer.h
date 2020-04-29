@@ -1,6 +1,7 @@
 #ifndef __SEQUENCER_H__
 #define __SEQUENCER_H__
 
+#include <FrameBase.h>
 #include <common.h>
 #include <semaphore.h>
 
@@ -9,7 +10,7 @@
 
 class CyclicThread;
 
-class Sequencer
+class Sequencer : public FrameBase
 {
 public:
    Sequencer( uint8_t frequency );
@@ -18,34 +19,12 @@ public:
    void sequenceServices();
    static void* execute( void* context );
 
-   pthread_t getThreadId( void );
-   bool isThreadAlive( void );
-
    const uint32_t SEQUENCER_FREQUENCY = 20;  // 20Hz
 
 private:
-   std::string name;
    uint8_t captureFrequency;
-   double wcet;            //Store worst case execution for image capturing
-   double aet;             //Store average execution time
-   double* executionTimes;  //To store execution time for each iteration
-   double* startTimes;      //To store start time for each iteration
-   double* endTimes;        //To store end time for each iteration
-
-   bool isAlive;
-   pthread_t threadId;
-   CyclicThread* thread;
 };
 
-inline pthread_t Sequencer::getThreadId()
-{
-   return threadId;
-}
-
-inline bool Sequencer::isThreadAlive()
-{
-   return isAlive;
-}
 
 inline Sequencer& getSequencer( uint8_t captureFrequency = 1 )
 {

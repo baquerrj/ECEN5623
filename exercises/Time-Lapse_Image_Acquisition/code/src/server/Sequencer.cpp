@@ -32,13 +32,9 @@ extern sem_t* semS2;
 extern sem_t* semS3;
 
 Sequencer::Sequencer( uint8_t frequency ) :
-    name( sequencerThreadConfig.threadName ),
-    captureFrequency( frequency ),
-    wcet( 0.0 ),
-    aet( 0.0 )
+   FrameBase( sequencerThreadConfig ),
+    captureFrequency( frequency )
 {
-   // name = sequencerThreadConfig.threadName;
-   // captureFrequency = captureFrequency;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
@@ -56,15 +52,14 @@ Sequencer::Sequencer( uint8_t frequency ) :
    {
       logging::ERROR( "Mem allocation failed for endTimes for SEQ", true );
    }
-   // semS1 = *_semS1;
-   // semS2 = *_semS2;
+
    thread = new CyclicThread( sequencerThreadConfig, Sequencer::execute, this, true );
    if ( NULL == thread )
    {
       logging::ERROR( "Could not allocate memory for SEQ Thread", true );
       exit( EXIT_FAILURE );
    }
-   threadId = thread->getThreadId();
+   alive = true;
 }
 
 Sequencer::~Sequencer()
@@ -104,7 +99,6 @@ void Sequencer::sequenceServices()
    struct timespec remaining_time;
    double residual;
    int rc, delay_cnt = 0;
-   unsigned long long seqCnt = 0;
 
    static uint8_t divisor = 20 / captureFrequency;
 
@@ -140,42 +134,42 @@ void Sequencer::sequenceServices()
 
       /* Store start time in seconds */
       // start_time = ( (double)sequencer_start_time.tv_sec + (double)( ( sequencer_start_time.tv_nsec ) / (double)1000000000 ) );
-      startTimes[ seqCnt ] = ( (double)sequencer_start_time.tv_sec + (double)( ( sequencer_start_time.tv_nsec ) / (double)1000000000 ) );
+      startTimes[ count ] = ( (double)sequencer_start_time.tv_sec + (double)( ( sequencer_start_time.tv_nsec ) / (double)1000000000 ) );
 
-      // startTimes[ seqCnt ] = start_time;
+      // startTimes[ count ] = start_time;
 
-      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer start Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer start Time: %lf seconds\n", count, startTimes[ count ] );
 
       if ( delay_cnt > 1 )
          printf( "Sequencer looping delay %d\n", delay_cnt );
 
       // Release each service at a sub-rate of the generic sequencer rate
       // Servcie_1 = RT_MAX-1	@ 1 Hz
-      if ( ( seqCnt % divisor ) == 0 )
+      if ( ( count % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S1 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S1 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS1 );
       }
 
       // Service_2 = RT_MAX-2	@ 1 Hz
-      if ( ( seqCnt % divisor ) == 0 )
+      if ( ( count % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S2 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S2 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS2 );
       }
       // Service_3 = RT_MAX-3	@ 1 Hz
-      if ( ( seqCnt % divisor ) == 0 )
+      if ( ( count % divisor ) == 0 )
       {
-         syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", seqCnt, startTimes[ seqCnt ] );
+         syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS3 );
       }
       clock_gettime( CLOCK_REALTIME, &sequencer_end_time );
-      endTimes[ seqCnt ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
+      endTimes[ count ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
 
-      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
+      syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", count, endTimes[ count ] );
 
-      seqCnt++;  //Increment the sequencer count
-   } while ( !abortTest && ( seqCnt < requiredIterations ) );
+      count++;  //Increment the sequencer count
+   } while ( !abortTest && ( count < requiredIterations ) );
 
    abortS1 = true;
    abortS2 = true;
