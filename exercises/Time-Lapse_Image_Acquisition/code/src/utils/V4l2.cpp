@@ -13,7 +13,6 @@
 
 unsigned int framecnt = 0;
 unsigned char bigbuffer[ ( 1280 * 960 ) ];
-extern int force_format;
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
 
@@ -244,34 +243,20 @@ void V4l2::initDevice()
 
    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-   if ( force_format )
+   printf( "FORCING FORMAT\n" );
+   fmt.fmt.pix.width  = HRES;
+   fmt.fmt.pix.height = VRES;
+
+   // Specify the Pixel Coding Formate here
+
+   // This one work for Logitech C200
+   fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+
+   fmt.fmt.pix.field = V4L2_FIELD_NONE;
+
+   if ( -1 == xioctl( fd, VIDIOC_S_FMT, &fmt ) )
    {
-      printf( "FORCING FORMAT\n" );
-      fmt.fmt.pix.width  = HRES;
-      fmt.fmt.pix.height = VRES;
-
-      // Specify the Pixel Coding Formate here
-
-      // This one work for Logitech C200
-      fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-
-      fmt.fmt.pix.field = V4L2_FIELD_NONE;
-
-      if ( -1 == xioctl( fd, VIDIOC_S_FMT, &fmt ) )
-      {
-         logging::ERROR( getErrnoString( "VIDIOC_S_FMT" ) );
-      }
-
-      /* Note VIDIOC_S_FMT may change width and height. */
-   }
-   else
-   {
-      printf( "ASSUMING FORMAT\n" );
-      /* Preserve original settings as set by v4l2-ctl for example */
-      if ( -1 == xioctl( fd, VIDIOC_G_FMT, &fmt ) )
-      {
-         logging::ERROR( getErrnoString( "VIDIOC_G_FMT" ) );
-      }
+      logging::ERROR( getErrnoString( "VIDIOC_S_FMT" ) );
    }
 
    /* Buggy driver paranoia. */
