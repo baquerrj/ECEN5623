@@ -12,7 +12,7 @@
 #define USEC_PER_MSEC ( 1000 )
 
 static const ProcessParams senderParams = {
-    cpuReceiver,  // CPU1
+    cpuSender,  // CPU1
     SCHED_FIFO,
     98,  // highest priority
     0};
@@ -24,12 +24,6 @@ static const ThreadConfigData senderThreadConfig = {
 
 extern const char* host;
 extern sem_t* semS3;
-const char* patterns[] = {
-    "Hello World",
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "12345671231243",
-    "Another message!",
-    "One more!"};
 
 std::string ppmName( "test_xxxxxxxx.ppm" );
 

@@ -39,10 +39,14 @@ const ProcessParams DEFAULT_PROCESS_PARAMS = {
 
 const ProcessParams VOID_PROCESS_PARAMS = {0, 0, 0, 0};
 
-int numCpus     = NUM_CPUS;
-int cpuMain     = CPU_MAIN;
-int cpuLogger   = CPU_LOGGER;
-int cpuReceiver = CPU_RECEIVER;
+int numCpus      = NUM_CPUS;
+int cpuMain      = CPU_MAIN;
+int cpuSequencer = CPU_SEQUENCER;
+int cpuCollector = CPU_COLLECTOR;
+int cpuProcessor = CPU_PROCESSOR;
+int cpuReceiver  = CPU_RECEIVER;
+int cpuSender    = CPU_SENDER;
+int cpuLogger    = CPU_LOGGER;
 
 static bool name_is_valid( const std::string name );
 

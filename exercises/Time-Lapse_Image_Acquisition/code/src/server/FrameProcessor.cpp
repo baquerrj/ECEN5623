@@ -21,9 +21,9 @@ extern RingBuffer< V4l2::buffer_s > frameBuffer;
 extern utsname hostName;
 
 static const ProcessParams processorParams = {
-    cpuMain,  // CPU1
+    cpuProcessor,
     SCHED_FIFO,
-    98,  // highest priority
+    98,
     0};
 
 static const ThreadConfigData processorThreadConfig = {

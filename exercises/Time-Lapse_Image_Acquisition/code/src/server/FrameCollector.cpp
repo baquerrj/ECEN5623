@@ -8,9 +8,9 @@
 
 extern sem_t* semS1;
 static const ProcessParams collectorParams = {
-    cpuMain,  // CPU1
+    cpuCollector,
     SCHED_FIFO,
-    98,  // highest priority
+    98,
     0};
 
 static const ThreadConfigData collectorThreadConfig = {

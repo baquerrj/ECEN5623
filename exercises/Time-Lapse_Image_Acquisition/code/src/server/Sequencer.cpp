@@ -12,9 +12,9 @@
 #define NSEC_PER_USEC ( 1000000 )
 
 static const ProcessParams sequencerParams = {
-    cpuMain,  // CPU1
+    cpuSequencer,
     SCHED_FIFO,
-    99,  // highest priority
+    99,
     0};
 
 static const ThreadConfigData sequencerThreadConfig = {
