@@ -1,14 +1,13 @@
 #ifndef __FRAME_PROCESSOR_H__
 #define __FRAME_PROCESSOR_H__
 
-#include <semaphore.h>
+#include <FrameBase.h>
 #include <time.h>
 #include <V4l2.h>
-#include <memory>
 
 class CyclicThread;
 
-class FrameProcessor
+class FrameProcessor : public FrameBase
 {
 public:
    FrameProcessor();
@@ -28,7 +27,7 @@ private:
    void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
 
 private:
-   std::string name;
+   // std::string name;
    double wcet;
    double aet;
    unsigned long long count;
@@ -37,9 +36,9 @@ private:
    struct timespec start;  //!< To measure start time of the service
    struct timespec end;    //!< To measure end time of the service
 
-   bool isAlive;
-   sem_t sem;
-   CyclicThread* thread;
+   // bool isAlive;
+   // sem_t sem;
+   // CyclicThread* thread;
 
    double* executionTimes;  //!< To store execution time for each iteration
    double* startTimes;      //!< To store start time for each iteration

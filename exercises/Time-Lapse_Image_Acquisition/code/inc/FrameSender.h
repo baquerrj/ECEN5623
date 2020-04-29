@@ -1,9 +1,8 @@
 #ifndef __FRAME_SENDER_H__
 #define __FRAME_SENDER_H__
 
-#include <semaphore.h>
+#include <FrameBase.h>
 #include <string.h>
-
 #include <memory>
 
 class CyclicThread;
@@ -12,7 +11,7 @@ class SocketClient;
 
 #define IMAGE_SIZE ( 921800 )
 
-class FrameSender
+class FrameSender : public FrameBase
 {
 public:
    FrameSender();
@@ -23,7 +22,7 @@ public:
    static void* execute( void* context );
 
 private:
-   std::string name;
+   // std::string name;
    double wcet;
    double aet;
    unsigned long long count;
@@ -32,9 +31,9 @@ private:
    struct timespec start;  //!< To measure start time of the service
    struct timespec end;    //!< To measure end time of the service
 
-   bool isAlive;
-   sem_t sem;
-   CyclicThread* thread;
+   // bool isAlive;
+   // sem_t sem;
+   // CyclicThread* thread;
 
    double* executionTimes;  //!< To store execution time for each iteration
    double* startTimes;      //!< To store start time for each iteration

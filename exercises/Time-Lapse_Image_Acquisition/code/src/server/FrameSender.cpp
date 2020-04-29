@@ -23,6 +23,7 @@ static const ThreadConfigData senderThreadConfig = {
     senderParams};
 
 extern const char* host;
+extern bool abortS3;
 extern sem_t* semS3;
 
 std::string ppmName( "test_xxxxxxxx.ppm" );
@@ -30,7 +31,6 @@ std::string ppmName( "test_xxxxxxxx.ppm" );
 using std::to_string;
 
 FrameSender::FrameSender() :
-    name( senderThreadConfig.threadName ),
     wcet( 0.0 ),
     aet( 0.0 ),
     count( 0 ),
@@ -39,6 +39,7 @@ FrameSender::FrameSender() :
     start( {0, 0} ),
     end( {0, 0} )
 {
+    name = senderThreadConfig.threadName;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
@@ -79,7 +80,7 @@ FrameSender::FrameSender() :
    }
    server->setSendFlags( MSG_DONTWAIT );
    logging::DEBUG( "Connection established", true );
-   isAlive = true;
+   alive = true;
 }
 
 FrameSender::~FrameSender()
@@ -126,6 +127,11 @@ void* FrameSender::execute( void* context )
 
 void FrameSender::sendPpm()
 {
+   if ( abortS3 )
+   {
+      thread->shutdown();
+      return;
+   }
    sem_wait( semS3 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds

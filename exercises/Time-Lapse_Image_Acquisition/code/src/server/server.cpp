@@ -19,6 +19,10 @@
 
 int force_format = 1;
 
+bool abortS1;
+bool abortS2;
+bool abortS3;
+
 sem_t* semS1;
 sem_t* semS2;
 sem_t* semS3;
@@ -91,6 +95,9 @@ int main( int argc, char* argv[] )
    FrameSender* fs             = new FrameSender();
    Sequencer* sequencer        = new Sequencer( captureFrequency );
    pthread_t sequencerThreadId = sequencer->getThreadId();
+   pthread_t processorThreadId = fp->getThreadId();
+   pthread_t collectorThreadId = fc->getThreadId();
+   pthread_t senderThreadId    = fs->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
    while ( !frameBuffer.isEmpty() )
@@ -100,6 +107,13 @@ int main( int argc, char* argv[] )
    }
 
    delete sequencer;
+
+   abortS1 = true;
+   abortS2 = true;
+   abortS3 = true;
+   pthread_join( senderThreadId, NULL );
+   pthread_join( processorThreadId, NULL );
+   pthread_join( collectorThreadId, NULL );
 
    fc->terminate();
    delete fc;

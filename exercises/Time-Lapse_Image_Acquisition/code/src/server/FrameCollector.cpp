@@ -6,6 +6,7 @@
 #include <syslog.h>
 #include <thread.h>
 
+extern bool abortS1;
 extern sem_t* semS1;
 static const ProcessParams collectorParams = {
     cpuCollector,
@@ -21,7 +22,6 @@ static const ThreadConfigData collectorThreadConfig = {
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 FrameCollector::FrameCollector( int device = 0 ) :
-    name( collectorThreadConfig.threadName ),
     wcet( 0.0 ),
     aet( 0.0 ),
     count( 0 ),
@@ -30,6 +30,7 @@ FrameCollector::FrameCollector( int device = 0 ) :
     start( {0, 0} ),
     end( {0, 0} )
 {
+   name = collectorThreadConfig.threadName;
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -66,7 +67,7 @@ FrameCollector::FrameCollector( int device = 0 ) :
       exit( EXIT_FAILURE );
    }
 
-   isAlive = true;
+   alive = true;
 }
 
 FrameCollector::~FrameCollector()
@@ -115,6 +116,11 @@ void* FrameCollector::execute( void* context )
 
 void FrameCollector::collectFrame()
 {
+   if ( abortS1 )
+   {
+      thread->shutdown();
+      return;
+   }
    sem_wait( semS1 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
@@ -158,6 +164,7 @@ void FrameCollector::collectFrame()
    else
    {
       logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
+      abortS1 = true;   // abort on next iteration
    }
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service

@@ -1,14 +1,12 @@
 #ifndef __FRAMECOLLECTOR_H__
 #define __FRAMECOLLECTOR_H__
 
-#include <semaphore.h>
-
-#include <memory>
+#include <FrameBase.h>
 
 class CyclicThread;
 class V4l2;
 
-class FrameCollector
+class FrameCollector : public FrameBase
 {
 public:
    FrameCollector( int device );
@@ -20,10 +18,9 @@ public:
    static void* execute( void* context );
 
    uint32_t getFrameCount( void );
-   sem_t* getSemaphore( void );
 
 private:
-   std::string name;
+   // std::string name;
    double wcet;
    double aet;
    unsigned long long count;
@@ -32,20 +29,20 @@ private:
    struct timespec start;  //!< To measure start time of the service
    struct timespec end;    //!< To measure end time of the service
 
-   bool isAlive;
-   sem_t sem;
+   // bool isAlive;
+   // sem_t sem;
    V4l2* capture;
-   CyclicThread* thread;
+   // CyclicThread* thread;
 
    double* executionTimes;  //!< To store execution time for each iteration
    double* startTimes;      //!< To store start time for each iteration
    double* endTimes;        //!< To store end time for each iteration
 };
 
-inline sem_t* FrameCollector::getSemaphore( void )
-{
-   return &sem;
-}
+// inline sem_t* FrameCollector::getSemaphore( void )
+// {
+//    return &sem;
+// }
 
 inline uint32_t FrameCollector::getFrameCount( void )
 {

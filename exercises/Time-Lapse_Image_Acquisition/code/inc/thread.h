@@ -35,8 +35,9 @@ public:
                                      void *owner_ );
    virtual void initiateThread();
    virtual void terminate();
-
+   virtual void shutdown();
    pthread_t getThreadId();
+   bool isThreadAlive();
 protected:
    void *( *execute )( void *context );
    virtual void *cycle();
@@ -50,4 +51,16 @@ inline pthread_t CyclicThread::getThreadId()
    return thread;
 }
 
+inline bool CyclicThread::isThreadAlive()
+{
+   return threadIsAlive;
+}
+
+inline void CyclicThread::shutdown()
+{
+   if ( threadIsAlive )
+   {
+      threadIsAlive = false;
+   }
+}
 #endif  // __THREAD_H__

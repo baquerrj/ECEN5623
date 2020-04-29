@@ -22,10 +22,6 @@ static const ThreadConfigData sequencerThreadConfig = {
     "SEQUENCER",
     sequencerParams};
 bool abortTest;
-bool abortS1;
-bool abortS2;
-bool abortS3;
-bool abortS4;
 
 extern sem_t* semS1;
 extern sem_t* semS2;
@@ -178,7 +174,6 @@ void Sequencer::sequenceServices()
    sem_post( semS1 );
    sem_post( semS2 );
    sem_post( semS3 );
-   abortS1 = true;
    pthread_exit( (void*)0 );
 }
 

@@ -15,6 +15,7 @@ extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
+extern bool abortS2;
 extern sem_t* semS2;
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
@@ -32,7 +33,6 @@ static const ThreadConfigData processorThreadConfig = {
     processorParams};
 
 FrameProcessor::FrameProcessor() :
-    name( processorThreadConfig.threadName ),
     wcet( 0.0 ),
     aet( 0.0 ),
     count( 0 ),
@@ -41,6 +41,8 @@ FrameProcessor::FrameProcessor() :
     start( {0, 0} ),
     end( {0, 0} )
 {
+   name = processorThreadConfig.threadName;
+
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -72,7 +74,7 @@ FrameProcessor::FrameProcessor() :
       exit( EXIT_FAILURE );
    }
 
-   isAlive = true;
+   alive = true;
 }
 
 FrameProcessor::~FrameProcessor()
@@ -103,6 +105,11 @@ FrameProcessor::~FrameProcessor()
 
 int FrameProcessor::readFrame()
 {
+   if ( abortS2 )
+   {
+      thread->shutdown();
+      return 1;
+   }
    sem_wait( semS2 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
