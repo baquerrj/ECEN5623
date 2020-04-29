@@ -92,6 +92,9 @@ int main( int argc, char* argv[] )
       exit( -1 );
    }
 
+   double serviceDeadline = 1 / (double)captureFrequency;
+   double sequencerDeadline = 1 /(double)Sequencer::SEQUENCER_FREQUENCY;
+
    pthread_mutex_init( &ringLock, NULL );
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
@@ -102,7 +105,13 @@ int main( int argc, char* argv[] )
    pthread_t collectorThreadId = fc->getThreadId();
    pthread_t senderThreadId    = fs->getThreadId();
 
+   fc->setDeadline( serviceDeadline );
+   fp->setDeadline( serviceDeadline );
+   fs->setDeadline( serviceDeadline );
+   sequencer->setDeadline( sequencerDeadline );
+
    pthread_join( sequencerThreadId, NULL );
+   sequencer->jitterAnalysis();
    delete sequencer;
 
    while ( !frameBuffer.isEmpty() )

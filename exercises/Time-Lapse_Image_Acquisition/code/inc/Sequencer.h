@@ -19,7 +19,7 @@ public:
    void sequenceServices();
    static void* execute( void* context );
 
-   const uint32_t SEQUENCER_FREQUENCY = 20;  // 20Hz
+   static const uint32_t SEQUENCER_FREQUENCY = 20;  // 20Hz
 
 private:
    uint8_t captureFrequency;

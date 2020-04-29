@@ -19,12 +19,15 @@ public:
    virtual bool isAlive();
    virtual bool isThreadAlive();
    virtual pthread_t getThreadId();
-   virtual sem_t* getSemaphore( void );
+   virtual sem_t* getSemaphore();
+   virtual void jitterAnalysis();
 
+   virtual void setDeadline( double deadlineTime );
 protected:
    std::string name;
    double wcet;
    double aet;
+   double deadline;
    unsigned long long count;
    uint32_t frameCount;
    double diff_time;       //!< To store execution time for each iteration
