@@ -23,13 +23,8 @@ static const ThreadConfigData collectorThreadConfig = {
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 FrameCollector::FrameCollector( int device = 0 ) :
-    wcet( 0.0 ),
-    aet( 0.0 ),
-    count( 0 ),
-    frameCount( 0 ),
-    diff_time( 0.0 ),
-    start( {0, 0} ),
-    end( {0, 0} )
+   FrameBase( collectorThreadConfig ),
+   frameCount( 0 )
 {
    name = collectorThreadConfig.threadName;
    if ( 0 > sem_init( &sem, 0, 0 ) )

@@ -31,15 +31,10 @@ std::string ppmName( "test_xxxxxxxx.ppm" );
 using std::to_string;
 
 FrameSender::FrameSender() :
-    wcet( 0.0 ),
-    aet( 0.0 ),
-    count( 0 ),
-    frameCount( 0 ),
-    diff_time( 0.0 ),
-    start( {0, 0} ),
-    end( {0, 0} )
+   FrameBase( senderThreadConfig ),
+   framesSent( 0 )
 {
-    name = senderThreadConfig.threadName;
+   //  name = senderThreadConfig.threadName;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
    if ( executionTimes == NULL )
    {
@@ -86,7 +81,6 @@ FrameSender::FrameSender() :
    server->setSendFlags( MSG_DONTWAIT );
    logging::DEBUG( "Connection established", true );
    alive = true;
-   framesSent = 0;
 }
 
 FrameSender::~FrameSender()

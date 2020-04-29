@@ -1,11 +1,22 @@
 #include <FrameBase.h>
 #include <thread.h>
+#include <thread_utils.h>
 
-FrameBase::FrameBase()
-{}
+FrameBase::FrameBase( const ThreadConfigData config ) :
+    name( config.threadName ),
+    wcet( 0.0 ),
+    aet( 0.0 ),
+    count( 0 ),
+    frameCount( 0 ),
+    diff_time( 0.0 ),
+    start( {0, 0} ),
+    end( {0, 0} )
+{
+}
 
 FrameBase::~FrameBase()
-{}
+{
+}
 
 bool FrameBase::isAlive()
 {

@@ -34,15 +34,9 @@ static const ThreadConfigData processorThreadConfig = {
     processorParams};
 
 FrameProcessor::FrameProcessor() :
-    wcet( 0.0 ),
-    aet( 0.0 ),
-    count( 0 ),
-    frameCount( 0 ),
-    diff_time( 0.0 ),
-    start( {0, 0} ),
-    end( {0, 0} )
+   FrameBase( processorThreadConfig )
 {
-   name = processorThreadConfig.threadName;
+   // name = processorThreadConfig.threadName;
 
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {

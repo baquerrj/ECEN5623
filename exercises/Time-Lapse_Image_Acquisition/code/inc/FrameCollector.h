@@ -21,22 +21,22 @@ public:
 
 private:
    // std::string name;
-   double wcet;
-   double aet;
-   unsigned long long count;
+   // double wcet;
+   // double aet;
+   // unsigned long long count;
    uint32_t frameCount;
-   double diff_time;       //!< To store execution time for each iteration
-   struct timespec start;  //!< To measure start time of the service
-   struct timespec end;    //!< To measure end time of the service
+   // double diff_time;       //!< To store execution time for each iteration
+   // struct timespec start;  //!< To measure start time of the service
+   // struct timespec end;    //!< To measure end time of the service
 
    // bool isAlive;
    // sem_t sem;
    V4l2* capture;
    // CyclicThread* thread;
 
-   double* executionTimes;  //!< To store execution time for each iteration
-   double* startTimes;      //!< To store start time for each iteration
-   double* endTimes;        //!< To store end time for each iteration
+   // double* executionTimes;  //!< To store execution time for each iteration
+   // double* startTimes;      //!< To store start time for each iteration
+   // double* endTimes;        //!< To store end time for each iteration
 };
 
 // inline sem_t* FrameCollector::getSemaphore( void )
