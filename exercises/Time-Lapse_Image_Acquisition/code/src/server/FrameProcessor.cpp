@@ -18,6 +18,8 @@ extern struct v4l2_format fmt;  //Format is used by a number of functions, so ma
 extern sem_t* semS2;
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
+extern utsname hostName;
+
 static const ProcessParams processorParams = {
     cpuMain,  // CPU1
     SCHED_FIFO,
@@ -190,13 +192,12 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
 
    std::string ppmHeader;
    ppmHeader.reserve( 200 );
-   ppmHeader.append( "P6\n#" +
+   ppmHeader.append( "P6\n# " +
                      std::to_string( (int)time->tv_sec ) + " sec " +
-                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
+                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n# " +
+                     hostName.version + " " + hostName.nodename + "\n" +
                      "640 480\n255\n" );
    ppmHeader.resize( 200 );
-   printf( "ppmHeader: %d\n", (int)ppmHeader.size());
-   // logging::DEBUG( "FP: " + ppmHeader, true );
    file << ppmHeader;
    file.write( reinterpret_cast< const char* >( p ), size );
    file.close();

@@ -173,7 +173,7 @@ void Sequencer::sequenceServices()
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
 
       seqCnt++;  //Increment the sequencer count
-   } while ( !abortTest && ( seqCnt < ( FRAMES_TO_EXECUTE * 20 ) ) );
+   } while ( !abortTest && ( seqCnt < ( FRAMES_TO_EXECUTE * 20 / captureFrequency ) ) );
 
    sem_post( semS1 );
    sem_post( semS2 );

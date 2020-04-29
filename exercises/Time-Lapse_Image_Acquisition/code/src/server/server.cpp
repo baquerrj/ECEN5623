@@ -15,6 +15,7 @@
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/utsname.h>
 
 int force_format = 1;
 
@@ -23,7 +24,7 @@ sem_t* semS2;
 sem_t* semS3;
 
 const char* host;
-
+utsname hostName;
 RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
 
@@ -60,6 +61,7 @@ int main( int argc, char* argv[] )
       logging::config_s config = {logging::LogLevel::TRACE, fileName};
    }
 
+   uname(&hostName);
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
@@ -94,12 +96,15 @@ int main( int argc, char* argv[] )
    while ( !frameBuffer.isEmpty() )
    {
       sem_post( semS2 );
+      sem_post( semS3 );
    }
-   //fc->terminate();
-   //delete fc;
-   delete fp;
+
    delete sequencer;
 
+   fc->terminate();
+   delete fc;
+   delete fp;
+   delete fs;
    sem_close( semS1 );
    sem_close( semS2 );
    sem_close( semS3 );
