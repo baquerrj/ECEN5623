@@ -64,7 +64,7 @@ FrameSender::FrameSender() :
       logging::ERROR( "Could not allocate memory for server", true );
       exit( EXIT_FAILURE );
    }
-   server->setupSocket( std::string( host ),   DEFAULT_PORT, 3 );
+   server->setupSocket( std::string( host ), DEFAULT_PORT, 3 );
 
    thread = new CyclicThread( senderThreadConfig, FrameSender::execute, this, true );
    if ( thread == NULL )
@@ -74,6 +74,11 @@ FrameSender::FrameSender() :
    }
 
    client = new SocketClient();
+   if( client == NULL )
+   {
+      logging::ERROR( "Could not allocate memory for socket", true );
+      exit( EXIT_FAILURE );
+   }
    while ( false == server->acceptSocket( *client ) )
    {
       ;

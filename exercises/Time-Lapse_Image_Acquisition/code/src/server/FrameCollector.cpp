@@ -6,6 +6,7 @@
 #include <syslog.h>
 #include <thread.h>
 
+extern pthread_mutex_t ringLock;
 extern bool abortS1;
 extern sem_t* semS1;
 static const ProcessParams collectorParams = {
@@ -147,7 +148,9 @@ void FrameCollector::collectFrame()
             clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
             buffer->frameNumber = frameCount;
             logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer" );
+            pthread_mutex_lock( &ringLock );
             frameBuffer.enqueue( *buffer );
+            pthread_mutex_unlock( &ringLock );
          }
          else
          {

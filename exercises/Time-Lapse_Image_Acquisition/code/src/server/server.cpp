@@ -11,13 +11,11 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/utsname.h>
 #include <syslog.h>
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/utsname.h>
-
-int force_format = 1;
 
 bool abortS1;
 bool abortS2;
@@ -31,7 +29,9 @@ const char* host;
 utsname hostName;
 RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
-logging::config_s config = {logging::LogLevel::INFO, "server.log"};
+logging::config_s config   = {logging::LogLevel::INFO, "server.log"};
+
+pthread_mutex_t ringLock;
 
 int main( int argc, char* argv[] )
 {
@@ -59,7 +59,7 @@ int main( int argc, char* argv[] )
 
    pid_t mainThreadId   = getpid();
    std::string fileName = "server" + std::to_string( mainThreadId ) + ".log";
-   config.file = fileName;
+   config.file          = fileName;
    if ( cmdOptionExists( argv, argv + argc, "-v" ) )
    {
       config.cutoff = logging::LogLevel::TRACE;
@@ -67,7 +67,7 @@ int main( int argc, char* argv[] )
 
    printf( "config.cutoff = %u\n", (int)config.cutoff );
    printf( "config.file = %s\n", config.file.c_str() );
-   uname(&hostName);
+   uname( &hostName );
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
@@ -92,6 +92,7 @@ int main( int argc, char* argv[] )
       exit( -1 );
    }
 
+   pthread_mutex_init( &ringLock, NULL );
    FrameCollector* fc          = new FrameCollector( 0 );
    FrameProcessor* fp          = new FrameProcessor();
    FrameSender* fs             = new FrameSender();
@@ -102,23 +103,19 @@ int main( int argc, char* argv[] )
    pthread_t senderThreadId    = fs->getThreadId();
 
    pthread_join( sequencerThreadId, NULL );
+   delete sequencer;
+
    while ( !frameBuffer.isEmpty() )
    {
       sem_post( semS2 );
    }
-   while ( fs->getNumberSent() < FRAMES_TO_EXECUTE )
-   {
-      sem_post( semS3 );
-   }
 
-   delete sequencer;
-
-   // sem_post( semS1 );
-   // abortS1 = true;
+   sem_post( semS1 );
+   abortS1 = true;
    sem_post( semS2 );
    abortS2 = true;
-   // sem_post( semS3 );
-   // abortS3 = true;
+   sem_post( semS3 );
+   abortS3 = true;
    pthread_join( senderThreadId, NULL );
    pthread_join( processorThreadId, NULL );
    pthread_join( collectorThreadId, NULL );
@@ -134,5 +131,8 @@ int main( int argc, char* argv[] )
    sem_unlink( SEMS1_NAME );
    sem_unlink( SEMS2_NAME );
    sem_unlink( SEMS3_NAME );
+
+   pthread_mutex_destroy( &ringLock );
+
    return 0;
 }

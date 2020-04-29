@@ -8,8 +8,6 @@
 #include <thread.h>
 #include <unistd.h>
 
-int force_format = 1;
-
 #define IMAGE_SIZE ( 921800 )
 #define USEC_PER_MSEC ( 1000 )
 

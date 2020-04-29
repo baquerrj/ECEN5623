@@ -6,11 +6,12 @@
 #include <thread.h>
 #include <thread_utils.h>
 
-#define USEC_PER_MSEC ( 1000 )
-#define SEC_TO_MSEC ( 1000 )
-#define NSEC_PER_SEC ( 1000000000 )
-#define NSEC_PER_USEC ( 1000000 )
+#define USEC_PER_MSEC      ( 1000 )
+#define SEC_TO_MSEC        ( 1000 )
+#define NSEC_PER_SEC       ( 1000000000 )
+#define NSEC_PER_USEC      ( 1000000 )
 
+#define EXTRA_FRAMES       ( 20 )
 static const ProcessParams sequencerParams = {
     cpuSequencer,
     SCHED_FIFO,
@@ -23,6 +24,9 @@ static const ThreadConfigData sequencerThreadConfig = {
     sequencerParams};
 bool abortTest;
 
+extern bool abortS1;
+extern bool abortS2;
+extern bool abortS3;
 extern sem_t* semS1;
 extern sem_t* semS2;
 extern sem_t* semS3;
@@ -103,6 +107,8 @@ void Sequencer::sequenceServices()
    unsigned long long seqCnt = 0;
 
    static uint8_t divisor = 20 / captureFrequency;
+
+   uint32_t requiredIterations = ( FRAMES_TO_EXECUTE + EXTRA_FRAMES ) * 20 / divisor;
    do
    {
       delay_cnt = 0;
@@ -169,8 +175,11 @@ void Sequencer::sequenceServices()
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", seqCnt, endTimes[ seqCnt ] );
 
       seqCnt++;  //Increment the sequencer count
-   } while ( !abortTest && ( seqCnt < ( FRAMES_TO_EXECUTE * 20 / captureFrequency ) ) );
+   } while ( !abortTest && ( seqCnt < requiredIterations ) );
 
+   abortS1 = true;
+   abortS2 = true;
+   abortS3 = true;
    sem_post( semS1 );
    sem_post( semS2 );
    sem_post( semS3 );

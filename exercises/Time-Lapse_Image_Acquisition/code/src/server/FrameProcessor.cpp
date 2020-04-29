@@ -15,6 +15,7 @@ extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
 extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
 
+extern pthread_mutex_t ringLock;
 extern bool abortS2;
 extern sem_t* semS2;
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
@@ -116,7 +117,9 @@ int FrameProcessor::readFrame()
 
    if ( !frameBuffer.isEmpty() )
    {
+      pthread_mutex_lock( &ringLock );
       V4l2::buffer_s img = frameBuffer.dequeue();
+      pthread_mutex_unlock( &ringLock );
       processImage( &img );
    }
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
