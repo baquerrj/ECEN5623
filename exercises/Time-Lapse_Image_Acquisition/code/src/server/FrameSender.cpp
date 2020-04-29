@@ -135,7 +135,7 @@ void FrameSender::sendPpm()
    sem_wait( semS3 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
-   static int tag      = 1;
+   static uint32_t tag      = 0;
    struct stat st;
 
    if ( tag < FRAMES_TO_EXECUTE )
@@ -182,7 +182,6 @@ void FrameSender::sendPpm()
       }
    }
 
-   // server->send( client, patterns[ tag ] );
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
