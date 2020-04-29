@@ -81,6 +81,7 @@ FrameSender::FrameSender() :
    server->setSendFlags( MSG_DONTWAIT );
    logging::DEBUG( "Connection established", true );
    alive = true;
+   framesSent = 0;
 }
 
 FrameSender::~FrameSender()
@@ -135,12 +136,11 @@ void FrameSender::sendPpm()
    sem_wait( semS3 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
-   static uint32_t tag      = 0;
    struct stat st;
 
-   if ( tag < FRAMES_TO_EXECUTE )
+   if ( framesSent < FRAMES_TO_EXECUTE )
    {
-      sprintf( &ppmName.front(), "test_%08d.ppm", tag );
+      sprintf( &ppmName.front(), "test_%08d.ppm", framesSent );
 
       if ( -1 != stat( ppmName.c_str(), &st ) )
       {
@@ -172,15 +172,21 @@ void FrameSender::sendPpm()
          }
          else
          {
-            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", tag, rc );
+            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", framesSent, rc );
          }
 
          memset( &sendBuffer[ 0 ], 0, sizeof( sendBuffer ) );
 
          file.close();
-         tag++;
+         framesSent++;
       }
    }
+   else
+   {
+      logging::INFO( "SENDER: " + std::to_string( framesSent ) + " frames sent", true );
+      abortS3 = true;   // abort on next iteration
+   }
+
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds

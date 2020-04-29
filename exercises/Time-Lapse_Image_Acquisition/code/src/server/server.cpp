@@ -31,6 +31,7 @@ const char* host;
 utsname hostName;
 RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
+logging::config_s config = {logging::LogLevel::INFO, "server.log"};
 
 int main( int argc, char* argv[] )
 {
@@ -58,13 +59,14 @@ int main( int argc, char* argv[] )
 
    pid_t mainThreadId   = getpid();
    std::string fileName = "server" + std::to_string( mainThreadId ) + ".log";
-
-   logging::config_s config = {logging::LogLevel::INFO, fileName};
+   config.file = fileName;
    if ( cmdOptionExists( argv, argv + argc, "-v" ) )
    {
-      logging::config_s config = {logging::LogLevel::TRACE, fileName};
+      config.cutoff = logging::LogLevel::TRACE;
    }
 
+   printf( "config.cutoff = %u\n", (int)config.cutoff );
+   printf( "config.file = %s\n", config.file.c_str() );
    uname(&hostName);
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
@@ -103,14 +105,20 @@ int main( int argc, char* argv[] )
    while ( !frameBuffer.isEmpty() )
    {
       sem_post( semS2 );
+   }
+   while ( fs->getNumberSent() < FRAMES_TO_EXECUTE )
+   {
       sem_post( semS3 );
    }
 
    delete sequencer;
 
-   abortS1 = true;
+   // sem_post( semS1 );
+   // abortS1 = true;
+   sem_post( semS2 );
    abortS2 = true;
-   abortS3 = true;
+   // sem_post( semS3 );
+   // abortS3 = true;
    pthread_join( senderThreadId, NULL );
    pthread_join( processorThreadId, NULL );
    pthread_join( collectorThreadId, NULL );

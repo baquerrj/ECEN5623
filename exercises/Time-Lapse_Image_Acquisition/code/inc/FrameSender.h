@@ -21,6 +21,7 @@ public:
 
    static void* execute( void* context );
 
+   uint32_t getNumberSent();
 private:
    // std::string name;
    double wcet;
@@ -41,6 +42,11 @@ private:
    SocketServer* server;
    SocketClient* client;
    char sendBuffer[ IMAGE_SIZE ];
+   uint32_t framesSent;
 };
 
+inline uint32_t FrameSender::getNumberSent()
+{
+   return framesSent;
+}
 #endif  //__FRAME_SENDER_H__
