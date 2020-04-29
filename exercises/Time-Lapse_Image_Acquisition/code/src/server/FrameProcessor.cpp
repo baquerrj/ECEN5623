@@ -34,7 +34,7 @@ static const ThreadConfigData processorThreadConfig = {
     processorParams};
 
 FrameProcessor::FrameProcessor() :
-   FrameBase( processorThreadConfig )
+    FrameBase( processorThreadConfig )
 {
    // name = processorThreadConfig.threadName;
 
@@ -98,24 +98,39 @@ FrameProcessor::~FrameProcessor()
    logging::INFO( "FrameProcessor::~FrameProcessor() exiting", true );
 }
 
-int FrameProcessor::readFrame()
+void FrameProcessor::readFrame()
 {
    if ( abortS2 )
    {
       thread->shutdown();
-      return 1;
+      return;
    }
+
    sem_wait( semS2 );
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   if ( !frameBuffer.isEmpty() )
+   if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      pthread_mutex_lock( &ringLock );
-      V4l2::buffer_s img = frameBuffer.dequeue();
-      pthread_mutex_unlock( &ringLock );
-      processImage( &img );
+      if ( !frameBuffer.isEmpty() )
+      {
+         pthread_mutex_lock( &ringLock );
+         V4l2::buffer_s img = frameBuffer.dequeue();
+         pthread_mutex_unlock( &ringLock );
+         processImage( &img );
+         frameCount++;
+      }
+      else
+      {
+         logging::WARN( name + "ring buffer EMPTY in cycle " + std::to_string( count ), true );
+      }
    }
+   else
+   {
+      logging::INFO( "FP Processed " + std::to_string( frameCount ) + " frames", true );
+      abortS2 = true;
+   }
+
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
@@ -129,7 +144,7 @@ int FrameProcessor::readFrame()
    logging::DEBUG( name + " Count: " + std::to_string( count ) +
                    "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
    count++;
-   return 1;
+   return;
 }
 
 void* FrameProcessor::execute( void* context )

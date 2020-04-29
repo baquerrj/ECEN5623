@@ -23,8 +23,7 @@ static const ThreadConfigData collectorThreadConfig = {
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 FrameCollector::FrameCollector( int device = 0 ) :
-   FrameBase( collectorThreadConfig ),
-   frameCount( 0 )
+    FrameBase( collectorThreadConfig )
 {
    name = collectorThreadConfig.threadName;
    if ( 0 > sem_init( &sem, 0, 0 ) )
@@ -126,11 +125,11 @@ void FrameCollector::collectFrame()
    //         name.c_str(),
    //         startTimes[ count ] );
 
-   struct timespec read_delay;
-   struct timespec time_error;
+   // struct timespec read_delay;
+   // struct timespec time_error;
 
-   read_delay.tv_sec  = 0;
-   read_delay.tv_nsec = 30000;
+   // read_delay.tv_sec  = 0;
+   // read_delay.tv_nsec = 30000;
 
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
@@ -146,23 +145,23 @@ void FrameCollector::collectFrame()
             pthread_mutex_lock( &ringLock );
             frameBuffer.enqueue( *buffer );
             pthread_mutex_unlock( &ringLock );
+            frameCount++;
          }
          else
          {
-            logging::WARN( "Ring Buffer was full at frame " + std::to_string( frameCount ), true );
+            logging::WARN( name + "ring buffer FULL in cycle " + std::to_string( count ), true );
          }
 
-         if ( nanosleep( &read_delay, &time_error ) != 0 )
-         {
-            perror( "nanosleep" );
-         }
-         frameCount++;
+         // if ( nanosleep( &read_delay, &time_error ) != 0 )
+         // {
+         //    perror( "nanosleep" );
+         // }
       }
    }
    else
    {
       logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
-      abortS1 = true;   // abort on next iteration
+      abortS1 = true;  // abort on next iteration
    }
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service

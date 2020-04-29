@@ -13,7 +13,7 @@ public:
    FrameProcessor();
    ~FrameProcessor();
 
-   int readFrame();
+   void readFrame();
    int processImage( const void* p, int size );
    int processImage( V4l2::buffer_s* img );
    void dumpImage( const void* p, int size, unsigned int tag, struct timespec* time );

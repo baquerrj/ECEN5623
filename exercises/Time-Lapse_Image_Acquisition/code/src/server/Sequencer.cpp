@@ -11,7 +11,7 @@
 #define NSEC_PER_SEC       ( 1000000000 )
 #define NSEC_PER_USEC      ( 1000000 )
 
-#define EXTRA_FRAMES       ( 20 )
+#define EXTRA_FRAMES       ( 5 )
 static const ProcessParams sequencerParams = {
     cpuSequencer,
     SCHED_FIFO,
