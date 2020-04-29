@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <linux/videodev2.h>
 #include <logging.h>
+#include <sys/utsname.h>
 #include <syslog.h>
 #include <thread.h>
 #include <unistd.h>
@@ -104,15 +105,9 @@ int FrameProcessor::readFrame()
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   // syslog( LOG_INFO, "S2 Count: %lld   %s Start Time: %lf seconds",
-   //         count,
-   //         name.c_str(),
-   //         startTimes[ count ] );
-
    if ( !frameBuffer.isEmpty() )
    {
       V4l2::buffer_s img = frameBuffer.dequeue();
-      // processImage( img.start, img.length );
       processImage( &img );
    }
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
@@ -127,7 +122,7 @@ int FrameProcessor::readFrame()
 
    logging::DEBUG( name + " Count: " + std::to_string( count ) +
                    "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
-   count++;  //Increment the count of service S2
+   count++;
    return 1;
 }
 
@@ -146,13 +141,6 @@ int FrameProcessor::processImage( const void* p, int size )
 
    // record when process was called
    clock_gettime( CLOCK_REALTIME, &frame_time );
-
-   // framecnt++;
-   // This just dumps the frame to a file now, but you could replace with whatever image
-   // processing you wish.
-   //
-
-   // logging::DEBUG( "FP: Frame Count: " + std::to_string( framecnt ) + "Dump YUYV converted to RGB size " + std::to_string( size ), true );
 
    // Pixels are YU and YV alternating, so YUYV which is 4 bytes
    // We want RGB, so RGBRGB which is 6 bytes
@@ -200,11 +188,14 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
    std::ofstream file;
    file.open( ppmName, std::ofstream::out | std::ofstream::binary );
 
-   std::string ppmHeader( "P6\n#" +
-                          std::to_string( (int)time->tv_sec ) + " sec " +
-                          std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
-                          "640 480\n255\n" );
-
+   std::string ppmHeader;
+   ppmHeader.reserve( 200 );
+   ppmHeader.append( "P6\n#" +
+                     std::to_string( (int)time->tv_sec ) + " sec " +
+                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n" +
+                     "640 480\n255\n" );
+   ppmHeader.resize( 200 );
+   printf( "ppmHeader: %d\n", (int)ppmHeader.size());
    // logging::DEBUG( "FP: " + ppmHeader, true );
    file << ppmHeader;
    file.write( reinterpret_cast< const char* >( p ), size );

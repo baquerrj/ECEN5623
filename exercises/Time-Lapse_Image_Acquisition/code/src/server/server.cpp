@@ -24,7 +24,7 @@ sem_t* semS3;
 
 const char* host;
 
-RingBuffer< V4l2::buffer_s > frameBuffer( 10 );
+RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
 
 int main( int argc, char* argv[] )
