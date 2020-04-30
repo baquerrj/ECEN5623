@@ -31,8 +31,7 @@ std::string ppmName( "test_xxxxxxxx.ppm" );
 using std::to_string;
 
 FrameSender::FrameSender() :
-   FrameBase( senderThreadConfig ),
-   framesSent( 0 )
+   FrameBase( senderThreadConfig )
 {
    //  name = senderThreadConfig.threadName;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
@@ -137,9 +136,9 @@ void FrameSender::sendPpm()
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
    struct stat st;
 
-   if ( framesSent < FRAMES_TO_EXECUTE )
+   if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      sprintf( &ppmName.front(), "test_%08d.ppm", framesSent );
+      sprintf( &ppmName.front(), "test_%08d.ppm", frameCount );
 
       if ( -1 != stat( ppmName.c_str(), &st ) )
       {
@@ -171,18 +170,18 @@ void FrameSender::sendPpm()
          }
          else
          {
-            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", framesSent, rc );
+            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", frameCount, rc );
          }
 
          memset( &sendBuffer[ 0 ], 0, sizeof( sendBuffer ) );
 
          file.close();
-         framesSent++;
+         frameCount++;
       }
    }
    else
    {
-      logging::INFO( "SENDER: " + std::to_string( framesSent ) + " frames sent", true );
+      logging::INFO( "SENDER: " + std::to_string( frameCount ) + " frames sent", true );
       abortS3 = true;   // abort on next iteration
    }
 
