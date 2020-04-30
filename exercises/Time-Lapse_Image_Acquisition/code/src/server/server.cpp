@@ -71,33 +71,48 @@ int main( int argc, char* argv[] )
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );
 
-   semS1 = sem_open( SEMS1_NAME, O_CREAT, 0644, 0 );
+   semS1 = sem_open( SEMS1_NAME, O_CREAT | O_EXCL, 0644, 0 );
    if ( semS1 == SEM_FAILED )
    {
-      perror( "Failed to initialize S1 semaphore\n" );
-      exit( -1 );
+      sem_unlink( SEMS1_NAME );
+      semS1 = sem_open( SEMS1_NAME, O_CREAT | O_EXCL, 0644, 0 );
+      if ( semS1 == SEM_FAILED )
+      {
+         perror( "Failed to initialize S1 semaphore" );
+         exit( -1 );
+      }
    }
 
-   semS2 = sem_open( SEMS2_NAME, O_CREAT, 0644, 0 );
+   semS2 = sem_open( SEMS2_NAME, O_CREAT | O_EXCL, 0644, 0 );
    if ( semS2 == SEM_FAILED )
    {
-      perror( "Failed to initialize S2 semaphore\n" );
-      exit( -1 );
+      sem_unlink( SEMS2_NAME );
+      semS2 = sem_open( SEMS2_NAME, O_CREAT | O_EXCL, 0644, 0 );
+      if ( semS2 == SEM_FAILED )
+      {
+         perror( "Failed to initialize S2 semaphore" );
+         exit( -1 );
+      }
    }
 
-   semS3 = sem_open( SEMS3_NAME, O_CREAT, 0644, 0 );
+   semS3 = sem_open( SEMS3_NAME, O_CREAT | O_EXCL, 0644, 0 );
    if ( semS3 == SEM_FAILED )
    {
-      perror( "Failed to initialize S3 semaphore\n" );
-      exit( -1 );
+      sem_unlink( SEMS3_NAME );
+      semS3 = sem_open( SEMS3_NAME, O_CREAT | O_EXCL, 0644, 0 );
+      if ( semS3 == SEM_FAILED )
+      {
+         perror( "Failed to initialize S3 semaphore" );
+         exit( -1 );
+      }
    }
 
-   double serviceDeadline = 1 / (double)captureFrequency;
-   double sequencerDeadline = 1 /(double)Sequencer::SEQUENCER_FREQUENCY;
+   double serviceDeadline   = 1 / (double)captureFrequency;
+   double sequencerDeadline = 1 / (double)Sequencer::SEQUENCER_FREQUENCY;
 
    pthread_mutex_init( &ringLock, NULL );
    FrameCollector* fc          = new FrameCollector( 0 );
-   FrameProcessor* fp          = new FrameProcessor();
+   FrameProcessor* fp          = new FrameProcessor( false );
    FrameSender* fs             = new FrameSender();
    Sequencer* sequencer        = new Sequencer( captureFrequency );
    pthread_t sequencerThreadId = sequencer->getThreadId();
