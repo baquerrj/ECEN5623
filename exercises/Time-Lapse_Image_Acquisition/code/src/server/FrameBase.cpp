@@ -1,7 +1,10 @@
 #include <FrameBase.h>
 #include <thread.h>
 #include <thread_utils.h>
+
 #include <fstream>
+#include <iomanip>
+#include <limits>
 
 FrameBase::FrameBase( const ThreadConfigData config ) :
     name( config.threadName ),
@@ -54,11 +57,11 @@ void FrameBase::jitterAnalysis()
 {
    double totalRuntime = 0;
    std::fstream file( name + "_jitter.csv", std::fstream::out );
-   if( file.is_open() )
+   if ( file.is_open() )
    {
-      file.precision(5);
+      file << std::setprecision( std::numeric_limits< double >::digits10 + 1 );
       file << "Count, Start Time (s), End Time (s), Execution Time (ms), Jitter (ms)" << std::endl;
-      for( uint32_t i = 0; i < count; ++i )
+      for ( uint32_t i = 0; i < count; ++i )
       {
          if ( executionTimes[ i ] > wcet )
          {
@@ -66,15 +69,15 @@ void FrameBase::jitterAnalysis()
          }
          totalRuntime += executionTimes[ i ];
       }
-      for( uint32_t i = 0; i < count; ++i )
+      for ( uint32_t i = 0; i < count; ++i )
       {
          double jitter = 0.0;
          if ( i > 0 )
          {
-            jitter = ((startTimes[ i - 1 ] + deadline) - startTimes[ i ]) * 1000.0;
+            jitter = ( ( startTimes[ i - 1 ] + deadline ) - startTimes[ i ] ) * 1000.0;
          }
-                  // Count,  S,   E,   C  jitter
-         file << i << "," << startTimes[ i ] << ","  << endTimes[ i ] << "," << executionTimes[ i ] << ","  << jitter << std::endl;
+         // Count,  S,   E,   C  jitter
+         file << i << "," << startTimes[ i ] << "," << endTimes[ i ] << "," << executionTimes[ i ] << "," << jitter << std::endl;
       }
 
       aet = totalRuntime / (double)count;
@@ -82,5 +85,6 @@ void FrameBase::jitterAnalysis()
       printf( "(%s) Average Execution Time = %lf ms\n", name.c_str(), aet );
    }
 
+   file.flush();
    file.close();
 }

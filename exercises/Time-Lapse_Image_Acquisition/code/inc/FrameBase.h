@@ -41,6 +41,7 @@ protected:
    bool alive;
    sem_t sem;
    CyclicThread* thread;
+   uint32_t requiredIterations;
 };
 
 #endif  //__FRAME_BASE_H__

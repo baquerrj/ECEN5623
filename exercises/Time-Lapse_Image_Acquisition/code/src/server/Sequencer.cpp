@@ -11,7 +11,7 @@
 #define NSEC_PER_SEC ( 1000000000 )
 #define NSEC_PER_USEC ( 1000000 )
 
-#define EXTRA_FRAMES ( 5 )
+#define EXTRA_CYCLES ( 5 )
 static const ProcessParams sequencerParams = {
     cpuSequencer,
     SCHED_FIFO,
@@ -35,19 +35,20 @@ Sequencer::Sequencer( uint8_t frequency ) :
     FrameBase( sequencerThreadConfig ),
     captureFrequency( frequency )
 {
-   executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   requiredIterations = ( ( FRAMES_TO_EXECUTE + EXTRA_CYCLES ) * 20 ) / captureFrequency;
+   executionTimes = new double[ requiredIterations ]{};
    if ( executionTimes == NULL )
    {
       logging::ERROR( "Mem allocation failed for executionTimes for SEQ", true );
    }
 
-   startTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   startTimes = new double[ requiredIterations ]{};
    if ( startTimes == NULL )
    {
       logging::ERROR( "Mem allocation failed for startTimes for SEQ", true );
    }
 
-   endTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
+   endTimes = new double[ requiredIterations ]{};
    if ( endTimes == NULL )
    {
       logging::ERROR( "Mem allocation failed for endTimes for SEQ", true );
@@ -90,8 +91,8 @@ Sequencer::~Sequencer()
 
 void Sequencer::sequenceServices()
 {
-   struct timespec sequencer_start_time;  //To store start time of sequencer
-   struct timespec sequencer_end_time;    //To store end time of sequencer
+   // struct timespec sequencer_start_time;  //To store start time of sequencer
+   // struct timespec sequencer_end_time;    //To store end time of sequencer
    // double start_time;                     //To store start time in seconds
    // double end_time;                       //To store end time in seconds
 
@@ -102,7 +103,6 @@ void Sequencer::sequenceServices()
 
    static uint8_t divisor = 20 / captureFrequency;
 
-   uint32_t requiredIterations = ( FRAMES_TO_EXECUTE + EXTRA_FRAMES ) * 20 / divisor;
    do
    {
       delay_cnt = 0;
@@ -130,11 +130,11 @@ void Sequencer::sequenceServices()
       } while ( ( residual > 0.0 ) && ( delay_cnt < 100 ) );
 
       /* Calculate Start time */
-      clock_gettime( CLOCK_REALTIME, &sequencer_start_time );
+      clock_gettime( CLOCK_REALTIME, &start );
 
       /* Store start time in seconds */
-      // start_time = ( (double)sequencer_start_time.tv_sec + (double)( ( sequencer_start_time.tv_nsec ) / (double)1000000000 ) );
-      startTimes[ count ] = ( (double)sequencer_start_time.tv_sec + (double)( ( sequencer_start_time.tv_nsec ) / (double)1000000000 ) );
+      // start_time = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );
+      startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );
 
       // startTimes[ count ] = start_time;
 
@@ -163,8 +163,8 @@ void Sequencer::sequenceServices()
          syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS3 );
       }
-      clock_gettime( CLOCK_REALTIME, &sequencer_end_time );
-      endTimes[ count ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
+      clock_gettime( CLOCK_REALTIME, &end );
+      endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );
 
       executionTimes[ count ] = delta_t( &end, &start );
 
