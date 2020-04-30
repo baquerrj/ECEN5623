@@ -120,23 +120,11 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   // syslog( LOG_INFO, "S1 Count: %lld   %s Start Time: %lf seconds",
-   //         count,
-   //         name.c_str(),
-   //         startTimes[ count ] );
-
-   // struct timespec read_delay;
-   // struct timespec time_error;
-
-   // read_delay.tv_sec  = 0;
-   // read_delay.tv_nsec = 30000;
-
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
       V4l2::buffer_s* buffer = NULL;
       if ( NULL != ( buffer = capture->readFrame() ) )
       {
-         //capture->processImage( buffer->start, buffer->length );
          if ( !frameBuffer.isFull() )
          {
             clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
@@ -151,11 +139,6 @@ void FrameCollector::collectFrame()
          {
             logging::WARN( name + " ring buffer FULL in cycle " + std::to_string( count ), true );
          }
-
-         // if ( nanosleep( &read_delay, &time_error ) != 0 )
-         // {
-         //    perror( "nanosleep" );
-         // }
       }
    }
    else

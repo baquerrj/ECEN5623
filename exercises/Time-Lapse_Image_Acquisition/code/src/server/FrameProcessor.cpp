@@ -13,8 +13,6 @@
 
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
-extern struct v4l2_format fmt;  //Format is used by a number of functions, so made as a file global
-
 extern pthread_mutex_t ringLock;
 extern bool abortS2;
 extern sem_t* semS2;
