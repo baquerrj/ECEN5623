@@ -6,8 +6,8 @@
 FrameBase::FrameBase( const ThreadConfigData config ) :
     name( config.threadName ),
     wcet( 0.0 ),
-    deadline( 0.0 ),
     aet( 0.0 ),
+    deadline( 0.0 ),
     count( 0 ),
     frameCount( 0 ),
     diff_time( 0.0 ),
@@ -74,10 +74,10 @@ void FrameBase::jitterAnalysis()
             jitter = ((startTimes[ i - 1 ] + deadline) - startTimes[ i ]) * 1000.0;
          }
                   // Count,  S,   E,   C  jitter
-         file << "\n" << i << "," << startTimes[ i ] << ","  << endTimes[ i ] << "," << executionTimes[ i ] << ","  << jitter << std::endl;
+         file << i << "," << startTimes[ i ] << ","  << endTimes[ i ] << "," << executionTimes[ i ] << ","  << jitter << std::endl;
       }
 
-      aet = totalRuntime / count;
+      aet = totalRuntime / (double)count;
       printf( "(%s) Worst-Case Execution Time = %lf ms\n", name.c_str(), wcet );
       printf( "(%s) Average Execution Time = %lf ms\n", name.c_str(), aet );
    }

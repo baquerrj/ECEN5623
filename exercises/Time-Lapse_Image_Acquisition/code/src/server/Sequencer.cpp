@@ -6,12 +6,12 @@
 #include <thread.h>
 #include <thread_utils.h>
 
-#define USEC_PER_MSEC      ( 1000 )
-#define SEC_TO_MSEC        ( 1000 )
-#define NSEC_PER_SEC       ( 1000000000 )
-#define NSEC_PER_USEC      ( 1000000 )
+#define USEC_PER_MSEC ( 1000 )
+#define SEC_TO_MSEC ( 1000 )
+#define NSEC_PER_SEC ( 1000000000 )
+#define NSEC_PER_USEC ( 1000000 )
 
-#define EXTRA_FRAMES       ( 5 )
+#define EXTRA_FRAMES ( 5 )
 static const ProcessParams sequencerParams = {
     cpuSequencer,
     SCHED_FIFO,
@@ -32,7 +32,7 @@ extern sem_t* semS2;
 extern sem_t* semS3;
 
 Sequencer::Sequencer( uint8_t frequency ) :
-   FrameBase( sequencerThreadConfig ),
+    FrameBase( sequencerThreadConfig ),
     captureFrequency( frequency )
 {
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
@@ -165,6 +165,8 @@ void Sequencer::sequenceServices()
       }
       clock_gettime( CLOCK_REALTIME, &sequencer_end_time );
       endTimes[ count ] = ( (double)sequencer_end_time.tv_sec + (double)( ( sequencer_end_time.tv_nsec ) / (double)1000000000 ) );
+
+      executionTimes[ count ] = delta_t( &end, &start );
 
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", count, endTimes[ count ] );
 

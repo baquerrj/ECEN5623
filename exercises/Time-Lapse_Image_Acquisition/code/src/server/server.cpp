@@ -130,6 +130,10 @@ int main( int argc, char* argv[] )
    pthread_join( collectorThreadId, NULL );
 
    fc->terminate();
+
+   fc->jitterAnalysis();
+   fp->jitterAnalysis();
+   fs->jitterAnalysis();
    delete fc;
    delete fp;
    delete fs;
