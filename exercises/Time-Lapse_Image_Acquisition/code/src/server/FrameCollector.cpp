@@ -149,7 +149,7 @@ void FrameCollector::collectFrame()
          }
          else
          {
-            logging::WARN( name + "ring buffer FULL in cycle " + std::to_string( count ), true );
+            logging::WARN( name + " ring buffer FULL in cycle " + std::to_string( count ), true );
          }
 
          // if ( nanosleep( &read_delay, &time_error ) != 0 )

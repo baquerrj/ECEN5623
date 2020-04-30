@@ -122,7 +122,7 @@ void FrameProcessor::readFrame()
       }
       else
       {
-         logging::WARN( name + "ring buffer EMPTY in cycle " + std::to_string( count ), true );
+         logging::WARN( name + " ring buffer EMPTY in cycle " + std::to_string( count ), true );
       }
    }
    else
