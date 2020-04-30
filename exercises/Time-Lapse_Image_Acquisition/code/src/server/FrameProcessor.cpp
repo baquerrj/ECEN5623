@@ -73,26 +73,6 @@ FrameProcessor::FrameProcessor() :
 FrameProcessor::~FrameProcessor()
 {
    logging::INFO( "FrameProcessor::~FrameProcessor() entered", true );
-   if ( thread )
-   {
-      delete thread;
-      thread = NULL;
-   }
-   if ( executionTimes )
-   {
-      delete executionTimes;
-      executionTimes = NULL;
-   }
-   if ( startTimes )
-   {
-      delete startTimes;
-      startTimes = NULL;
-   }
-   if ( endTimes )
-   {
-      delete endTimes;
-      endTimes = NULL;
-   }
    logging::INFO( "FrameProcessor::~FrameProcessor() exiting", true );
 }
 

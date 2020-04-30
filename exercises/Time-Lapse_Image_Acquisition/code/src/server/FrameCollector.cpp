@@ -68,26 +68,6 @@ FrameCollector::FrameCollector( int device = 0 ) :
 FrameCollector::~FrameCollector()
 {
    logging::INFO( "FrameCollector::~FrameCollector() entered", true );
-   if ( executionTimes )
-   {
-      delete executionTimes;
-      executionTimes = NULL;
-   }
-   if ( startTimes )
-   {
-      delete startTimes;
-      startTimes = NULL;
-   }
-   if ( endTimes )
-   {
-      delete endTimes;
-      endTimes = NULL;
-   }
-   if ( thread )
-   {
-      delete thread;
-      thread = NULL;
-   }
    if ( capture )
    {
       delete capture;

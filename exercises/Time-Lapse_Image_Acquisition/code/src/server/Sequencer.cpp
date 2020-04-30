@@ -65,26 +65,6 @@ Sequencer::Sequencer( uint8_t frequency ) :
 Sequencer::~Sequencer()
 {
    logging::INFO( "Sequencer::~Sequencer() entered", true );
-   if ( executionTimes )
-   {
-      delete executionTimes;
-      executionTimes = NULL;
-   }
-   if ( startTimes )
-   {
-      delete startTimes;
-      startTimes = NULL;
-   }
-   if ( endTimes )
-   {
-      delete endTimes;
-      endTimes = NULL;
-   }
-   if ( thread )
-   {
-      delete thread;
-      thread = NULL;
-   }
    logging::INFO( "Sequencer::~Sequencer() exiting", true );
 }
 

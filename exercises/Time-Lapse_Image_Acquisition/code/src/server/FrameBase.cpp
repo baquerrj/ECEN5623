@@ -1,4 +1,5 @@
 #include <FrameBase.h>
+#include <logging.h>
 #include <thread.h>
 #include <thread_utils.h>
 
@@ -20,6 +21,28 @@ FrameBase::FrameBase( const ThreadConfigData config ) :
 
 FrameBase::~FrameBase()
 {
+   logging::INFO( "FrameBase::~FrameBase() entered", true );
+   if ( thread )
+   {
+      delete thread;
+      thread = NULL;
+   }
+   if ( executionTimes )
+   {
+      delete executionTimes;
+      executionTimes = NULL;
+   }
+   if ( startTimes )
+   {
+      delete startTimes;
+      startTimes = NULL;
+   }
+   if ( endTimes )
+   {
+      delete endTimes;
+      endTimes = NULL;
+   }
+   logging::INFO( "FrameBase::~FrameBase() exiting", true );
 }
 
 void FrameBase::setDeadline( double deadlineTime )

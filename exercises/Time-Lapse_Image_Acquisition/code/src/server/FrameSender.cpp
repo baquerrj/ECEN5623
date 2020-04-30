@@ -4,10 +4,10 @@
 #include <logging.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <syslog.h>
 #include <thread.h>
 #include <thread_utils.h>
+#include <unistd.h>
 
 #define USEC_PER_MSEC ( 1000 )
 
@@ -31,7 +31,7 @@ std::string ppmName( "test_xxxxxxxx.ppm" );
 using std::to_string;
 
 FrameSender::FrameSender() :
-   FrameBase( senderThreadConfig )
+    FrameBase( senderThreadConfig )
 {
    //  name = senderThreadConfig.threadName;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
@@ -68,7 +68,7 @@ FrameSender::FrameSender() :
    }
 
    client = new SocketClient();
-   if( client == NULL )
+   if ( client == NULL )
    {
       logging::ERROR( "Could not allocate memory for socket", true );
       exit( EXIT_FAILURE );
@@ -85,21 +85,6 @@ FrameSender::FrameSender() :
 FrameSender::~FrameSender()
 {
    logging::INFO( "FrameSender::~FrameSender() entered", true );
-   if ( executionTimes )
-   {
-      delete executionTimes;
-      executionTimes = NULL;
-   }
-   if ( startTimes )
-   {
-      delete startTimes;
-      startTimes = NULL;
-   }
-   if ( endTimes )
-   {
-      delete endTimes;
-      endTimes = NULL;
-   }
    if ( server )
    {
       delete server;
@@ -109,11 +94,6 @@ FrameSender::~FrameSender()
    {
       delete client;
       client = NULL;
-   }
-   if ( thread )
-   {
-      delete thread;
-      thread = NULL;
    }
    logging::INFO( "FrameSender::~FrameSender() exiting", true );
 }
@@ -159,7 +139,7 @@ void FrameSender::sendPpm()
          }
          else
          {
-            logging::WARN( "Could only read " + to_string(file.gcount() ), true );
+            logging::WARN( "Could only read " + to_string( file.gcount() ), true );
          }
 
          logging::DEBUG( "Sending " + to_string( fsize ) + " bytes", true );
@@ -182,9 +162,8 @@ void FrameSender::sendPpm()
    else
    {
       logging::INFO( "SENDER: " + std::to_string( frameCount ) + " frames sent", true );
-      abortS3 = true;   // abort on next iteration
+      abortS3 = true;  // abort on next iteration
    }
-
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
