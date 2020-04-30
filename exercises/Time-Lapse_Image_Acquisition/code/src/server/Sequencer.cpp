@@ -22,7 +22,6 @@ static const ThreadConfigData sequencerThreadConfig = {
     true,
     "SEQUENCER",
     sequencerParams};
-bool abortTest;
 
 extern bool abortS1;
 extern bool abortS2;
@@ -35,8 +34,8 @@ Sequencer::Sequencer( uint8_t frequency ) :
     FrameBase( sequencerThreadConfig ),
     captureFrequency( frequency )
 {
-   requiredIterations = ( ( FRAMES_TO_EXECUTE + EXTRA_CYCLES ) * 20 ) / captureFrequency;
-   executionTimes = new double[ requiredIterations ]{};
+   requiredIterations = ( ( FRAMES_TO_EXECUTE + EXTRA_CYCLES ) * SEQUENCER_FREQUENCY ) / captureFrequency;
+   executionTimes     = new double[ requiredIterations ]{};
    if ( executionTimes == NULL )
    {
       logging::ERROR( "Mem allocation failed for executionTimes for SEQ", true );
@@ -91,17 +90,12 @@ Sequencer::~Sequencer()
 
 void Sequencer::sequenceServices()
 {
-   // struct timespec sequencer_start_time;  //To store start time of sequencer
-   // struct timespec sequencer_end_time;    //To store end time of sequencer
-   // double start_time;                     //To store start time in seconds
-   // double end_time;                       //To store end time in seconds
-
    struct timespec delay_time = {0, 50000000};  // delay for 50 msec, 20Hz
    struct timespec remaining_time;
    double residual;
    int rc, delay_cnt = 0;
 
-   static uint8_t divisor = 20 / captureFrequency;
+   static uint8_t divisor = SEQUENCER_FREQUENCY / captureFrequency;
 
    do
    {
@@ -129,14 +123,11 @@ void Sequencer::sequenceServices()
 
       } while ( ( residual > 0.0 ) && ( delay_cnt < 100 ) );
 
-      /* Calculate Start time */
+      // Calculate Start time
       clock_gettime( CLOCK_REALTIME, &start );
 
-      /* Store start time in seconds */
-      // start_time = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );
+      // Store start time in seconds
       startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );
-
-      // startTimes[ count ] = start_time;
 
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer start Time: %lf seconds\n", count, startTimes[ count ] );
 
@@ -144,20 +135,21 @@ void Sequencer::sequenceServices()
          printf( "Sequencer looping delay %d\n", delay_cnt );
 
       // Release each service at a sub-rate of the generic sequencer rate
-      // Servcie_1 = RT_MAX-1	@ 1 Hz
+      // Servcie_1 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
       if ( ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S1 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS1 );
       }
 
-      // Service_2 = RT_MAX-2	@ 1 Hz
+      // Servcie_2 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
       if ( ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S2 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS2 );
       }
-      // Service_3 = RT_MAX-3	@ 1 Hz
+
+      // Servcie_3 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
       if ( ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
@@ -171,7 +163,7 @@ void Sequencer::sequenceServices()
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", count, endTimes[ count ] );
 
       count++;  //Increment the sequencer count
-   } while ( !abortTest && ( count < requiredIterations ) );
+   } while ( count < requiredIterations );
 
    abortS1 = true;
    abortS2 = true;
