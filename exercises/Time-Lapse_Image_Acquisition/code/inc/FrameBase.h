@@ -30,7 +30,6 @@ protected:
    double deadline;
    unsigned long long count;
    uint32_t frameCount;
-   double diff_time;       //!< To store execution time for each iteration
    struct timespec start;  //!< To measure start time of the service
    struct timespec end;    //!< To measure end time of the service
 

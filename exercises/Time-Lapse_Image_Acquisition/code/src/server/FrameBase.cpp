@@ -13,7 +13,6 @@ FrameBase::FrameBase( const ThreadConfigData config ) :
     deadline( 0.0 ),
     count( 0 ),
     frameCount( 0 ),
-    diff_time( 0.0 ),
     start( {0, 0} ),
     end( {0, 0} )
 {
