@@ -5,17 +5,6 @@
 
 #include <string>
 
-// Thread CPU affinities. (negative value = no affinity specified)
-const int NUM_CPUS = 4;  // number of CPU's on the target machine
-
-const int CPU_MAIN      = 1;
-const int CPU_SEQUENCER = CPU_MAIN;
-const int CPU_COLLECTOR = 1;
-const int CPU_PROCESSOR = 1;
-const int CPU_RECEIVER  = 2;
-const int CPU_SENDER    = 2;
-const int CPU_LOGGER    = 2;
-
 extern int numCpus;
 extern int cpuMain;
 extern int cpuSequencer;
