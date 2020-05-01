@@ -3,7 +3,8 @@ SRCS_$(d) :=	server.cpp \
 					FrameCollector.cpp \
 					FrameProcessor.cpp \
 					Sequencer.cpp \
-					FrameSender.cpp
+					FrameSender.cpp \
+					cleanup.cpp
 
 SERVER_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 

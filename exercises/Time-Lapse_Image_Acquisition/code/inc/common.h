@@ -10,6 +10,7 @@
 #define SEMS1_NAME "/SEMS1"
 #define SEMS2_NAME "/SEMS2"
 #define SEMS3_NAME "/SEMS3"
+#define SEMS4_NAME "/SEMS4"
 
 static const uint32_t DEFAULT_PORT  = 8080;
 static const std::string LOCAL_HOST = "127.0.0.1";
