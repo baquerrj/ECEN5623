@@ -112,7 +112,7 @@ int main( int argc, char* argv[] )
 
    pthread_mutex_init( &ringLock, NULL );
    FrameCollector* fc          = new FrameCollector( 0 );
-   FrameProcessor* fp          = new FrameProcessor( false );
+   FrameProcessor* fp          = new FrameProcessor( );
    FrameSender* fs             = new FrameSender();
    Sequencer* sequencer        = new Sequencer( captureFrequency );
    pthread_t sequencerThreadId = sequencer->getThreadId();
