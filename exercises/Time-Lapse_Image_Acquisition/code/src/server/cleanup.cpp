@@ -49,15 +49,18 @@ void Cleanup::cleanupService( void )
    {
       if ( fs->isThreadAlive() and ( fs->getFrameCount() > 2000 ) )
       {
-         // start deleting if we have sent more than 2000 files
-         sprintf( &ppmName.front(), "test_%08d.ppm", numberDeleted );
-         if ( std::remove( ppmName.c_str() ) != 0 )
+         for ( uint8_t i = 0; i < 200; ++i )
          {
-            logging::WARN( logging::getErrnoString( "std::remove" ) );
-         }
-         else
-         {
-            numberDeleted++;
+            // start deleting if we have sent more than 2000 files
+            sprintf( &ppmName.front(), "test_%08d.ppm", numberDeleted );
+            if ( std::remove( ppmName.c_str() ) != 0 )
+            {
+               logging::WARN( logging::getErrnoString( "std::remove" ) );
+            }
+            else
+            {
+               numberDeleted++;
+            }
          }
       }
    }
