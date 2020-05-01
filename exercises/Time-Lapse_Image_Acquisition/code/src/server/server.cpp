@@ -30,7 +30,7 @@ sem_t* semS4;
 
 const char* host;
 utsname hostName;
-RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
+RingBuffer< V4l2::buffer_s > frameBuffer( 25 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
 logging::config_s config   = {logging::LogLevel::ERROR, "server.log"};
 

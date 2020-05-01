@@ -2,10 +2,10 @@
 #include <RingBuffer.h>
 #include <V4l2.h>
 #include <common.h>
+#include <configuration.h>
 #include <logging.h>
 #include <syslog.h>
 #include <thread.h>
-#include <configuration.h>
 
 extern pthread_mutex_t ringLock;
 
@@ -94,20 +94,20 @@ void FrameCollector::collectFrame()
       V4l2::buffer_s* buffer = NULL;
       if ( NULL != ( buffer = capture->readFrame() ) )
       {
+         pthread_mutex_lock( &ringLock );
          if ( !frameBuffer.isFull() )
          {
             clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
             buffer->frameNumber = frameCount;
             // logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer" );
-            pthread_mutex_lock( &ringLock );
             frameBuffer.enqueue( *buffer );
-            pthread_mutex_unlock( &ringLock );
             frameCount++;
          }
          else
          {
             logging::WARN( name + " ring buffer FULL in cycle " + std::to_string( count ), true );
          }
+         pthread_mutex_unlock( &ringLock );
       }
    }
    else
@@ -119,12 +119,12 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   executionTimes[ count ] = delta_t( &end, &start );
+   // executionTimes[ count ] = delta_t( &end, &start );
 
-   syslog( LOG_INFO, "%s Count: %lld   C Time: %lf ms",
+   syslog( LOG_INFO, "%s Release Count: %lld Frames Collected: %u",
            name.c_str(),
            count,
-           executionTimes[ count ] );
+           frameCount );
 
    // logging::DEBUG( "S1 Count: " + std::to_string( count ) +
    //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );

@@ -4,13 +4,14 @@
 #include <logging.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <syslog.h>
 #include <thread.h>
 #include <thread_utils.h>
-#include <unistd.h>
 #include <configuration.h>
 
 #define USEC_PER_MSEC ( 1000 )
+
 
 extern const char* host;
 
@@ -19,7 +20,7 @@ std::string ppmName( "test_xxxxxxxx.ppm" );
 using std::to_string;
 
 FrameSender::FrameSender() :
-    FrameBase( senderThreadConfig )
+   FrameBase( senderThreadConfig )
 {
    //  name = senderThreadConfig.threadName;
    executionTimes = new double[ FRAMES_TO_EXECUTE * 20 ]{};
@@ -56,7 +57,7 @@ FrameSender::FrameSender() :
    }
 
    client = new SocketClient();
-   if ( client == NULL )
+   if( client == NULL )
    {
       logging::ERROR( "Could not allocate memory for socket", true );
       exit( EXIT_FAILURE );
@@ -66,13 +67,28 @@ FrameSender::FrameSender() :
       ;
    }
    server->setSendFlags( MSG_DONTWAIT );
-   // logging::DEBUG( "Connection established", true );
+   logging::DEBUG( "Connection established", true );
    alive = true;
 }
 
 FrameSender::~FrameSender()
 {
    logging::INFO( "FrameSender::~FrameSender() entered", true );
+   if ( executionTimes )
+   {
+      delete executionTimes;
+      executionTimes = NULL;
+   }
+   if ( startTimes )
+   {
+      delete startTimes;
+      startTimes = NULL;
+   }
+   if ( endTimes )
+   {
+      delete endTimes;
+      endTimes = NULL;
+   }
    if ( server )
    {
       delete server;
@@ -82,6 +98,11 @@ FrameSender::~FrameSender()
    {
       delete client;
       client = NULL;
+   }
+   if ( thread )
+   {
+      delete thread;
+      thread = NULL;
    }
    logging::INFO( "FrameSender::~FrameSender() exiting", true );
 }
@@ -123,7 +144,7 @@ void FrameSender::sendPpm()
          file.read( sendBuffer, fsize );
          if ( file )
          {
-            // logging::DEBUG( ppmName + " read into memory", true );
+            // logging::DEBUG( ppmName + " read into memory" ;
          }
          else
          {
@@ -135,10 +156,6 @@ void FrameSender::sendPpm()
          if ( 0 > rc )
          {
             logging::WARN( logging::getErrnoString( "send failed" ), true );
-         }
-         else
-         {
-            syslog( LOG_INFO, "SENDER %u SUCCESSFUL %d bytes", frameCount, rc );
          }
 
          memset( &sendBuffer[ 0 ], 0, sizeof( sendBuffer ) );
@@ -153,14 +170,15 @@ void FrameSender::sendPpm()
       abortS3 = true;  // abort on next iteration
    }
 
+
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   executionTimes[ count ] = delta_t( &end, &start );
-   syslog( LOG_INFO, "%s Count: %lld   C Time: %lf ms",
+   // executionTimes[ count ] = delta_t( &end, &start );
+   syslog( LOG_INFO, "%s Release Count: %lld Frames Sent: %u",
            name.c_str(),
            count,
-           executionTimes[ count ] );
+           frameCount );
 
    // logging::DEBUG( name + " Count: " + std::to_string( count ) +
    //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
