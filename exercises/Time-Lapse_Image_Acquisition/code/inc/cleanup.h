@@ -13,7 +13,8 @@ public:
 
    void cleanupService();
    static void* execute( void* context );
-
+   bool isThreadAlive();
+   pthread_t getThreadId();
 private:
    CyclicThread* thread;
    FrameCollector* fc;

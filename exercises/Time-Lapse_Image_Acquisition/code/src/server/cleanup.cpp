@@ -1,10 +1,10 @@
 #include <FrameCollector.h>
 #include <FrameSender.h>
 #include <cleanup.h>
+#include <configuration.h>
 #include <logging.h>
 #include <thread.h>
 #include <thread_utils.h>
-#include <configuration.h>
 
 Cleanup::Cleanup( FrameCollector* collector, FrameSender* sender ) :
     fc( collector ),
@@ -47,7 +47,7 @@ void Cleanup::cleanupService( void )
 
    if ( fs )
    {
-      if ( fs->isThreadAlive() and (fs->getFrameCount() > 100 ) )
+      if ( fs->isThreadAlive() and ( fs->getFrameCount() > 2000 ) )
       {
          // start deleting if we have sent more than 2000 files
          sprintf( &ppmName.front(), "test_%08d.ppm", numberDeleted );
@@ -61,4 +61,14 @@ void Cleanup::cleanupService( void )
          }
       }
    }
+}
+
+bool Cleanup::isThreadAlive()
+{
+   return thread->isThreadAlive();
+}
+
+pthread_t Cleanup::getThreadId()
+{
+   return thread->getThreadId();
 }

@@ -12,19 +12,13 @@
 #define NSEC_PER_SEC ( 1000000000 )
 #define NSEC_PER_USEC ( 1000000 )
 
-#define EXTRA_CYCLES ( 5 )
+#define EXTRA_CYCLES ( 20 )
 
 Sequencer::Sequencer( uint8_t frequency ) :
     FrameBase( sequencerThreadConfig ),
     captureFrequency( frequency )
 {
-   uint32_t extraCycles = EXTRA_CYCLES;
-   if ( captureFrequency > 1 )
-   {
-      extraCycles = 30;
-   }
-
-   requiredIterations = ( ( FRAMES_TO_EXECUTE + extraCycles ) * SEQUENCER_FREQUENCY ) / captureFrequency;
+   requiredIterations = ( ( FRAMES_TO_EXECUTE + EXTRA_CYCLES ) * SEQUENCER_FREQUENCY ) / captureFrequency;
    executionTimes     = new double[ requiredIterations ]{};
    if ( executionTimes == NULL )
    {

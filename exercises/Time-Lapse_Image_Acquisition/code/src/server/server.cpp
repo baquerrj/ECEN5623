@@ -8,6 +8,7 @@
 #include <SocketServer.h>
 #include <V4l2.h>
 #include <cleanup.h>
+#include <fcntl.h>
 #include <logging.h>
 #include <signal.h>
 #include <stdio.h>
@@ -17,7 +18,6 @@
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 bool abortS1;
 bool abortS2;
@@ -36,8 +36,6 @@ uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
 logging::config_s config   = {logging::LogLevel::ERROR, "server.log"};
 
 pthread_mutex_t ringLock;
-
-bool usingCleanupThread = false;
 
 static void createSemaphoresAndMutexes()
 {
@@ -78,18 +76,15 @@ static void createSemaphoresAndMutexes()
          exit( -1 );
       }
    }
-   if ( usingCleanupThread )
+   semS4 = sem_open( SEMS4_NAME, O_CREAT | O_EXCL, 0644, 0 );
+   if ( semS4 == SEM_FAILED )
    {
+      sem_unlink( SEMS4_NAME );
       semS4 = sem_open( SEMS4_NAME, O_CREAT | O_EXCL, 0644, 0 );
       if ( semS4 == SEM_FAILED )
       {
-         sem_unlink( SEMS4_NAME );
-         semS4 = sem_open( SEMS4_NAME, O_CREAT | O_EXCL, 0644, 0 );
-         if ( semS4 == SEM_FAILED )
-         {
-            perror( "Failed to initialize S3 semaphore" );
-            exit( -1 );
-         }
+         perror( "Failed to initialize S3 semaphore" );
+         exit( -1 );
       }
    }
 }
@@ -133,25 +128,18 @@ int main( int argc, char* argv[] )
    double serviceDeadline   = 1 / (double)captureFrequency;
    double sequencerDeadline = 1 / (double)Sequencer::SEQUENCER_FREQUENCY;
 
-   usingCleanupThread = ( FRAMES_TO_EXECUTE > 2000 );
-   abortS4            = usingCleanupThread ? false : true;
-
    createSemaphoresAndMutexes();
 
-   FrameCollector* fc    = new FrameCollector( 0 );
-   FrameProcessor* fp    = new FrameProcessor();
-   FrameSender* fs       = new FrameSender();
-   Sequencer* sequencer  = new Sequencer( captureFrequency );
-   Cleanup* cleanService = nullptr;
-   if ( not abortS4 )
-   {
-      // don't schedule cleanup with not doing more than 2000 frames
-      cleanService = new Cleanup( fc, fs );
-   }
+   FrameCollector* fc          = new FrameCollector( 0 );
+   FrameProcessor* fp          = new FrameProcessor();
+   FrameSender* fs             = new FrameSender();
+   Sequencer* sequencer        = new Sequencer( captureFrequency );
+   Cleanup* cleaner            = new Cleanup( fc, fs );
    pthread_t sequencerThreadId = sequencer->getThreadId();
    pthread_t processorThreadId = fp->getThreadId();
    pthread_t collectorThreadId = fc->getThreadId();
    pthread_t senderThreadId    = fs->getThreadId();
+   pthread_t cleanerThreadId   = cleaner->getThreadId();
 
    fc->setDeadline( serviceDeadline );
    fp->setDeadline( serviceDeadline );
@@ -162,29 +150,18 @@ int main( int argc, char* argv[] )
    sequencer->jitterAnalysis();
    delete sequencer;
 
-   while ( !frameBuffer.isEmpty() )
-   {
-      sem_post( semS2 );
-   }
-
-   sem_post( semS1 );
-   abortS1 = true;
-   sem_post( semS2 );
-   abortS2 = true;
-   sem_post( semS3 );
-   abortS3 = true;
+   // sem_post( semS1 );
+   // abortS1 = true;
+   // sem_post( semS2 );
+   // abortS2 = true;
+   // sem_post( semS3 );
+   // abortS3 = true;
+   // sem_post( semS4 );
+   // abortS4 = true;
    pthread_join( senderThreadId, NULL );
    pthread_join( processorThreadId, NULL );
    pthread_join( collectorThreadId, NULL );
-
-   if ( not abortS4 and ( cleanService != nullptr ) )
-   {
-      sem_post( semS4 );
-      abortS4 = true;
-      delete cleanService;
-      sem_close( semS4 );
-      sem_unlink( SEMS4_NAME );
-   }
+   pthread_join( cleanerThreadId, NULL );
 
    fc->terminate();
 
@@ -194,13 +171,16 @@ int main( int argc, char* argv[] )
    delete fc;
    delete fp;
    delete fs;
+   delete cleaner;
    sem_close( semS1 );
    sem_close( semS2 );
    sem_close( semS3 );
+   sem_close( semS4 );
 
    sem_unlink( SEMS1_NAME );
    sem_unlink( SEMS2_NAME );
    sem_unlink( SEMS3_NAME );
+   sem_unlink( SEMS4_NAME );
 
    pthread_mutex_destroy( &ringLock );
 

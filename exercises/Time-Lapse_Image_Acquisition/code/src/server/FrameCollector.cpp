@@ -105,7 +105,7 @@ void FrameCollector::collectFrame()
          }
          else
          {
-            logging::WARN( name + " ring buffer FULL in cycle " + std::to_string( count ), true );
+            syslog( LOG_WARNING, "%s ring buffer FULL in cycle %lld", name.c_str(), count );
          }
          pthread_mutex_unlock( &ringLock );
       }
@@ -113,7 +113,7 @@ void FrameCollector::collectFrame()
    else
    {
       // logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
-      abortS1 = true;  // abort on next iteration
+      // abortS1 = true;  // abort on next iteration
    }
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service

@@ -112,14 +112,14 @@ void FrameProcessor::readFrame()
       }
       else
       {
-         logging::WARN( name + " ring buffer EMPTY in cycle " + std::to_string( count ), true );
+         syslog( LOG_WARNING, "%s ring buffer EMPTY in cycle %lld", name.c_str(), count );
       }
       pthread_mutex_unlock( &ringLock );
    }
    else
    {
       // logging::INFO( "FP Processed " + std::to_string( frameCount ) + " frames", true );
-      abortS2 = true;
+      // abortS2 = true;
    }
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
