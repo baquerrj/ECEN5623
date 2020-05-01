@@ -5,7 +5,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <thread_utils.h>
-
+#include <configuration.h>
 #include <cstring>
 #include <iostream>
 #include <string>
