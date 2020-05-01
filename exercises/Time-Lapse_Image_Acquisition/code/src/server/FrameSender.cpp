@@ -8,23 +8,11 @@
 #include <thread.h>
 #include <thread_utils.h>
 #include <unistd.h>
+#include <configuration.h>
 
 #define USEC_PER_MSEC ( 1000 )
 
-static const ProcessParams senderParams = {
-    cpuSender,  // CPU1
-    SCHED_FIFO,
-    98,  // highest priority
-    0};
-
-static const ThreadConfigData senderThreadConfig = {
-    true,
-    "SENDER",
-    senderParams};
-
 extern const char* host;
-extern bool abortS3;
-extern sem_t* semS3;
 
 std::string ppmName( "test_xxxxxxxx.ppm" );
 
@@ -78,7 +66,7 @@ FrameSender::FrameSender() :
       ;
    }
    server->setSendFlags( MSG_DONTWAIT );
-   logging::DEBUG( "Connection established", true );
+   // logging::DEBUG( "Connection established", true );
    alive = true;
 }
 
@@ -135,14 +123,14 @@ void FrameSender::sendPpm()
          file.read( sendBuffer, fsize );
          if ( file )
          {
-            logging::DEBUG( ppmName + " read into memory", true );
+            // logging::DEBUG( ppmName + " read into memory", true );
          }
          else
          {
             logging::WARN( "Could only read " + to_string( file.gcount() ), true );
          }
 
-         logging::DEBUG( "Sending " + to_string( fsize ) + " bytes", true );
+         // logging::DEBUG( "Sending " + to_string( fsize ) + " bytes", true );
          int rc = client->send( (void*)&sendBuffer, fsize );
          if ( 0 > rc )
          {
@@ -161,7 +149,7 @@ void FrameSender::sendPpm()
    }
    else
    {
-      logging::INFO( "SENDER: " + std::to_string( frameCount ) + " frames sent", true );
+      // logging::INFO( "SENDER: " + std::to_string( frameCount ) + " frames sent", true );
       abortS3 = true;  // abort on next iteration
    }
 
@@ -174,8 +162,8 @@ void FrameSender::sendPpm()
            count,
            executionTimes[ count ] );
 
-   logging::DEBUG( name + " Count: " + std::to_string( count ) +
-                   "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
+   // logging::DEBUG( name + " Count: " + std::to_string( count ) +
+   //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
 
    count++;
 }

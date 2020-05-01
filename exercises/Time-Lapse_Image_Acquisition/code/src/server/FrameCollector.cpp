@@ -5,20 +5,9 @@
 #include <logging.h>
 #include <syslog.h>
 #include <thread.h>
+#include <configuration.h>
 
 extern pthread_mutex_t ringLock;
-extern bool abortS1;
-extern sem_t* semS1;
-static const ProcessParams collectorParams = {
-    cpuCollector,
-    SCHED_FIFO,
-    98,
-    0};
-
-static const ThreadConfigData collectorThreadConfig = {
-    true,
-    "COLLECTOR",
-    collectorParams};
 
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
@@ -109,7 +98,7 @@ void FrameCollector::collectFrame()
          {
             clock_gettime( CLOCK_REALTIME, &( buffer->timestamp ) );
             buffer->frameNumber = frameCount;
-            logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer" );
+            // logging::DEBUG( "S1 Count: " + std::to_string( frameCount ) + " added image to buffer" );
             pthread_mutex_lock( &ringLock );
             frameBuffer.enqueue( *buffer );
             pthread_mutex_unlock( &ringLock );
@@ -123,7 +112,7 @@ void FrameCollector::collectFrame()
    }
    else
    {
-      logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
+      // logging::INFO( "FC Collected " + std::to_string( frameCount ) + " frames", true );
       abortS1 = true;  // abort on next iteration
    }
 
@@ -137,8 +126,8 @@ void FrameCollector::collectFrame()
            count,
            executionTimes[ count ] );
 
-   logging::DEBUG( "S1 Count: " + std::to_string( count ) +
-                   "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
+   // logging::DEBUG( "S1 Count: " + std::to_string( count ) +
+   //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
 
    count++;  //Increment the count of service S1u
 }
