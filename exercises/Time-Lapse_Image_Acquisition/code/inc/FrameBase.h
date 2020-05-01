@@ -21,7 +21,7 @@ public:
    virtual pthread_t getThreadId();
    virtual sem_t* getSemaphore();
    virtual void jitterAnalysis();
-
+   virtual uint32_t getFrameCount();
    virtual void setDeadline( double deadlineTime );
 protected:
    std::string name;
@@ -42,5 +42,6 @@ protected:
    CyclicThread* thread;
    uint32_t requiredIterations;
 };
+
 
 #endif  //__FRAME_BASE_H__

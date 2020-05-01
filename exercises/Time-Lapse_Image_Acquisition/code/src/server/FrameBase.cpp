@@ -75,6 +75,11 @@ sem_t* FrameBase::getSemaphore()
    return &sem;
 }
 
+uint32_t FrameBase::getFrameCount()
+{
+   return frameCount;
+}
+
 void FrameBase::jitterAnalysis()
 {
    double totalRuntime = 0;
