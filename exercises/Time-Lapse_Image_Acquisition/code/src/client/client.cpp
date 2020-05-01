@@ -1,3 +1,4 @@
+#include <FrameReceiver.h>
 #include <SocketBase.h>
 #include <SocketClient.h>
 #include <logging.h>
@@ -12,39 +13,8 @@
 #define USEC_PER_MSEC ( 1000 )
 
 const char* host;
-std::string ppmName( "test_xxxxxxxx.ppm" );
-
-bool abortSend = false;
 
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
-
-static void doSocket( void )
-{
-   SocketClient* receiver = new SocketClient( SocketBase::TCP_SOCKET );
-   receiver->setupSocket( std::string( host ), DEFAULT_PORT );
-
-   char buffer[ IMAGE_SIZE ];
-   uint32_t tag = 0;
-   while ( tag < FRAMES_TO_EXECUTE )
-   {
-      int valread = 0;
-      sprintf( &ppmName.front(), "test_%08d.ppm", tag );
-      std::ofstream file;
-      file.open( ppmName, std::ofstream::out );
-      logging::INFO( "Receiving image...", true );
-
-      valread = receiver->recvsel( (void*)buffer, sizeof( buffer ), abortSend );
-
-      logging::INFO( "Image " + std::to_string( tag ) + " Bytes Read " + std::to_string( valread ), true );
-
-      file.write( buffer, sizeof( buffer ) );
-
-      memset( &buffer[ 0 ], 0, sizeof( buffer ) );
-      file.close();
-      tag++;
-   }
-   delete receiver;
-}
 
 int main( int argc, char* argv[] )
 {
@@ -69,6 +39,15 @@ int main( int argc, char* argv[] )
    logging::configure( config );
    logging::INFO( "CLIENT CONNECT TO " + std::string( host ), true );
 
-   doSocket();
+   FrameReceiver* receiver = new FrameReceiver();
+
+   sleep(1);
+
+   receiver->setDeadline( 0 );
+
+   pthread_join( receiver->getThreadId(), NULL );
+
+   delete receiver;
+
    return 0;
 }

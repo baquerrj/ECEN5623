@@ -1,4 +1,5 @@
-SRCS_$(d) := client.cpp
+SRCS_$(d) := client.cpp \
+				 FrameReceiver.cpp
 
 CLIENT_OBJS_$(d) := $(patsubst %,$(OBJ_$(d))/%.o,$(basename $(SRCS_$(d))))
 
