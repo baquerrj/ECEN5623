@@ -21,14 +21,8 @@ public:
    void terminate();
    static void* execute( void* context );
 
-   sem_t* getSemaphore( void );
-
 private:
    void yuv2rgb( int y, int u, int v, unsigned char* r, unsigned char* g, unsigned char* b );
 };
 
-inline sem_t* FrameProcessor::getSemaphore( void )
-{
-   return &sem;
-}
 #endif  // __FRAME_PROCESSOR_H__
