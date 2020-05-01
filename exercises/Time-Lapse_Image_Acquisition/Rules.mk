@@ -32,6 +32,7 @@ clean_obj : clean_obj_clean
 
 .PHONY : remote
 remote :
+	rm -f remote.zip
 	zip -r remote.zip *
 	ssh -tt jetsonnano  "mkdir -p ~/Time-Lapse_Image_Acquisition"
 	scp remote.zip jetsonnano:~/
