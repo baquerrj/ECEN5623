@@ -1,5 +1,6 @@
 #include <Sequencer.h>
 #include <common.h>
+#include <configuration.h>
 #include <fcntl.h>
 #include <logging.h>
 #include <syslog.h>
@@ -12,29 +13,18 @@
 #define NSEC_PER_USEC ( 1000000 )
 
 #define EXTRA_CYCLES ( 5 )
-static const ProcessParams sequencerParams = {
-    cpuSequencer,
-    SCHED_FIFO,
-    99,
-    0};
-
-static const ThreadConfigData sequencerThreadConfig = {
-    true,
-    "SEQUENCER",
-    sequencerParams};
-
-extern bool abortS1;
-extern bool abortS2;
-extern bool abortS3;
-extern sem_t* semS1;
-extern sem_t* semS2;
-extern sem_t* semS3;
 
 Sequencer::Sequencer( uint8_t frequency ) :
     FrameBase( sequencerThreadConfig ),
     captureFrequency( frequency )
 {
-   requiredIterations = ( ( FRAMES_TO_EXECUTE + EXTRA_CYCLES ) * SEQUENCER_FREQUENCY ) / captureFrequency;
+   uint32_t extraCycles = EXTRA_CYCLES;
+   if ( captureFrequency > 1 )
+   {
+      extraCycles = 30;
+   }
+
+   requiredIterations = ( ( FRAMES_TO_EXECUTE + extraCycles ) * SEQUENCER_FREQUENCY ) / captureFrequency;
    executionTimes     = new double[ requiredIterations ]{};
    if ( executionTimes == NULL )
    {
@@ -135,6 +125,14 @@ void Sequencer::sequenceServices()
          syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS3 );
       }
+
+      // Servcie_3 = RT_MAX-1	@ CAPTURE_FREQUENCY (0.1Hz or 1Hz)
+      if ( ( count % ( divisor * 10 ) ) == 0 )
+      {
+         syslog( LOG_INFO, "S4 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
+         sem_post( semS4 );
+      }
+
       clock_gettime( CLOCK_REALTIME, &end );
       endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );
 
@@ -148,9 +146,11 @@ void Sequencer::sequenceServices()
    abortS1 = true;
    abortS2 = true;
    abortS3 = true;
+   abortS4 = true;
    sem_post( semS1 );
    sem_post( semS2 );
    sem_post( semS3 );
+   sem_post( semS4 );
    pthread_exit( (void*)0 );
 }
 
