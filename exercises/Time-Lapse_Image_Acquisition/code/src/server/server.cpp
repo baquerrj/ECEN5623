@@ -17,6 +17,7 @@
 #include <thread.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 bool abortS1;
 bool abortS2;
