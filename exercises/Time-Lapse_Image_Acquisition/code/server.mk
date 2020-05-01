@@ -1,5 +1,4 @@
 SRCS_$(d) :=	server.cpp \
-					FrameBase.cpp \
 					FrameCollector.cpp \
 					FrameProcessor.cpp \
 					Sequencer.cpp \
