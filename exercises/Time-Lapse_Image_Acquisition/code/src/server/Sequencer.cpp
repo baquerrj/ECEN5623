@@ -106,28 +106,28 @@ void Sequencer::sequenceServices()
 
       // Release each service at a sub-rate of the generic sequencer rate
       // Servcie_1 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
-      if ( ( count % divisor ) == 0 )
+      if ( not abortS1 and ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S1 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS1 );
       }
 
       // Servcie_2 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
-      if ( ( count % divisor ) == 0 )
+      if ( not abortS2 and ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S2 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS2 );
       }
 
       // Servcie_3 = RT_MAX-1	@ CAPTURE_FREQUENCY (1Hz or 10Hz)
-      if ( ( count % divisor ) == 0 )
+      if ( not abortS3 and ( count % divisor ) == 0 )
       {
          syslog( LOG_INFO, "S3 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS3 );
       }
 
-      // Servcie_3 = RT_MAX-1	@ CAPTURE_FREQUENCY (0.1Hz or 1Hz)
-      if ( ( count % ( divisor * 10 ) ) == 0 )
+      // Servcie_4 = RT_MIN	@ CAPTURE_FREQUENCY (0.1Hz or 1Hz)
+      if ( not abortS4 and ( count % ( divisor * 10 ) ) == 0 )
       {
          syslog( LOG_INFO, "S4 Release at %llu   Time: %lf seconds\n", count, startTimes[ count ] );
          sem_post( semS4 );
