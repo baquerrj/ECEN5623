@@ -29,7 +29,7 @@ const char* host;
 utsname hostName;
 RingBuffer< V4l2::buffer_s > frameBuffer( 20 );
 uint32_t FRAMES_TO_EXECUTE = DEFAULT_FRAMES;
-logging::config_s config   = {logging::LogLevel::INFO, "server.log"};
+logging::config_s config   = {logging::LogLevel::ERROR, "server.log"};
 
 pthread_mutex_t ringLock;
 
@@ -65,8 +65,6 @@ int main( int argc, char* argv[] )
       config.cutoff = logging::LogLevel::TRACE;
    }
 
-   printf( "config.cutoff = %u\n", (int)config.cutoff );
-   printf( "config.file = %s\n", config.file.c_str() );
    uname( &hostName );
    logging::configure( config );
    logging::INFO( "SERVER ON " + std::string( host ), true );

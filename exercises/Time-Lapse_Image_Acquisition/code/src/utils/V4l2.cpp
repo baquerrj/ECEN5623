@@ -243,7 +243,6 @@ void V4l2::initDevice()
 
    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-   printf( "FORCING FORMAT\n" );
    fmt.fmt.pix.width  = HRES;
    fmt.fmt.pix.height = VRES;
 
