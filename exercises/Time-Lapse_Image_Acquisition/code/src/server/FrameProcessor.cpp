@@ -8,8 +8,33 @@
 #include <syslog.h>
 #include <thread.h>
 #include <unistd.h>
+#include <configuration.h>
 
 #include <fstream>
+
+const uint8_t TIME_FMT = strlen( "2012-12-31 12:59:59.123456789" ) + 1;
+char timestr[ TIME_FMT ];
+
+static int timespec2str( char* buf, int8_t len, struct timespec* ts )
+{
+   int8_t ret;
+   struct tm t;
+
+   tzset();
+   if ( localtime_r( &( ts->tv_sec ), &t ) == NULL )
+      return 1;
+
+   ret = strftime( buf, len, "%F %T", &t );
+   if ( ret == 0 )
+      return 2;
+   len -= ret - 1;
+
+   ret = snprintf( &buf[ strlen( buf ) ], len, ".%09ld", ts->tv_nsec );
+   if ( ret >= len )
+      return 3;
+
+   return 0;
+}
 
 extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
@@ -19,23 +44,17 @@ extern sem_t* semS2;
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 extern utsname hostName;
-
-static const ProcessParams processorParams = {
-    cpuProcessor,
-    SCHED_FIFO,
-    98,
-    0};
-
-static const ThreadConfigData processorThreadConfig = {
-    true,
-    "PROCESSOR",
-    processorParams};
+std::string uname_a;
 
 FrameProcessor::FrameProcessor() :
     FrameBase( processorThreadConfig )
 {
    // name = processorThreadConfig.threadName;
-
+   uname_a = std::string( hostName.sysname ) + " " +
+             std::string( hostName.nodename ) + " " +
+             std::string( hostName.release ) + " " +
+             std::string( hostName.version ) + " " +
+             std::string( hostName.machine );
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -105,7 +124,7 @@ void FrameProcessor::readFrame()
    }
    else
    {
-      logging::INFO( "FP Processed " + std::to_string( frameCount ) + " frames", true );
+      // logging::INFO( "FP Processed " + std::to_string( frameCount ) + " frames", true );
       abortS2 = true;
    }
 
@@ -119,8 +138,8 @@ void FrameProcessor::readFrame()
            count,
            executionTimes[ count ] );
 
-   logging::DEBUG( name + " Count: " + std::to_string( count ) +
-                   "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
+   // logging::DEBUG( name + " Count: " + std::to_string( count ) +
+   //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
    count++;
    return;
 }
@@ -187,12 +206,14 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
    std::ofstream file;
    file.open( ppmName, std::ofstream::out | std::ofstream::binary );
 
+   timespec2str( timestr, sizeof( timestr ), time );
    std::string ppmHeader;
    ppmHeader.reserve( 200 );
-   ppmHeader.append( "P6\n# " +
-                     std::to_string( (int)time->tv_sec ) + " sec " +
-                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n# " +
-                     hostName.version + " " + hostName.nodename + "\n" +
+   ppmHeader.append( std::string( "P6\n# " ) +
+                     timestr + "\n# " +
+                     // std::to_string( (int)time->tv_sec ) + " sec " +
+                     // std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n# " +
+                     uname_a + "\n" +
                      "640 480\n255\n" );
    ppmHeader.resize( 200 );
    file << ppmHeader;
