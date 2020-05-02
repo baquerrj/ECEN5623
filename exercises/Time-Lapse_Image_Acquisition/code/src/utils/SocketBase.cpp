@@ -280,7 +280,7 @@ int32_t SocketBase::send( const void *p_data, const int32_t &numBytesToSend, con
             // An error occurred.  Capture the errno value and return.
             // User must know to check the errno value.
             myErrno = errno;
-            break;
+            return retVal;
          }
 
          bytesProcessed += retVal;

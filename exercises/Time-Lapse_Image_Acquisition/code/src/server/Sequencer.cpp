@@ -130,7 +130,7 @@ void Sequencer::sequenceServices()
       clock_gettime( CLOCK_REALTIME, &end );
       endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );
 
-      executionTimes[ count ] = delta_t( &end, &start );
+      // executionTimes[ count ] = delta_t( &end, &start );
 
       syslog( LOG_INFO, "SEQ Count: %llu   Sequencer end Time: %lf seconds\n", count, endTimes[ count ] );
 

@@ -12,23 +12,16 @@
 
 #include <fstream>
 
-extern unsigned char bigbuffer[ ( 1280 * 960 ) ];
+unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
 extern pthread_mutex_t ringLock;
 extern RingBuffer< V4l2::buffer_s > frameBuffer;
 
 extern utsname hostName;
-std::string uname_a;
 
 FrameProcessor::FrameProcessor() :
     FrameBase( processorThreadConfig )
 {
-   // name = processorThreadConfig.threadName;
-   uname_a = std::string( hostName.sysname ) + " " +
-             std::string( hostName.nodename ) + " " +
-             std::string( hostName.release ) + " " +
-             std::string( hostName.version ) + " " +
-             std::string( hostName.machine );
    if ( 0 > sem_init( &sem, 0, 0 ) )
    {
       perror( "FC sem_init failed" );
@@ -103,10 +96,11 @@ void FrameProcessor::readFrame()
 
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      pthread_mutex_lock( &ringLock );
       if ( !frameBuffer.isEmpty() )
       {
+         pthread_mutex_lock( &ringLock );
          V4l2::buffer_s img = frameBuffer.dequeue();
+         pthread_mutex_unlock( &ringLock );
          processImage( &img );
          frameCount++;
       }
@@ -114,26 +108,18 @@ void FrameProcessor::readFrame()
       {
          syslog( LOG_WARNING, "%s ring buffer EMPTY in cycle %lld", name.c_str(), count );
       }
-      pthread_mutex_unlock( &ringLock );
-   }
-   else
-   {
-      // logging::INFO( "FP Processed " + std::to_string( frameCount ) + " frames", true );
-      // abortS2 = true;
    }
 
    clock_gettime( CLOCK_REALTIME, &end );                                                          //Get end time of the service
    endTimes[ count ] = ( (double)end.tv_sec + (double)( ( end.tv_nsec ) / (double)1000000000 ) );  //Store end time in seconds
 
-   // executionTimes[ count ] = delta_t( &end, &start );
+   executionTimes[ count ] = delta_t( &end, &start );
 
    syslog( LOG_INFO, "%s Release Count: %lld Frames Processed: %u",
            name.c_str(),
            count,
            frameCount );
 
-   // logging::DEBUG( name + " Count: " + std::to_string( count ) +
-   //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
    count++;
    return;
 }
@@ -204,8 +190,9 @@ void FrameProcessor::dumpImage( const void* p, int size, unsigned int tag, struc
    ppmHeader.reserve( 200 );
    ppmHeader.append( "P6\n# " +
                      std::to_string( (int)time->tv_sec ) + " sec " +
-                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec \n# " +
-                     uname_a + "\n" +
+                     std::to_string( (int)( ( time->tv_nsec ) / 1000000 ) ) + " msec " +
+                     hostName.sysname + " " + hostName.nodename + " " +
+                     hostName.release + " " + hostName.version + " " + hostName.machine + "\n" +
                      "640 480\n255\n" );
    ppmHeader.resize( 200 );
    file << ppmHeader;

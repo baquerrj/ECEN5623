@@ -1,10 +1,10 @@
 #include <FrameReceiver.h>
 #include <SocketClient.h>
-#include <thread.h>
-#include <thread_utils.h>
 #include <common.h>
 #include <logging.h>
 #include <syslog.h>
+#include <thread.h>
+#include <thread_utils.h>
 
 static const ProcessParams receiverParams = {
     cpuMain,  // CPU1
@@ -108,25 +108,26 @@ void FrameReceiver::receive()
       return;
    }
 
+   static std::string remoteHost = receiver->remoteHost();
+   static int32_t remotePort     = receiver->remotePort();
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      int rc = 0;
+      int valread          = 0;
+      int total_image_size = 0;
       sprintf( &ppmName.front(), "test_%08d.ppm", frameCount );
-      std::ofstream file;
-      file.open( ppmName, std::ofstream::out | std::ofstream::binary );
-      // logging::INFO( "Receiving image...", true );
+      FILE* fp = fopen( ppmName.c_str(), "w" );
+      do
+      {
+         // logging::INFO( "Receiving image...", true );
+         valread = receiver->receive( (void*)receiveBuffer, IMAGE_SIZE, &remoteHost, &remotePort );
+         // logging::INFO( "Image " + std::to_string( frameCount ) + " Bytes Read " + std::to_string( valread ), true );
+         total_image_size += valread;
 
-      rc = receiver->recvsel( (void*)&receiveBuffer, sizeof( receiveBuffer ), abortSend );
-
-      // logging::INFO( "Image " + std::to_string( frameCount ) + " Bytes Read " + std::to_string( rc ), true );
-
-      file.write( receiveBuffer, sizeof( receiveBuffer ) );
-
-      memset( &receiveBuffer[ 0 ], 0, sizeof( receiveBuffer ) );
-      file.flush();
-      file.close();
+         int write_size = fwrite( receiveBuffer, 1, valread, fp );
+      } while ( total_image_size < IMAGE_SIZE );
+      fclose( fp );
       frameCount++;
    }
 

@@ -27,7 +27,7 @@ public:
       uint32_t frameNumber;
       struct timespec timestamp;
    };
-   static const uint32_t BUFFER_COUNT = 4;
+   static const uint32_t BUFFER_COUNT = 6;
 
    //! Public Driver Functions
 public:
@@ -59,7 +59,6 @@ public:
    static int8_t xioctl( int8_t fh, uint32_t request, void* arg );
 
    //! Returns formatted string containing errno description
-   //! @todo remove this and use logging::Logger::getErrnoString() instead
    std::string getErrnoString( const std::string s );
 
 protected:

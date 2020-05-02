@@ -11,8 +11,8 @@
 #include <time.h>
 #include <unistd.h>
 
-unsigned int framecnt = 0;
-unsigned char bigbuffer[ ( 1280 * 960 ) ];
+// unsigned int framecnt = 0;
+// unsigned char bigbuffer[ ( 1280 * 960 ) ];
 
 #define CLEAR( x ) memset( &( x ), 0, sizeof( x ) )
 

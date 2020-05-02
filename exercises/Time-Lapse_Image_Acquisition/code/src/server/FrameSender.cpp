@@ -65,7 +65,7 @@ FrameSender::FrameSender() :
    {
       ;
    }
-   server->setSendFlags( MSG_DONTWAIT );
+   // client->setSendFlags( MSG_DONTWAIT );
    logging::DEBUG( "Connection established", true );
    alive = true;
 }
@@ -146,13 +146,19 @@ void FrameSender::sendPpm()
             int rc = client->send( (void*)&sendBuffer, fsize );
             if ( 0 > rc )
             {
-               logging::WARN( logging::getErrnoString( "send failed" ), true );
+               // looging::WARN( logging::getErrnoString( "send failed" ), true );
+               if ( ( client->getErrno() == EAGAIN ) or ( client->getErrno() == EWOULDBLOCK ) )
+               {
+                  syslog( LOG_WARNING, "%s EAGAIN when sending", name.c_str() );
+               }
+            }
+            else
+            {
+               frameCount++;
             }
 
             memset( &sendBuffer[ 0 ], 0, sizeof( sendBuffer ) );
-
             file.close();
-            frameCount++;
          }
          else
          {
@@ -178,6 +184,5 @@ void FrameSender::sendPpm()
 
    // logging::DEBUG( name + " Count: " + std::to_string( count ) +
    //                "   C Time: " + std::to_string( executionTimes[ count ] ) + " ms" );
-
    count++;
 }
