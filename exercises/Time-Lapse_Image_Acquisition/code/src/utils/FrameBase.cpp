@@ -68,7 +68,6 @@ void FrameBase::jitterAnalysis()
       file << "Count, Start Time (s), End Time (s), Execution Time (ms), Jitter (ms)" << std::endl;
       for ( uint32_t i = 0; i < count; ++i )
       {
-         executionTimes[ i ] = endTimes[ i ] - startTimes[ i ];
          if ( executionTimes[ i ] > wcet )
          {
             wcet = executionTimes[ i ];

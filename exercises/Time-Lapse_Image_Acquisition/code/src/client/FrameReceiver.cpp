@@ -114,19 +114,17 @@ void FrameReceiver::receive()
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
-      int valread          = 0;
-      int total_image_size = 0;
+      int rc             = 0;
+      int bytesProcessed = 0;
       sprintf( &ppmName.front(), "test_%08d.ppm", frameCount );
       FILE* fp = fopen( ppmName.c_str(), "w" );
       do
       {
-         // logging::INFO( "Receiving image...", true );
-         valread = receiver->receive( (void*)receiveBuffer, IMAGE_SIZE, &remoteHost, &remotePort );
-         // logging::INFO( "Image " + std::to_string( frameCount ) + " Bytes Read " + std::to_string( valread ), true );
-         total_image_size += valread;
+         rc = receiver->receive( (void*)receiveBuffer, IMAGE_SIZE, &remoteHost, &remotePort );
+         bytesProcessed += rc;
 
-         int write_size = fwrite( receiveBuffer, 1, valread, fp );
-      } while ( total_image_size < IMAGE_SIZE );
+         fwrite( receiveBuffer, 1, rc, fp );
+      } while ( bytesProcessed < IMAGE_SIZE );
       fclose( fp );
       frameCount++;
    }

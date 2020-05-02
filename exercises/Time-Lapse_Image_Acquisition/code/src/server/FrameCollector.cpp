@@ -88,12 +88,6 @@ void FrameCollector::collectFrame()
    clock_gettime( CLOCK_REALTIME, &start );
    startTimes[ count ] = ( (double)start.tv_sec + (double)( ( start.tv_nsec ) / (double)1000000000 ) );  //Store start time in seconds
 
-   struct timespec read_delay;
-   struct timespec time_error;
-
-   read_delay.tv_sec  = 0;
-   read_delay.tv_nsec = 30000;
-
    if ( frameCount < FRAMES_TO_EXECUTE )
    {
       V4l2::buffer_s* buffer = NULL;
