@@ -9,6 +9,8 @@ In addition, I have chosen the following “target” and “stretch” goals to
 * Continuous download of frames over Ethernet so that you can run indefinitely and never run out of space on your flash file system which should maintain only the last 2000 frame (target goal #2).
 * Run at a higher frame rate of 10 Hz with continuous download, this time for 9 minutes, which will produce up to 6000 frames (about 6GB uncompressed for 640x480) and repeat the jitter and accumulated latency verification at this higher rate (stretch goal #1).
 
+#### Verification Videos
+[Time-Lapse Acquisition Videos](./videos)
 #### Requirements
 1. The name of the platform the (server) application is running on shall be embedded in the PPM header of every frame as a comment, e.g. the output of `uname -a`.
 2. A timestamp shall be embedded in the PPM header of every frame as a comment.
